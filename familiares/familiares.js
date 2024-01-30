@@ -129,27 +129,30 @@ const MostrarParentesco = async () => {
 
 
 
-const CrearHeader = (data) => {
-    try{
-        const arrayKeys = Object.keys(data.data[0]);
-        arrayKeys.push("Acciones"); // Agregar "Acciones" al final del array
-        const header = document.createElement("thead");
-        const rowHead = document.createElement("tr");
-      
-        arrayKeys.forEach((dato) => {
+const CrearHeader = () => {
+  try {
+      // Campos deseados
+      const campos = ["Nombre", "Fecha de nacimiento", "Parentesco", "Acciones"];
+
+      // Crear el encabezado
+      const header = document.createElement("thead");
+      const rowHead = document.createElement("tr");
+
+      campos.forEach((campo) => {
           const headCell = document.createElement("th");
-          headCell.textContent = dato;
+          headCell.textContent = campo;
           rowHead.appendChild(headCell);
-        });
-      
-        header.appendChild(rowHead);
-        tabla.appendChild(header);
-        contenedorTabla.appendChild(tabla);
+      });
 
-    }catch(error){
+      header.appendChild(rowHead);
+      tabla.appendChild(header);
+      contenedorTabla.appendChild(tabla);
 
-    }
+  } catch (error) {
+      console.error("Error al crear el encabezado:", error);
+  }
 }
+
 
 const CrearFilas = (data) => {
 
@@ -160,12 +163,9 @@ const CrearFilas = (data) => {
         
           const filasDatos = document.createElement("tr");
           filasDatos.innerHTML = `
-            <td>${fila.idFamiliar}</td>
             <td>${fila.nombre}</td>
             <td>${FormatearFechaLatina(fila.fechaNacimiento)}</td>
             <td> ${fila.parentesco}</td>
-            <td>${fila.cuiEmpleado}</td>
-            <td>${fila.estado}</td>
             <td>
 
             <button class="btn-editar btn btn-warning" onclick="SetValueUpdate('${fila.idFamiliar}', '${fila.nombre}')" >

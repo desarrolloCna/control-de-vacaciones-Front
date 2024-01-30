@@ -24,6 +24,7 @@ const extencionTelefono   = document.getElementById("extencionTelefono");
 const codigoImpresora     = document.getElementById("codigoImpresora");
 const correoInstitucional = document.getElementById("correoInstitucional");
 const cuentaBancariaCHN   = document.getElementById("cuentaBancariaCHN");
+const puestoSelect        = document.getElementById("puestoSelect");
 
 
 
@@ -35,6 +36,7 @@ const URL_ComunidadesLinguisticas = "http://localhost:3000/api/comunidadesLingui
 const URL_discapacidades          = "http://localhost:3000/api/discapacidadesList";
 const URL_nivelEducativo          = "http://localhost:3000/api/educacion";
 const URL_pueblosP                = "http://localhost:3000/api/pueblosList";
+const URL_puestosL                = "http://localhost:3000/api/puestos";
 
 
 //Catalogos -- inicio
@@ -68,6 +70,15 @@ const GetNivelEducativo = async () => {
 const GetPueblosP = async () => {
   try{
       const data = await axios.get(URL_pueblosP);
+      return data.data;    
+  }catch(error){
+      throw JSON.parse(error);
+  }
+}
+
+const GetPuestos = async () => {
+  try{
+      const data = await axios.get(URL_puestosL);
       return data.data;    
   }catch(error){
       throw JSON.parse(error);
@@ -273,11 +284,31 @@ const MostrarPueblos = async () => {
       pueblosSelect.innerHTML = '';
 
       // Recorre los departamentos y crea una opción para cada uno
-      data.pubelosList.forEach((pueblo) => {
+      data.pueblosList.forEach((pueblo) => {
           const option = document.createElement("option");
           option.value = pueblo.idPuebloPertenencia;
           option.textContent = pueblo.tipoPueblo;
           pueblosSelect.appendChild(option);
+      });
+
+  } catch (error) {
+      console.log(error)
+  }
+}
+
+
+const MostrarPuestos = async () => {
+  try {
+      const data = await GetPuestos();
+      // Limpia las opciones existentes en el select
+      puestoSelect.innerHTML = '';
+
+      // Recorre los departamentos y crea una opción para cada uno
+      data.puestosL.forEach((puestos) => {
+          const option = document.createElement("option");
+          option.value = puestos.idPuesto;
+          option.textContent = puestos.descripcion;
+          puestoSelect.appendChild(option);
       });
 
   } catch (error) {
@@ -314,5 +345,6 @@ const limpiarDatos = () => {
     await MostrarDiscapacidades();
     await MostrarNivelEducativo();
     await MostrarPueblos();
+    await MostrarPuestos();
   });
   

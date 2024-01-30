@@ -171,15 +171,23 @@
             </div>
     
             <!-- Nuevo dropdown para el puesto -->
-            <div class="form-group">
-                <label for="puesto">Puesto</label>
-                <select class="form-control" id="puesto" name="puesto">
-                    <!-- Opciones para el puesto -->
-                    <option value="1">Analista Programador</option>
-                    <option value="2">Ingeneiero en sistemas</option>
-                    <!-- Agrega más opciones según sea necesario -->
-                </select>
+            <div class="form-row">
+
+                <div class="form-group col-md-6">
+                    <label for="puestoSelect">Puesto</label>
+                    <select class="form-control" id="puestoSelect" name="puestoSelect">
+                        <!-- Opciones para la discapacidad se agregan dinamincamente-->
+                    </select>
+                </div>
+
+
+                <div class="form-group col-md-6">
+                    <label for="discapacidad">Sueldo</label>
+                    <input type="number" class="form-control" id="sueldo" name="sueldo" required>
+                </div>
+
             </div>
+
     
             <!-- Nuevos dropdowns para datos adicionales -->
             <div class="form-row">
