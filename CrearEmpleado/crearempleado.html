@@ -173,15 +173,23 @@
             <!-- Nuevo dropdown para el puesto -->
             <div class="form-row">
 
-                <div class="form-group col-md-6">
+                <div class="form-group col-md-4">
                     <label for="puestoSelect">Puesto</label>
                     <select class="form-control" id="puestoSelect" name="puestoSelect">
-                        <!-- Opciones para la discapacidad se agregan dinamincamente-->
+                        <!-- Opciones para el puesto del empleado-->
                     </select>
                 </div>
 
 
-                <div class="form-group col-md-6">
+                <div class="form-group col-md-4">
+                    <label for="renglonSelect">Renglon</label>
+                    <select class="form-control" id="renglonSelect" name="renglonSelect">
+                        <!-- Opciones para el reglon al que pertenece el cliente-->
+                    </select>
+                </div>
+
+
+                <div class="form-group col-md-4">
                     <label for="discapacidad">Sueldo</label>
                     <input type="number" class="form-control" id="sueldo" name="sueldo" required>
                 </div>
@@ -190,34 +198,36 @@
 
     
             <!-- Nuevos dropdowns para datos adicionales -->
+            <br>
             <div class="form-row">
-                <div class="form-group col-md-4">
+                <div class="form-group col-md-3">
                     <label for="comunidadLinguistica">Comunidad Lingüística</label>
                     <select class="form-control" id="comunidadLinguistica" name="comunidadLinguistica">
                         <!-- Opciones para la comunidad lingüística se agrega dinamicamente-->
                     </select>
                 </div>
     
-                <div class="form-group col-md-4">
+                <div class="form-group col-md-3">
                     <label for="discapacidad">Discapacidad</label>
                     <select class="form-control" id="discapacidad" name="discapacidad">
                         <!-- Opciones para la discapacidad se agregan dinamincamente-->
                     </select>
                 </div>
-    
-                <div class="form-group col-md-4">
+
+                <div class="form-group col-md-3">
+                    <label for="puebloPerteneciente">Pueblo perteneciente</label>
+                    <select class="form-control" id="puebloPerteneciente" name="puebloPerteneciente">
+                        <!-- Opciones para el nivel educativo se agregan dinamicamente -->
+                    </select>
+                </div>
+
+                <div class="form-group col-md-3">
                     <label for="nivelEducativo">Nivel Educativo</label>
                     <select class="form-control" id="nivelEducativo" name="nivelEducativo">
                         <!-- Opciones para el nivel educativo se agregan dinamicamente -->
                     </select>
                 </div>
-            </div>
-    
-            <div class="form-group">
-                <label for="puebloPerteneciente">Pueblo Perteneciente</label>
-                <select class="form-control" id="puebloPerteneciente" name="puebloPerteneciente">
-                    <!-- Opciones para el pueblo perteneciente se agregan dinamicamente-->
-                </select>
+
             </div>
     
         </div>

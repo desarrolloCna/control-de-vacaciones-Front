@@ -25,6 +25,8 @@ const codigoImpresora     = document.getElementById("codigoImpresora");
 const correoInstitucional = document.getElementById("correoInstitucional");
 const cuentaBancariaCHN   = document.getElementById("cuentaBancariaCHN");
 const puestoSelect        = document.getElementById("puestoSelect");
+const renglonSelect       = document.getElementById("renglonSelect");
+const sueldo              = document.getElementById("sueldo");
 
 
 
@@ -37,6 +39,7 @@ const URL_discapacidades          = "http://localhost:3000/api/discapacidadesLis
 const URL_nivelEducativo          = "http://localhost:3000/api/educacion";
 const URL_pueblosP                = "http://localhost:3000/api/pueblosList";
 const URL_puestosL                = "http://localhost:3000/api/puestos";
+const URL_renglonesLista          = "http://localhost:3000/api/renglones";
 
 
 //Catalogos -- inicio
@@ -84,6 +87,15 @@ const GetPuestos = async () => {
       throw JSON.parse(error);
   }
 }
+
+const GetRenglones = async () => {
+    try{
+        const data = await axios.get(URL_renglonesLista);
+        return data.data;    
+    }catch(error){
+        throw JSON.parse(error);
+    }
+  }
 //Catalogos -- Fin
 
 const SaveEmpleado = async (
@@ -106,6 +118,9 @@ const SaveEmpleado = async (
     actualizacionOGC,
     extencionTelefono,
     codigoImpresora,
+    idPuesto,
+    idRenglon,
+    sueldo,
     idNivelEducativo,
     idPubelo, 
     idComunidadLinguistica, 
@@ -134,6 +149,9 @@ const SaveEmpleado = async (
             actualizacionOGC,
             extencionTelefono,
             codigoImpresora,
+            idPuesto,
+            idRenglon,
+            sueldo,
             idNivelEducativo,
             idPubelo, 
             idComunidadLinguistica, 
@@ -155,6 +173,7 @@ const SaveEmpleado = async (
 
 //Obtener datos del DOM y mandar a llamar la ejecuion del endpoint
 const EjcuatarGuardado = async () => {
+
     const prmCui                 = cui.value;
     const prmPrimerNombre        = primerNombre.value;
     const prmSegundoNombre       = segundoNombre.value;
@@ -174,6 +193,9 @@ const EjcuatarGuardado = async () => {
     const prmActualizacionOGC    = actualizacionOGC.value;
     const prmExtencionTelefono   = extencionTelefono.value;
     const prmCodigoImpresora     = codigoImpresora.value;
+    const prmPuesto              = puestoSelect.value;
+    const prmRenglon             = renglonSelect.value;
+    const prmSueldo              = parseFloat(sueldo.value, 2);
     const prmIdNivelEducativo    = educacionSelect.value;
     const prmIdPubelo            = pueblosSelect.value;
     const prmIdComunidadLinguistica = ComunidadSelect.value; 
@@ -201,6 +223,9 @@ const EjcuatarGuardado = async () => {
             prmActualizacionOGC,
             prmExtencionTelefono,
             prmCodigoImpresora,
+            prmPuesto,
+            prmRenglon,
+            prmSueldo,
             prmIdNivelEducativo,
             prmIdPubelo,
             prmIdComunidadLinguistica,
@@ -316,6 +341,25 @@ const MostrarPuestos = async () => {
   }
 }
 
+const MostrarRenglones = async () => {
+    try {
+        const data = await GetRenglones();
+        // Limpia las opciones existentes en el select
+        renglonSelect.innerHTML = '';
+  
+        // Recorre los departamentos y crea una opción para cada uno
+        data.renglonesLista.forEach((renglones) => {
+            const option = document.createElement("option");
+            option.value = renglones.idRenglon;
+            option.textContent = renglones.renglon + " - "  + renglones.descripcion;
+            renglonSelect.appendChild(option);
+        });
+  
+    } catch (error) {
+        console.log(error)
+    }
+  }
+
 
 const limpiarDatos = () => {
     cui.value = '';
@@ -337,6 +381,7 @@ const limpiarDatos = () => {
     actualizacionOGC.value = '';
     extencionTelefono.value = '';
     codigoImpresora.value = '';
+    sueldo.value = '';
   };
   
   
@@ -346,5 +391,6 @@ const limpiarDatos = () => {
     await MostrarNivelEducativo();
     await MostrarPueblos();
     await MostrarPuestos();
+    await MostrarRenglones();
   });
   
