@@ -40,7 +40,7 @@ export function useInfoFamiliares() {
       };
   
       fetchFamiliares();
-    }, [error]);
+    }, []);
   
     return { familiares, error, loading };
   }

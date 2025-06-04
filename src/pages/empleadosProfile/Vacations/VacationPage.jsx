@@ -1,25 +1,6 @@
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  IconButton,
-  Typography,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Alert,
-  Chip,
-  Modal,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  CircularProgress,
-} from "@mui/material";
+import { Box, IconButton, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+        Paper, Alert, Chip, Modal, Select, MenuItem, FormControl, InputLabel, CircularProgress, } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 import CloseIcon from "@mui/icons-material/Close";
 import Sidebar from "../../../components/EmpleadosPage/SideBar/SideBar";

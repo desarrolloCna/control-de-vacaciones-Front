@@ -40,7 +40,7 @@ export function usePertenenciaSoli() {
       };
   
       fetchDatosSoli();
-    }, [errorSL]);
+    }, []);
   
     return { datosSoli, errorSL, loadingSL };
   }

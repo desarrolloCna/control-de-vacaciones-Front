@@ -33,7 +33,7 @@ export function useGetSuspensiones() {
     };
 
     fetchSuspensiones();
-  }, [error]);
+  }, []);
 
   return { suspensiones, error, loading };
 }

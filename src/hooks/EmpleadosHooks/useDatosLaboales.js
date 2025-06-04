@@ -41,7 +41,7 @@ export function useDatosLaborales() {
       };
   
       fetchDatosLaborales();
-    }, [error]);
+    }, []);
   
     return { datosLaborales, error, loading };
   }

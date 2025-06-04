@@ -40,7 +40,7 @@ export function useDatoMedicos() {
       };
   
       fetchDatosLaborales();
-    }, [errorDM]);
+    }, []);
   
     return { datosMedicos, errorDM, loadingDM };
   }

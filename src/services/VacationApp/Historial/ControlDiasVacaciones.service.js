@@ -23,3 +23,12 @@ export const obtenerHistorialService = async (idEmpleado) => {
     throw error;
   }
 };
+
+export const debitarDiasService = async (dataDebitarDias) => {
+  try {
+    const response = await api.post(`${endpointsPost.POST_DEBITARDIAS}`,dataDebitarDias);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
