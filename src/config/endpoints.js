@@ -18,7 +18,8 @@ const endpointsPost = {
     login: '/login',
     POST_INGRESA_SOLICITUD: '/ingresarSolicitudVacaciones',
     POST_ACREDITARDIAS: '/acreditarDias',
-    POST_INGRESARSUSPENSIONES: '/ingresarSuspension'
+    POST_INGRESARSUSPENSIONES: '/ingresarSuspension',
+    POST_DEBITARDIAS: '/debitarDias',
 };
 
 export { endpoints, endpointsPost };

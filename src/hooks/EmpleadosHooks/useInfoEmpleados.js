@@ -39,7 +39,7 @@ export function useInfoEmpleados() {
     };
 
     fetchInformacionPersonal();
-  }, [error]);
+  }, []);
 
   return { informacionPersonal, error, loading };
 }
@@ -82,7 +82,7 @@ export function useInfoDpi() {
     };
 
     fetchInformacionDpi();
-  }, [errorDpi]);
+  }, []);
 
   return { infoDpi, errorDpi, loadingDpi };
 }

@@ -40,7 +40,7 @@ export function useNivelEducativo() {
       };
   
       fetchNivelEducativo();
-    }, [error]);
+    }, []);
   
     return { nivelEducativo, error, loading };
   }
