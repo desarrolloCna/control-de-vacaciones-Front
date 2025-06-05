@@ -34,7 +34,7 @@ const VacationApp = () => {
   const navigate = useNavigate();
   const { loadingEstado } =  useFinalizarEstado(solicitud, setSolicitud); //hoook para cambio de estado de la solicitus y debito de dias
 
-  const userData = getLocalStorageData();
+  const userData = getLocalStorageData(); // obtener datos de local storage
 
   if (!isSessionVerified) {
     return <Spinner />;
