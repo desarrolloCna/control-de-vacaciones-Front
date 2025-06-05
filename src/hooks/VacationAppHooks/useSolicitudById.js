@@ -41,5 +41,5 @@ export function useSolicitudById() {
     fetchSolicitud();
   }, []); // Corregido: dependencias vacías para evitar llamadas innecesarias
 
-  return { solicitud, diasValidos,  errorS, loadingS };
+  return { solicitud, diasValidos,  errorS, loadingS, setSolicitud };
 }
