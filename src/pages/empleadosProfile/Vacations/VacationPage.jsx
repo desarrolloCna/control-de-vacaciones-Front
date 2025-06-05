@@ -32,7 +32,7 @@ const VacationApp = () => {
   const [openSolicitudModal, setOpenSolicitudModal] = useState(false); // Estado para el modal de solicitud
   const { solicitud, errorS, loadingS, setSolicitud } = useSolicitudById();
   const navigate = useNavigate();
-  const { loadingEstado } =  useFinalizarEstado(solicitud, setSolicitud);
+  const { loadingEstado } =  useFinalizarEstado(solicitud, setSolicitud); //hoook para cambio de estado de la solicitus y debito de dias
 
   const userData = getLocalStorageData();
 
