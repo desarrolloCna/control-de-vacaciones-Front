@@ -2,16 +2,24 @@ import { useEffect, useState } from "react";
 import { validarFechaFin } from "../../services/utils/dates/vacationUtils"; // Ajusta la ruta según tu proyecto
 import { debitarDiasService } from "../../services/VacationApp/Historial/ControlDiasVacaciones.service";
 
-export const useFinalizarEstado = (solicitud) => {
+export const useFinalizarEstado = (solicitud, setSolicitud) => {
   const [loadingEstado, setLoadingEstado] = useState(false);
 
   useEffect(() => {
 
     const actualizarEstadoSolicitud = async (solicitud) => {
+
       try {
         setLoadingEstado(true);
 
-        await debitarDiasService(solicitud);
+        const response = await debitarDiasService(solicitud);
+
+        if(response.responseData.status === 200){
+          setSolicitud(prev => ({
+            ...prev,
+            estadoSolicitud: "finalizadas"
+          }));
+        }
 
       } catch (error) {
         console.error("Error:", error);
@@ -29,4 +37,6 @@ export const useFinalizarEstado = (solicitud) => {
       }
     }
   }, [solicitud]); // Dependencia: vuelve a ejecutar si cambia `solicitud`
+
+  return {loadingEstado}
 };

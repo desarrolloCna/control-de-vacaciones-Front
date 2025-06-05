@@ -30,9 +30,9 @@ const VacationApp = () => {
   const [loadingHistorial, setLoadingHistorial] = useState(false);
   const [selectedPeriodo, setSelectedPeriodo] = useState(""); // Estado para el periodo seleccionado
   const [openSolicitudModal, setOpenSolicitudModal] = useState(false); // Estado para el modal de solicitud
-  const { solicitud, errorS, loadingS } = useSolicitudById();
+  const { solicitud, errorS, loadingS, setSolicitud } = useSolicitudById();
   const navigate = useNavigate();
-  useFinalizarEstado(solicitud);
+  const { loadingEstado } =  useFinalizarEstado(solicitud, setSolicitud);
 
   const userData = getLocalStorageData();
 
@@ -182,7 +182,7 @@ const VacationApp = () => {
                     <ErrorAlert message={errorS} visible={true} />
                   </TableCell>
                 </TableRow>
-              ) : loadingS ? (
+              ) : loadingS || loadingEstado ? (
                 <TableRow>
                   <TableCell colSpan={4} align="center">
                     <Alert severity="info">
