@@ -1,8 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { Box, IconButton, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-        Paper, Alert, Chip, Modal, Select, MenuItem, FormControl, InputLabel, CircularProgress, } from "@mui/material";
+import React, { useState } from "react";
+import { 
+  Box, IconButton, Typography, Button, Table, TableBody, TableCell, TableContainer, 
+  TableHead, TableRow, Paper, Alert, Chip, Modal, Select, MenuItem, FormControl, 
+  InputLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
+  Grid, Divider 
+} from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 import CloseIcon from "@mui/icons-material/Close";
+import ErrorIcon from "@mui/icons-material/Error";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 import Sidebar from "../../../components/EmpleadosPage/SideBar/SideBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import Spinner from "../../../components/spinners/spinner";
@@ -14,6 +21,8 @@ import { useFinalizarEstado } from "../../../hooks/VacationAppHooks/useFinalizar
 import { getLocalStorageData } from "../../../services/session/getLocalStorageData";
 import { obtenerHistorialService } from "../../../services/VacationApp/Historial/ControlDiasVacaciones.service";
 import { formatDateToDisplay } from "../../../services/utils/dates/vacationUtils";
+import { useGetDiasSolicitados } from "../../../hooks/VacationAppHooks/useGetDiasSolicitados";
+import dayjs from "dayjs";
 
 const estadoStyles = {
   enviada: { color: "#90caf9", label: "Solicitud Enviada" },
@@ -22,34 +31,83 @@ const estadoStyles = {
   finalizadas: { color: "#e483d3", label: "Vacaciones finalizadas" },
 };
 
+const LIMITE_DIAS_VACACIONES = 20; // Límite máximo de días de vacaciones
+
 const VacationApp = () => {
   const isSessionVerified = useCheckSession();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openHistorial, setOpenHistorial] = useState(false);
   const [historial, setHistorial] = useState([]);
   const [loadingHistorial, setLoadingHistorial] = useState(false);
-  const [selectedPeriodo, setSelectedPeriodo] = useState(""); // Estado para el periodo seleccionado
-  const [openSolicitudModal, setOpenSolicitudModal] = useState(false); // Estado para el modal de solicitud
+  const [selectedPeriodo, setSelectedPeriodo] = useState("");
+  const [openSolicitudModal, setOpenSolicitudModal] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
   const { solicitud, errorS, loadingS, setSolicitud } = useSolicitudById();
   const navigate = useNavigate();
-  const { loadingEstado } =  useFinalizarEstado(solicitud, setSolicitud); //hoook para cambio de estado de la solicitus y debito de dias
-
-  const userData = getLocalStorageData(); // obtener datos de local storage
-
+  const { loadingEstado } = useFinalizarEstado(solicitud, setSolicitud);
+  const userData = getLocalStorageData();
+  const { diasSolicitados, errorD, loadingD } = useGetDiasSolicitados();
+const anioEnCurso = dayjs().year();
   if (!isSessionVerified) {
     return <Spinner />;
   }
 
+  // Calcular total de días solicitados
+  const calcularTotalDiasSolicitados = () => {
+    if (!diasSolicitados || diasSolicitados.length === 0) return 0;
+    return Array.isArray(diasSolicitados) 
+  ? diasSolicitados.reduce((total, item) => total + (item?.diasSolicitados || 0), 0)
+  : 0;
+  };
+
+  const totalDiasSolicitados = calcularTotalDiasSolicitados();
+  const diasDisponibles = LIMITE_DIAS_VACACIONES - totalDiasSolicitados;
+
+  const canRequestVacation = () => {
+    return diasDisponibles > 0;
+  };
+
+  // Calcular resumen de días del historial
+  const calcularResumenDias = () => {
+    let totalCreditos = 0;
+    let totalDebitos = 0;
+    let saldoActual = 0;
+
+    const historialFiltrado = selectedPeriodo && selectedPeriodo !== "Todos" 
+      ? historial.filter(item => item.periodo === selectedPeriodo)
+      : historial;
+
+    if (historialFiltrado && historialFiltrado.length > 0) {
+      historialFiltrado.forEach(item => {
+        if (item.tipoRegistro === 1) { // Crédito
+          totalCreditos += Number(item.totalDiasAcreditados) || 0;
+        } else { // Débito
+          totalDebitos += Number(item.totalDiasDebitados) || 0;
+        }
+      });
+      saldoActual = Number(totalCreditos) - Number(totalDebitos);
+
+    }
+
+    return { totalCreditos, totalDebitos, saldoActual };
+  };
+
+  const { totalCreditos, totalDebitos, saldoActual } = calcularResumenDias();
+
   const handleProgramar = () => {
-    navigate("/empleados/programar-fecha");
+    if (canRequestVacation()) {
+      navigate("/empleados/programar-fecha");
+    } else {
+      setOpenAlertDialog(true);
+    }
   };
 
   const handleOpenSolicitudModal = () => {
-    setOpenSolicitudModal(true); // Abrir el modal de solicitud
+    setOpenSolicitudModal(true);
   };
 
   const handleCloseSolicitudModal = () => {
-    setOpenSolicitudModal(false); // Cerrar el modal de solicitud
+    setOpenSolicitudModal(false);
   };
 
   const handleOpenHistorial = async () => {
@@ -68,14 +126,17 @@ const VacationApp = () => {
 
   const handleCloseHistorial = () => {
     setOpenHistorial(false);
-    setSelectedPeriodo(""); // Limpiar el periodo seleccionado al cerrar el modal
+    setSelectedPeriodo("");
   };
 
   const handlePeriodoChange = (event) => {
     setSelectedPeriodo(event.target.value);
   };
 
-  // Función para renderizar el estado con Chip estilizado
+  const handleCloseAlertDialog = () => {
+    setOpenAlertDialog(false);
+  };
+
   const renderEstado = (estado) => {
     const { color, label } = estadoStyles[estado.toLowerCase()] || {};
     return (
@@ -92,7 +153,6 @@ const VacationApp = () => {
     );
   };
 
-  // Filtrar el historial basado en el periodo seleccionado
   const filteredHistorial = historial.filter((item) =>
     selectedPeriodo && selectedPeriodo !== "Todos"
       ? item.periodo === selectedPeriodo
@@ -148,8 +208,62 @@ const VacationApp = () => {
             marginTop: 5,
           }}
         >
-          Proceso de planificación anual
+          Proceso de planificación de vacaciones {anioEnCurso}
         </Typography>
+
+        {/* Mostrar resumen de días */}
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          mb: 3,
+          gap: 3
+        }}>
+          <Paper sx={{ 
+            p: 2, 
+            minWidth: 200, 
+            textAlign: 'center',
+            backgroundColor: '#e3f2fd'
+          }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+              Días solicitados
+            </Typography>
+            <Typography variant="h5" color="primary">
+              {totalDiasSolicitados}
+            </Typography>
+          </Paper>
+          <Paper sx={{ 
+            p: 2, 
+            minWidth: 200, 
+            textAlign: 'center',
+            backgroundColor: '#e8f5e9'
+          }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+              Días disponibles
+            </Typography>
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                color: diasDisponibles > 0 ? 'success.main' : 'error.main',
+                fontWeight: 'bold'
+              }}
+            >
+              {diasDisponibles}
+            </Typography>
+          </Paper>
+          <Paper sx={{ 
+            p: 2, 
+            minWidth: 200, 
+            textAlign: 'center',
+            backgroundColor: '#f3e5f5'
+          }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+              Límite anual
+            </Typography>
+            <Typography variant="h5" sx={{ color: 'secondary.main' }}>
+              {LIMITE_DIAS_VACACIONES}
+            </Typography>
+          </Paper>
+        </Box>
 
         <TableContainer component={Paper} sx={{ mb: 4 }}>
           <Table aria-label="vacation table">
@@ -213,6 +327,7 @@ const VacationApp = () => {
                         variant="contained"
                         color="primary"
                         onClick={handleProgramar}
+                        disabled={!canRequestVacation()}
                       >
                         Programar
                       </Button>
@@ -220,7 +335,7 @@ const VacationApp = () => {
                       <Button
                         variant="contained"
                         sx={{ backgroundColor: "#198754", color: "#fff" }}
-                        onClick={handleOpenSolicitudModal} // Cambiado para abrir el modal
+                        onClick={handleOpenSolicitudModal}
                       >
                         Ver
                       </Button>
@@ -246,11 +361,11 @@ const VacationApp = () => {
               transform: "translate(-50%, -50%)",
               width: 450,
               bgcolor: "#ffffff",
-              boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.3)", // sombra suave
-              borderRadius: 3, // bordes más redondeados
+              boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.3)",
+              borderRadius: 3,
               p: 4,
               overflow: "hidden",
-              transition: "all 0.3s ease", // transición suave
+              transition: "all 0.3s ease",
             }}
           >
             <Typography
@@ -261,7 +376,7 @@ const VacationApp = () => {
                 mb: 2,
                 textAlign: "center",
                 fontWeight: "bold",
-                color: "#333", // color de título
+                color: "#333",
                 fontSize: "1.2rem",
               }}
             >
@@ -321,7 +436,7 @@ const VacationApp = () => {
                 color: "#fff",
                 fontWeight: "bold",
                 "&:hover": {
-                  backgroundColor: "#0056b3", // cambio de color en hover
+                  backgroundColor: "#0056b3",
                 },
               }}
             >
@@ -336,7 +451,7 @@ const VacationApp = () => {
           color="primary"
           sx={{ display: "block", margin: "0 auto", marginTop: 2 }}
           onClick={handleOpenHistorial}
-          disabled={loadingHistorial} // Deshabilitar mientras carga
+          disabled={loadingHistorial}
         >
           {loadingHistorial ? (
             <CircularProgress size={24} color="primary" />
@@ -345,7 +460,7 @@ const VacationApp = () => {
           )}
         </Button>
 
-        {/* Modal para mostrar el historial */}
+        {/* Modal para mostrar el historial - VERSIÓN ACTUALIZADA */}
         <Modal
           open={openHistorial}
           onClose={handleCloseHistorial}
@@ -358,12 +473,13 @@ const VacationApp = () => {
               left: "52%",
               transform: "translate(-50%, -50%)",
               width: 1200,
-              height: 600, // Tamaño fijo para el modal
+              maxHeight: "80vh",
               bgcolor: "background.paper",
               boxShadow: 24,
               p: 4,
               borderRadius: 1,
               pt: 3,
+              overflowY: "auto",
             }}
           >
             <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
@@ -387,10 +503,63 @@ const VacationApp = () => {
               id="historial-modal-title"
               variant="h6"
               component="h2"
-              sx={{ textAlign: "center", mb: 2 }}
+              sx={{ textAlign: "center", mb: 2, fontWeight: "bold" }}
             >
-              Historial de Vacaciones
+              Historial y Balance de Vacaciones
             </Typography>
+
+            {/* Resumen de Balance */}
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid item xs={4}>
+                <Paper sx={{ p: 2, textAlign: "center", bgcolor: "#e8f5e9" }}>
+                  <Box display="flex" alignItems="center" justifyContent="center">
+                    <AddIcon color="success" sx={{ mr: 1 }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                      Total Días Acreditados:
+                    </Typography>
+                  </Box>
+                  <Typography variant="h5" color="success.main" sx={{ mt: 1 }}>
+                    {totalCreditos} días
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={4}>
+                <Paper sx={{ p: 2, textAlign: "center", bgcolor: "#ffebee" }}>
+                  <Box display="flex" alignItems="center" justifyContent="center">
+                    <RemoveIcon color="error" sx={{ mr: 1 }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                      Total Días Debitados:
+                    </Typography>
+                  </Box>
+                  <Typography variant="h5" color="error.main" sx={{ mt: 1 }}>
+                    {totalDebitos} días
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={4}>
+                <Paper sx={{ 
+                  p: 2, 
+                  textAlign: "center", 
+                  bgcolor: saldoActual >= 0 ? "#e8f5e9" : "#ffebee" 
+                }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                    Dias Disponibles:
+                  </Typography>
+                  <Typography 
+                    variant="h5" 
+                    color={saldoActual >= 0 ? "success.main" : "error.main"} 
+                    sx={{ mt: 1 }}
+                  >
+                    {saldoActual} días
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontStyle: "italic" }}>
+                    {/* {saldoActual >= 0 ? "Días disponibles" : "Déficit de días"} */}
+                  </Typography>
+                </Paper>
+              </Grid>
+            </Grid>
+
+            <Divider sx={{ my: 2 }} />
 
             <FormControl
               fullWidth
@@ -414,23 +583,19 @@ const VacationApp = () => {
               </Select>
             </FormControl>
 
-            <TableContainer
-              component={Paper}
-              sx={{ maxHeight: 350, overflowY: "auto" }}
-            >
+            <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
               <Table stickyHeader>
                 <TableHead>
                   <TableRow>
                     {[
                       "Gestion",
-                      "Tipo Ingreso",
+                      "Tipo",
                       "Periodo",
                       "Dias Acreditados",
-                      "Dias Solicitados",
                       "Dias Debitados",
                       "Dias Disponibles",
-                      "Fecha Acreditacion",
-                      "Fecha Debito",
+                      "Fecha",
+                      "Descripción"
                     ].map((header) => (
                       <TableCell
                         key={header}
@@ -447,53 +612,133 @@ const VacationApp = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredHistorial.map((item) => (
-                    <TableRow key={item.idHistorial}>
-                      <TableCell align="center">
-                        {item.tipoRegistro === 1
-                          ? "CRDV" + item.Gestion
-                          : "SLVC" + item.Gestion}
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip
-                          label={item.tipoRegistro === 1 ? "Crédito" : "Débito"}
-                          color={item.tipoRegistro === 1 ? "success" : "error"}
-                          sx={{
-                            color: "#fff",
-                            fontWeight: "bold",
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="center">{item.periodo}</TableCell>
-                      <TableCell align="center">
-                        {item.totalDiasAcreditados}
-                      </TableCell>
-                      <TableCell align="center">
-                        {item.diasSolicitados}
-                      </TableCell>
-                      <TableCell align="center">
-                        {item.totalDiasDebitados}
-                      </TableCell>
-                      <TableCell align="center">
-                        {item.diasDisponiblesTotales}
-                      </TableCell>
-                      <TableCell align="center">
-                        {item.fechaAcreditacion
-                          ? formatDateToDisplay(item.fechaAcreditacion)
-                          : ""}
-                      </TableCell>
-                      <TableCell align="center">
-                        {item.fechaDebito
-                          ? formatDateToDisplay(item.fechaDebito)
-                          : ""}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {filteredHistorial.map((item, index) => {
+                    const saldoParcial = item.tipoRegistro === 1 
+                      ? item.totalDiasAcreditados 
+                      : -item.totalDiasDebitados;
+                    
+                    return (
+                      <TableRow key={`${item.idHistorial}-${index}`}>
+                        <TableCell align="center">
+                          {item.tipoRegistro === 1
+                            ? "CRDV-" + item.Gestion
+                            : "SLVC-" + item.Gestion}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={item.tipoRegistro === 1 ? "Crédito" : "Débito"}
+                            color={item.tipoRegistro === 1 ? "success" : "error"}
+                            sx={{
+                              color: "#fff",
+                              fontWeight: "bold",
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell align="center">{item.periodo}</TableCell>
+                        <TableCell align="center">
+                        <Typography 
+                            color={"success.main"}
+                            fontWeight="bold"
+                          >
+                            {item.tipoRegistro === 1 ? item.totalDiasAcreditados : "-"}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                        <Typography 
+                            color={"error.main"}
+                            fontWeight="bold"
+                          >
+                            {item.tipoRegistro === 2 ? item.totalDiasDebitados : "-"}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Typography 
+                            color={"info.main"}
+                            fontWeight="bold"
+                          >
+                            {item.diasDisponiblesTotales}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          {item.fechaAcreditacion
+                            ? formatDateToDisplay(item.fechaAcreditacion)
+                            : item.fechaDebito
+                            ? formatDateToDisplay(item.fechaDebito)
+                            : "-"}
+                        </TableCell>
+                        <TableCell align="center">
+                          {item.tipoRegistro === 1 
+                            ? "Acreditación anual de días" 
+                            : "Solicitud de vacaciones"}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
+
+            {/* Resumen al final de la tabla */}
+            <Box sx={{ 
+              mt: 3, 
+              p: 2, 
+              backgroundColor: "#f5f5f5", 
+              borderRadius: 1,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
+            }}>
+              <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+                Resumen Final:
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+                <Typography>
+                  <span style={{ color: "#2e7d32" }}>+{totalCreditos} días</span> (Acreditados)
+                </Typography>
+                <Typography>
+                  <span style={{ color: "#d32f2f" }}>-{totalDebitos} días</span> (Debitados)
+                </Typography>
+                <Typography sx={{ fontWeight: "bold" }}>
+                  Saldo: <span style={{ 
+                    color: saldoActual >= 0 ? "#2e7d32" : "#d32f2f",
+                    fontSize: "1.1rem"
+                  }}>
+                    {saldoActual} días
+                  </span>
+                </Typography>
+              </Box>
+            </Box>
           </Box>
         </Modal>
+
+        {/* Diálogo de alerta cuando no puede solicitar más días */}
+        <Dialog
+          open={openAlertDialog}
+          onClose={handleCloseAlertDialog}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title" sx={{ color: "#d32f2f" }}>
+            <Box display="flex" alignItems="center">
+              <ErrorIcon color="error" sx={{ mr: 1 }} />
+              Límite de días alcanzado
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" id="alert-dialog-description">
+              Has alcanzado el límite máximo de {LIMITE_DIAS_VACACIONES} días de vacaciones para este período.
+              No puedes solicitar más días.
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
+              Si necesitas ajustar tus vacaciones, por favor contacta al departamento de RRHH.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseAlertDialog} color="primary" autoFocus>
+              Entendido
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Box>
   );
