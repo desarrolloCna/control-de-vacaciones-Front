@@ -11,7 +11,8 @@ const endpoints = {
     GET_SOLICITUDBYID_VACACIONES: '/solicitudesById',
     GET_SOLICITUDES_VACACIONES: '/solicitudes',
     GET_HISTORIAL: '/getHistorial',
-    GET_SUSPENSIONES: '/getSuspensiones'
+    GET_SUSPENSIONES: '/getSuspensiones',
+    GET_DIAS_SOLICITADOS: "/consultarDiasSolicitadosPorAnio"
 };
 
 const endpointsPost = {

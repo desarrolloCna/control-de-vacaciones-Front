@@ -457,8 +457,8 @@ const ProgramarVacacionesPage = () => {
             {/* Información de la solicitud */}
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle1">
-                <strong>Segun la ley 325 del organizmo judicial no cuentas con 150 dias laborados
-                        Para poder programar tus primeras vacaciones.        
+                <strong>No aplica a vacaciones segun el articulo 70 del reglamento interno de trabajo
+                  y gestión del recurso humano del Consejo Nacional de Adopcion.      
                 </strong>{" "}
               </Typography>
             </Box>
