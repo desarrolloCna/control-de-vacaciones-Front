@@ -308,7 +308,7 @@ const anioEnCurso = dayjs().year();
                 <TableRow>
                   <TableCell align="center">
                     {solicitud
-                      ? "SLVC-" + solicitud?.idSolicitud
+                      ? "CNA-URRH-" + solicitud?.idSolicitud
                       : "No disponible"}
                   </TableCell>
                   <TableCell align="center">
@@ -327,7 +327,6 @@ const anioEnCurso = dayjs().year();
                         variant="contained"
                         color="primary"
                         onClick={handleProgramar}
-                        disabled={!canRequestVacation()}
                       >
                         Programar
                       </Button>
