@@ -11,8 +11,12 @@ import {
   Snackbar,
   Alert,
   Modal,
-} from "@mui/material"; // Agregamos Modal aquí
-import WarningIcon from "@mui/icons-material/Warning"; // Asegúrate de importar el icono
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
+import WarningIcon from "@mui/icons-material/Warning";
 import Sidebar from "../../../components/EmpleadosPage/SideBar/SideBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import Spinner from "../../../components/spinners/spinner";
@@ -30,6 +34,7 @@ import ErrorAlert from "../../../components/ErrorAlert/ErrorAlert";
 import { useNavigate } from "react-router-dom";
 import Slide from "@mui/material/Slide";
 import { useSolicitudById } from "../../../hooks/VacationAppHooks/useSolicitudById.js";
+import { useGetCoordinadoresList } from "../../../hooks/Coordinadores/useGetCoordinadoresList.js";
 
 const ProgramarVacacionesPage = () => {
   const isSessionVerified = useCheckSession();
@@ -39,17 +44,19 @@ const ProgramarVacacionesPage = () => {
   const [endDate, setEndDate] = useState("");
   const [nextWorkDate, setNextWorkDate] = useState("");
   const [unidad, setUnidad] = useState("");
+  const [selectedCoordinador, setSelectedCoordinador] = useState("");
   const [idEmpleado, setIdEmpleado] = useState("");
   const [idInfoPersonal, setIdInfoPersonal] = useState("");
   const [diasHabilitado, setDiasHabilitado] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false); // Estado para el modal
-  const [modalLeyOpen, setModalLeyOpen] = useState(false); // Estado para el modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalLeyOpen, setModalLeyOpen] = useState(false);
   const navigate = useNavigate();
 
   const { solicitud, diasValidos, errorS, loadingS } = useSolicitudById();
+  const { coordinadoresList, errorCoordinadoresList, loadingCoordinadoresList } = useGetCoordinadoresList();
 
   const { isLoading, errorDF } = useDiasFestivos();
   const minStartDate = dayjs().add(7, "day").format("YYYY-MM-DD");
@@ -69,10 +76,9 @@ const ProgramarVacacionesPage = () => {
     }
     // Verifica si hay una solicitud en proceso al cargar
     if (solicitud && (solicitud.estadoSolicitud == "enviada" || solicitud.estadoSolicitud == "autorizadas") ) {
-      setModalOpen(true); // Abre el modal si hay una solicitud
+      setModalOpen(true);
     }
-
-  }, [solicitud]); // Añadido el seguimiento a la solicitud
+  }, [solicitud]);
 
   const handleStartDateChange = (e) => {
     const selectedDate = e.target.value;
@@ -110,6 +116,16 @@ const ProgramarVacacionesPage = () => {
     }
   };
 
+  const handleCoordinadorChange = (e) => {
+    const coordinadorId = e.target.value;
+    const coordinadorSeleccionado = coordinadoresList.find(c => c.idCoordinador === coordinadorId);
+    
+    if (coordinadorSeleccionado) {
+      setSelectedCoordinador(coordinadorId);
+      setUnidad(coordinadorSeleccionado.coordinadorUnidad);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -128,9 +144,9 @@ const ProgramarVacacionesPage = () => {
     try {
       setDiasHabilitado(false);
       const res = await ingresarSolicitudService(payload);
-      setSuccessOpen(true); // Mostrar Snackbar de éxito
+      setSuccessOpen(true);
       setTimeout(() => {
-        navigate("/empleados/programar-vacaciones"); // Redirigir después de 3 segundos
+        navigate("/empleados/programar-vacaciones");
       }, 1000);
     } catch (error) {
       setError(
@@ -145,10 +161,10 @@ const ProgramarVacacionesPage = () => {
 
   const handleCloseModal = () => {
     setModalOpen(false);
-    navigate("/empleados/programar-vacaciones"); // Redirigir al cerrar el modal
+    navigate("/empleados/programar-vacaciones");
   };
 
-  if (!isSessionVerified || !isLoading || loadingS) {
+  if (!isSessionVerified || !isLoading || loadingS || loadingCoordinadoresList) {
     return <Spinner />;
   }
 
@@ -205,8 +221,8 @@ const ProgramarVacacionesPage = () => {
         </Typography>
 
         <Box sx={{ height: 30, mb: 3 }}>
-          {(error || (errorS && errorS !== "NO EXISTE SOLICITUDES")) && (
-            <ErrorAlert message={error} visible={true} />
+          {(error || (errorS && errorS !== "NO EXISTE SOLICITUDES") || errorCoordinadoresList) && (
+            <ErrorAlert message={error || errorCoordinadoresList} visible={true} />
           )}
         </Box>
 
@@ -271,6 +287,29 @@ const ProgramarVacacionesPage = () => {
             </Grid>
 
             <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel id="coordinador-label">Coordinador</InputLabel>
+                <Select
+                  labelId="coordinador-label"
+                  id="coordinador-select"
+                  value={selectedCoordinador}
+                  label="Coordinador"
+                  onChange={handleCoordinadorChange}
+                  required
+                >
+                  {coordinadoresList.map((coordinador) => (
+                    <MenuItem 
+                      key={coordinador.idCoordinador} 
+                      value={coordinador.idCoordinador}
+                    >
+                      {coordinador.nombreCoordinador}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12}>
               <TextField
                 label="Unidad"
                 fullWidth
@@ -286,7 +325,7 @@ const ProgramarVacacionesPage = () => {
                 variant="contained"
                 color="primary"
                 fullWidth
-                disabled={!diasHabilitado || loading || !diasVacaciones}
+                disabled={!diasHabilitado || loading || !diasVacaciones || !selectedCoordinador}
               >
                 {loading ? <CircularProgress size={24} /> : "Enviar Solicitud"}
               </Button>
@@ -294,19 +333,17 @@ const ProgramarVacacionesPage = () => {
           </Grid>
         </Paper>
 
-        {/* Snackbar para mostrar el mensaje de éxito */}
         <Snackbar
           open={successOpen}
           onClose={() => setSuccessOpen(false)}
-          anchorOrigin={{ vertical: "top", horizontal: "right" }} // Posición superior derecha
-          //autoHideDuration={6000000} // Duración de la visibilidad
-          TransitionComponent={Slide} // Transición para la animación
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          TransitionComponent={Slide}
           sx={{
             "& .MuiSnackbarContent-root": {
               padding: "8px 16px",
               minWidth: "200px",
             },
-          }} // Estilo para el contenido
+          }}
         >
           <Alert
             onClose={() => setSuccessOpen(false)}
@@ -314,15 +351,15 @@ const ProgramarVacacionesPage = () => {
             sx={{
               width: "100%",
               fontSize: "1.0Srem",
-              backgroundColor: "#28a745", // Color verde Bootstrap
-              color: "#ffffff", // Color de texto blanco para contraste
+              backgroundColor: "#28a745",
+              color: "#ffffff",
               "& .MuiAlert-icon": {
-                color: "#ffffff", // Color del icono
+                color: "#ffffff",
               },
               "& .MuiAlert-action": {
-                color: "#ffffff", // Color de acción si se añade un botón
+                color: "#ffffff",
               },
-            }} // Cambiar tamaño de fuente y ancho
+            }}
           >
             Solicitud enviada exitosamente
           </Alert>
@@ -337,21 +374,20 @@ const ProgramarVacacionesPage = () => {
           <Box
             sx={{
               position: "absolute",
-              top: "40%", // Ajustar el porcentaje para mover el modal más arriba
+              top: "40%",
               left: "50%",
               transform: "translate(-50%, -50%)",
               bgcolor: "background.paper",
               boxShadow: 24,
               p: 4,
-              width: 400, // Ajusta el ancho según tus necesidades
-              height: "auto", // Deja que el alto se ajuste automáticamente
-              minHeight: 300, // Ajusta la altura mínima según tus necesidades
-              borderRadius: 2, // Opcional: agrega bordes redondeados
+              width: 400,
+              height: "auto",
+              minHeight: 300,
+              borderRadius: 2,
             }}
           >
             <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-              <WarningIcon color="warning" sx={{ fontSize: 40 }} />{" "}
-              {/* Ajusta el tamaño del icono */}
+              <WarningIcon color="warning" sx={{ fontSize: 40 }} />
             </Box>
             <Typography
               id="modal-title"
@@ -359,14 +395,13 @@ const ProgramarVacacionesPage = () => {
               component="h2"
               align="center"
               sx={{
-                fontFamily: '"Times New Roman", Times, serif', // Tipo de letra más formal
-                color: "#A00000", // Color rojo más fuerte
+                fontFamily: '"Times New Roman", Times, serif',
+                color: "#A00000",
               }}
             >
               Solicitud en Proceso
             </Typography>
 
-            {/* Información de la solicitud */}
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle1">
                 <strong>Número de Gestión:</strong>{" "}
@@ -425,21 +460,20 @@ const ProgramarVacacionesPage = () => {
           <Box
             sx={{
               position: "absolute",
-              top: "40%", // Ajustar el porcentaje para mover el modal más arriba
+              top: "40%",
               left: "50%",
               transform: "translate(-50%, -50%)",
               bgcolor: "background.paper",
               boxShadow: 24,
               p: 4,
-              width: 400, // Ajusta el ancho según tus necesidades
-              height: "auto", // Deja que el alto se ajuste automáticamente
-              minHeight: 300, // Ajusta la altura mínima según tus necesidades
-              borderRadius: 2, // Opcional: agrega bordes redondeados
+              width: 400,
+              height: "auto",
+              minHeight: 300,
+              borderRadius: 2,
             }}
           >
             <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-              <WarningIcon color="warning" sx={{ fontSize: 40 }} />{" "}
-              {/* Ajusta el tamaño del icono */}
+              <WarningIcon color="warning" sx={{ fontSize: 40 }} />
             </Box>
             <Typography
               id="modal-title"
@@ -447,14 +481,13 @@ const ProgramarVacacionesPage = () => {
               component="h2"
               align="center"
               sx={{
-                fontFamily: '"Times New Roman", Times, serif', // Tipo de letra más formal
-                color: "#A00000", // Color rojo más fuerte
+                fontFamily: '"Times New Roman", Times, serif',
+                color: "#A00000",
               }}
             >
               No puedes solicitar vacaciones
             </Typography>
 
-            {/* Información de la solicitud */}
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle1">
                 <strong>No aplica a vacaciones segun el articulo 70 del reglamento interno de trabajo
@@ -472,8 +505,6 @@ const ProgramarVacacionesPage = () => {
             </Button>
           </Box>
         </Modal>
-
-
       </Box>
     </Box>
   );
