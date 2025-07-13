@@ -297,7 +297,7 @@ const ProgramarVacacionesPage = () => {
                   onChange={handleCoordinadorChange}
                   required
                 >
-                  {coordinadoresList.map((coordinador) => (
+                  {coordinadoresList?.map((coordinador) => (
                     <MenuItem 
                       key={coordinador.idCoordinador} 
                       value={coordinador.idCoordinador}
