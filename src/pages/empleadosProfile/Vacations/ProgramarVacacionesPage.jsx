@@ -62,7 +62,7 @@ const ProgramarVacacionesPage = () => {
   const minStartDate = dayjs().add(7, "day").format("YYYY-MM-DD");
   const lastStartDate = dayjs()
     .endOf("year")
-    .subtract(53, "day")
+    .subtract(30, "day")
     .format("YYYY-MM-DD");
 
   const formatDateToDisplay = (date) => dayjs(date).format("DD/MM/YYYY");
