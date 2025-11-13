@@ -31,8 +31,6 @@ const estadoStyles = {
   finalizadas: { color: "#e483d3", label: "Vacaciones finalizadas" },
 };
 
-const LIMITE_DIAS_VACACIONES = 20; // Límite máximo de días de vacaciones
-
 const VacationApp = () => {
   const isSessionVerified = useCheckSession();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -46,7 +44,7 @@ const VacationApp = () => {
   const navigate = useNavigate();
   const { loadingEstado } = useFinalizarEstado(solicitud, setSolicitud);
   const userData = getLocalStorageData();
-  const { diasSolicitados, errorD, loadingD } = useGetDiasSolicitados();
+  const { diasSolicitados, errorD, loadingD, diasDisponiblesVacaciones } = useGetDiasSolicitados();
 const anioEnCurso = dayjs().year();
   if (!isSessionVerified) {
     return <Spinner />;
@@ -60,6 +58,7 @@ const anioEnCurso = dayjs().year();
   : 0;
   };
 
+  const LIMITE_DIAS_VACACIONES = diasDisponiblesVacaciones >= 20 ? 20 : diasDisponiblesVacaciones;
   const totalDiasSolicitados = calcularTotalDiasSolicitados();
   const diasDisponibles = LIMITE_DIAS_VACACIONES - totalDiasSolicitados;
 

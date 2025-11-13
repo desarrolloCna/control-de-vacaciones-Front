@@ -13,7 +13,8 @@ const endpoints = {
     GET_HISTORIAL: '/getHistorial',
     GET_SUSPENSIONES: '/getSuspensiones',
     GET_DIAS_SOLICITADOS: "/consultarDiasSolicitadosPorAnio",
-    GET_COORDINADORES_LIST: '/consultarCoordinadoresList'
+    GET_COORDINADORES_LIST: '/consultarCoordinadoresList',
+    GET_DIAS_DISPONIBLES: '/consultarDiasDisponibles'
 };
 
 const endpointsPost = {
