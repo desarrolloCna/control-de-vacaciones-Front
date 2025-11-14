@@ -724,8 +724,8 @@ const anioEnCurso = dayjs().year();
           </DialogTitle>
           <DialogContent>
             <Typography variant="body1" id="alert-dialog-description">
-              Has alcanzado el límite máximo de {LIMITE_DIAS_VACACIONES} días de vacaciones para este período.
-              No puedes solicitar más días.
+              Has alcanzado el límite máximo de días de vacaciones para este período o no cuentas con dias disponibles.
+              No puedes solicitar días.
             </Typography>
             <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
               Si necesitas ajustar tus vacaciones, por favor contacta al departamento de RRHH.
