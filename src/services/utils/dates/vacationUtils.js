@@ -113,7 +113,6 @@ export const validarCantidadDiasIngreso = (fechaIngreso) => {
 
   const diferenciaDias = fechaActual.diff(fechaInicial, 'day'); // Diferencia en días
 
-  console.log(diferenciaDias);
   return diferenciaDias > 365; // Devuelve true si tiene 365 días o más, false si no
 
 };
