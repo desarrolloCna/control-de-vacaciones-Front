@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { 
-  Box, IconButton, Typography, Button, Table, TableBody, TableCell, TableContainer, 
-  TableHead, TableRow, Paper, Alert, Chip, Modal, Select, MenuItem, FormControl, 
+import {
+  Box, IconButton, Typography, Button, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, Alert, Chip, Modal, Select, MenuItem, FormControl,
   InputLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
-  Grid, Divider 
+  Grid, Divider
 } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 import CloseIcon from "@mui/icons-material/Close";
@@ -44,26 +44,27 @@ const VacationApp = () => {
   const navigate = useNavigate();
   const { loadingEstado } = useFinalizarEstado(solicitud, setSolicitud);
   const userData = getLocalStorageData();
-  const { diasSolicitados, errorD, loadingD, diasDisponiblesVacaciones } = useGetDiasSolicitados();
-const anioEnCurso = dayjs().year();
+  const { diasSolicitados, errorD, loadingD, diasDebitados, diasDisponiblesT } = useGetDiasSolicitados();
+  const anioEnCurso = dayjs().year();
   if (!isSessionVerified) {
     return <Spinner />;
   }
 
+
   // Calcular total de días solicitados
   const calcularTotalDiasSolicitados = () => {
     if (!diasSolicitados || diasSolicitados.length === 0) return 0;
-    return Array.isArray(diasSolicitados) 
-  ? diasSolicitados.reduce((total, item) => total + (item?.diasSolicitados || 0), 0)
-  : 0;
+    return Array.isArray(diasSolicitados)
+      ? diasSolicitados.reduce((total, item) => total + (item?.diasSolicitados || 0), 0)
+      : 0;
   };
 
-  const LIMITE_DIAS_VACACIONES = diasDisponiblesVacaciones >= 20 ? 20 : diasDisponiblesVacaciones;
-  const totalDiasSolicitados = calcularTotalDiasSolicitados();
-  const diasDisponibles = LIMITE_DIAS_VACACIONES - totalDiasSolicitados;
+  const LimiteAnual = diasDisponiblesT < 20 ? diasDisponiblesT : 20;
+  const totalDiasSolicitados = diasDebitados;
+  const totaldiasDisponibles = LimiteAnual - diasDebitados;
 
   const canRequestVacation = () => {
-    return diasDisponibles > 0;
+    return totaldiasDisponibles > 0;
   };
 
   // Calcular resumen de días del historial
@@ -72,7 +73,7 @@ const anioEnCurso = dayjs().year();
     let totalDebitos = 0;
     let saldoActual = 0;
 
-    const historialFiltrado = selectedPeriodo && selectedPeriodo !== "Todos" 
+    const historialFiltrado = selectedPeriodo && selectedPeriodo !== "Todos"
       ? historial.filter(item => item.periodo === selectedPeriodo)
       : historial;
 
@@ -81,7 +82,7 @@ const anioEnCurso = dayjs().year();
         if (item.tipoRegistro === 1) { // Crédito
           totalCreditos += Number(item.totalDiasAcreditados) || 0;
         } else { // Débito
-          totalDebitos += Number(item.totalDiasDebitados) || 0;
+          totalDebitos += Number(item.diasSolicitados) || 0;
         }
       });
       saldoActual = Number(totalCreditos) - Number(totalDebitos);
@@ -211,57 +212,58 @@ const anioEnCurso = dayjs().year();
         </Typography>
 
         {/* Mostrar resumen de días */}
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'center',
           mb: 3,
           gap: 3
         }}>
-          <Paper sx={{ 
-            p: 2, 
-            minWidth: 200, 
+          <Paper sx={{
+            p: 2,
+            minWidth: 200,
+            textAlign: 'center',
+            backgroundColor: '#f3e5f5'
+          }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+              Límite anual {anioEnCurso}
+            </Typography>
+            <Typography variant="h5" sx={{ color: 'secondary.main' }}>
+              {LimiteAnual}
+            </Typography>
+          </Paper>
+          <Paper sx={{
+            p: 2,
+            minWidth: 200,
             textAlign: 'center',
             backgroundColor: '#e3f2fd'
           }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-              Días solicitados
+              Días solicitados {anioEnCurso}
             </Typography>
             <Typography variant="h5" color="primary">
               {totalDiasSolicitados}
             </Typography>
           </Paper>
-          <Paper sx={{ 
-            p: 2, 
-            minWidth: 200, 
+          <Paper sx={{
+            p: 2,
+            minWidth: 200,
             textAlign: 'center',
             backgroundColor: '#e8f5e9'
           }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-              Días disponibles
+              Días disponibles {anioEnCurso}
             </Typography>
-            <Typography 
-              variant="h5" 
-              sx={{ 
-                color: diasDisponibles > 0 ? 'success.main' : 'error.main',
+            <Typography
+              variant="h5"
+              sx={{
+                color: totaldiasDisponibles > 0 ? 'success.main' : 'error.main',
                 fontWeight: 'bold'
               }}
             >
-              {diasDisponibles}
+              {totaldiasDisponibles}
             </Typography>
           </Paper>
-          <Paper sx={{ 
-            p: 2, 
-            minWidth: 200, 
-            textAlign: 'center',
-            backgroundColor: '#f3e5f5'
-          }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-              Límite anual
-            </Typography>
-            <Typography variant="h5" sx={{ color: 'secondary.main' }}>
-              {LIMITE_DIAS_VACACIONES}
-            </Typography>
-          </Paper>
+
         </Box>
 
         <TableContainer component={Paper} sx={{ mb: 4 }}>
@@ -318,9 +320,9 @@ const anioEnCurso = dayjs().year();
                   </TableCell>
                   <TableCell align="center">
                     {!solicitud ||
-                    solicitud?.estadoSolicitud?.toLowerCase() ===
+                      solicitud?.estadoSolicitud?.toLowerCase() ===
                       "finalizadas" ||
-                    solicitud?.estadoSolicitud?.toLowerCase() ===
+                      solicitud?.estadoSolicitud?.toLowerCase() ===
                       "rechazada" ? (
                       <Button
                         variant="contained"
@@ -535,17 +537,17 @@ const anioEnCurso = dayjs().year();
                 </Paper>
               </Grid>
               <Grid item xs={4}>
-                <Paper sx={{ 
-                  p: 2, 
-                  textAlign: "center", 
-                  bgcolor: saldoActual >= 0 ? "#e8f5e9" : "#ffebee" 
+                <Paper sx={{
+                  p: 2,
+                  textAlign: "center",
+                  bgcolor: saldoActual >= 0 ? "#e8f5e9" : "#ffebee"
                 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                     Dias Disponibles:
                   </Typography>
-                  <Typography 
-                    variant="h5" 
-                    color={saldoActual >= 0 ? "success.main" : "error.main"} 
+                  <Typography
+                    variant="h5"
+                    color={saldoActual >= 0 ? "success.main" : "error.main"}
                     sx={{ mt: 1 }}
                   >
                     {saldoActual} días
@@ -611,10 +613,10 @@ const anioEnCurso = dayjs().year();
                 </TableHead>
                 <TableBody>
                   {filteredHistorial.map((item, index) => {
-                    const saldoParcial = item.tipoRegistro === 1 
-                      ? item.totalDiasAcreditados 
+                    const saldoParcial = item.tipoRegistro === 1
+                      ? item.totalDiasAcreditados
                       : -item.totalDiasDebitados;
-                    
+
                     return (
                       <TableRow key={`${item.idHistorial}-${index}`}>
                         <TableCell align="center">
@@ -634,7 +636,7 @@ const anioEnCurso = dayjs().year();
                         </TableCell>
                         <TableCell align="center">{item.periodo}</TableCell>
                         <TableCell align="center">
-                        <Typography 
+                          <Typography
                             color={"success.main"}
                             fontWeight="bold"
                           >
@@ -642,15 +644,15 @@ const anioEnCurso = dayjs().year();
                           </Typography>
                         </TableCell>
                         <TableCell align="center">
-                        <Typography 
+                          <Typography
                             color={"error.main"}
                             fontWeight="bold"
                           >
-                            {item.tipoRegistro === 2 ? item.totalDiasDebitados : "-"}
+                            {item.tipoRegistro === 2 ? item.diasSolicitados : "-"}
                           </Typography>
                         </TableCell>
                         <TableCell align="center">
-                          <Typography 
+                          <Typography
                             color={"info.main"}
                             fontWeight="bold"
                           >
@@ -661,12 +663,12 @@ const anioEnCurso = dayjs().year();
                           {item.fechaAcreditacion
                             ? formatDateToDisplay(item.fechaAcreditacion)
                             : item.fechaDebito
-                            ? formatDateToDisplay(item.fechaDebito)
-                            : "-"}
+                              ? formatDateToDisplay(item.fechaDebito)
+                              : "-"}
                         </TableCell>
                         <TableCell align="center">
-                          {item.tipoRegistro === 1 
-                            ? "Acreditación anual de días" 
+                          {item.tipoRegistro === 1
+                            ? "Acreditación anual de días"
                             : "Solicitud de vacaciones"}
                         </TableCell>
                       </TableRow>
@@ -677,10 +679,10 @@ const anioEnCurso = dayjs().year();
             </TableContainer>
 
             {/* Resumen al final de la tabla */}
-            <Box sx={{ 
-              mt: 3, 
-              p: 2, 
-              backgroundColor: "#f5f5f5", 
+            <Box sx={{
+              mt: 3,
+              p: 2,
+              backgroundColor: "#f5f5f5",
               borderRadius: 1,
               display: "flex",
               justifyContent: "space-between",
@@ -697,7 +699,7 @@ const anioEnCurso = dayjs().year();
                   <span style={{ color: "#d32f2f" }}>-{totalDebitos} días</span> (Debitados)
                 </Typography>
                 <Typography sx={{ fontWeight: "bold" }}>
-                  Saldo: <span style={{ 
+                  Saldo: <span style={{
                     color: saldoActual >= 0 ? "#2e7d32" : "#d32f2f",
                     fontSize: "1.1rem"
                   }}>

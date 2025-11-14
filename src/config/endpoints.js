@@ -14,7 +14,8 @@ const endpoints = {
     GET_SUSPENSIONES: '/getSuspensiones',
     GET_DIAS_SOLICITADOS: "/consultarDiasSolicitadosPorAnio",
     GET_COORDINADORES_LIST: '/consultarCoordinadoresList',
-    GET_DIAS_DISPONIBLES: '/consultarDiasDisponibles'
+    GET_DIAS_DEBITADOS: '/consultarDiasDebitadosPorAnio',
+    GET_DIAS_DISPONIBLES: '/consultarDiasDisponibles',
 };
 
 const endpointsPost = {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getLocalStorageData } from "../../services/session/getLocalStorageData.js";
-import { consultarDiasDisponiblesServices, consultarDiasSolicitadosPorAnioServices } from "../../services/VacationApp/GetSolicidudById.js";
+import { consultarDiasDebitadosServices, consultarDiasDisponiblesServices, consultarDiasSolicitadosPorAnioServices } from "../../services/VacationApp/GetSolicidudById.js";
 import dayjs from "dayjs";
 
 
@@ -8,7 +8,8 @@ export function useGetDiasSolicitados() {
   const [diasSolicitados, setDiasSolicitados] = useState([]); // Corregido el nombre
   const [errorD, setErrorD] = useState(null);
   const [loadingD, setLoadingD] = useState(true);
-  const [diasDisponiblesVacaciones, setDiasDisponiblesVacaciones] = useState(0);
+  const [diasDebitados, setDiasDebitados] = useState(0);
+  const [diasDisponiblesT, setDiasDisponiblesT] = useState(0);
 
   useEffect(() => {
     const fetchDiasSolicitados = async () => {
@@ -25,8 +26,12 @@ export function useGetDiasSolicitados() {
         const data = await consultarDiasSolicitadosPorAnioServices(idEmpleado, anioEnCurso);
         setDiasSolicitados(data); // Establecer la cantidad de solicitudes enviadas
         
-        const diasDisponiblesData = await consultarDiasDisponiblesServices(idEmpleado);
-        setDiasDisponiblesVacaciones( parseInt(diasDisponiblesData.diasDisponiblesT));
+        const diasDebitados = await consultarDiasDebitadosServices(idEmpleado, anioEnCurso);
+        setDiasDebitados( parseInt(diasDebitados.diasDebitados));
+
+        const diasDisponibles = await consultarDiasDisponiblesServices(idEmpleado);
+        console.log(diasDisponibles.diasDisponibles);
+        setDiasDisponiblesT( parseInt(diasDisponibles.diasDisponibles));
 
       } catch (error) {
         if (error?.message && !error.response) {
@@ -44,5 +49,5 @@ export function useGetDiasSolicitados() {
     fetchDiasSolicitados();
   }, []); // Corregido: dependencias vacías para evitar llamadas innecesarias
 
-  return { diasSolicitados, errorD, loadingD, diasDisponiblesVacaciones };
+  return { diasSolicitados, errorD, loadingD, diasDebitados, diasDisponiblesT };
 }

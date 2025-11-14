@@ -20,6 +20,15 @@ export const consultarDiasSolicitadosPorAnioServices = async (idEmpleado, anio) 
   }
 }
 
+export const consultarDiasDebitadosServices = async (idEmpleado, anioEnCurso) => {
+  try{
+    const response = await api.get(`${endpoints.GET_DIAS_DEBITADOS}?idEmpleado=${idEmpleado}&anio=${anioEnCurso}`);
+    return  response.data.diasDisponibles;
+  }catch(error){  
+    throw error;
+  }
+}
+
 export const consultarDiasDisponiblesServices = async (idEmpleado) => {
   try{
     const response = await api.get(`${endpoints.GET_DIAS_DISPONIBLES}?idEmpleado=${idEmpleado}`);
