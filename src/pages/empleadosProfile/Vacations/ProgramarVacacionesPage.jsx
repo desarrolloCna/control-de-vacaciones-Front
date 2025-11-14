@@ -448,7 +448,7 @@ const ProgramarVacacionesPage = () => {
         </Modal>
 
         <Modal
-          open={!diasValidos && !solicitud}
+          open={!diasValidos}
           onClose={handleCloseModal}
           aria-labelledby="modal-title"
           aria-describedby="modal-description"

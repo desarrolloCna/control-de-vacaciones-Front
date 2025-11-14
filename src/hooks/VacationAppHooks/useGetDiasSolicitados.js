@@ -30,7 +30,6 @@ export function useGetDiasSolicitados() {
         setDiasDebitados( parseInt(diasDebitados.diasDebitados));
 
         const diasDisponibles = await consultarDiasDisponiblesServices(idEmpleado);
-        console.log(diasDisponibles.diasDisponibles);
         setDiasDisponiblesT( parseInt(diasDisponibles.diasDisponibles));
 
       } catch (error) {
