@@ -98,13 +98,12 @@ const PersonalInfoForm = () => {
   const handleDepartamentoChange = (event) => {
     const departamentoId = event.target.value;
     setDepartamentoNacimiento(departamentoId);
+    setMunicipioNacimiento(""); // Resetear municipio cuando cambia el departamento
 
     // Filtrar municipios basados en el departamento seleccionado
-    const minId = departamentoId * 100;
-    const maxId = (departamentoId + 1) * 100;
+    // Los municipios tienen idMunicipio que empieza con el id del departamento
     const filteredMunicipios = municipios.filter(
-      (municipio) =>
-        municipio.idMunicipio >= minId && municipio.idMunicipio < maxId
+      (municipio) => Math.floor(municipio.idMunicipio / 100) === parseInt(departamentoId)
     );
     setMunicipiosFiltrados(filteredMunicipios);
   };
@@ -326,8 +325,8 @@ const PersonalInfoForm = () => {
                 >
                   {departamentos.map((departamento) => (
                     <MenuItem
-                      key={departamento.idDepartamento}
-                      value={departamento.idDepartamento}
+                      key={departamento.IdDepartamento}
+                      value={departamento.IdDepartamento}
                     >
                       {departamento.departamento}
                     </MenuItem>

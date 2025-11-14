@@ -41,7 +41,7 @@ function NivelEducativoForm() {
   const [idInfoPersonal, setIdInfoPersonal] = useState(null);
   const [nivelDeEstudios, setNivelDeEstudios] = useState("");
   const [ultimoNivelAlcanzado, setUltimoNivelAlcanzado] = useState("");
-  const [añoUltimoNivelCursado, setAñoUltimoNivelCursado] = useState("");
+  const [anioUltimoNivelCursado, setAnioUltimoNivelCursado] = useState("");
   const [profesion, setProfesion] = useState("");
   const [numeroColegiado, setNumeroColegiado] = useState("");
   const [fechaColegiacion, setFechaColegiacion] = useState("");
@@ -86,7 +86,7 @@ function NivelEducativoForm() {
         idInfoPersonal,
         nivelDeEstudios,
         ultimoNivelAlcanzado,
-        añoUltimoNivelCursado,
+        anioUltimoNivelCursado,
         profesion,
         numeroColegiado,
         fechaColegiacionToSend,
@@ -174,14 +174,14 @@ function NivelEducativoForm() {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                id="añoUltimoNivelCursado"
+                id="anioUltimoNivelCursado"
                 label="Año Último Nivel Cursado"
                 type="date"
                 InputLabelProps={{
                   shrink: true,
                 }}
-                value={añoUltimoNivelCursado}
-                onChange={(e) => setAñoUltimoNivelCursado(e.target.value)}
+                value={anioUltimoNivelCursado}
+                onChange={(e) => setAnioUltimoNivelCursado(e.target.value)}
               />
             </Grid>
             <Grid item xs={12}>

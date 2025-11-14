@@ -59,11 +59,8 @@ const ProgramarVacacionesPage = () => {
   const { coordinadoresList, errorCoordinadoresList, loadingCoordinadoresList } = useGetCoordinadoresList();
 
   const { isLoading, errorDF } = useDiasFestivos();
-  const minStartDate = dayjs().add(7, "day").format("YYYY-MM-DD");
-  const lastStartDate = dayjs()
-    .endOf("year")
-    .subtract(30, "day")
-    .format("YYYY-MM-DD");
+  const minStartDate = dayjs().add(1, "day").format("YYYY-MM-DD");
+  const lastStartDate = dayjs().endOf("year").subtract(53, "day").format("YYYY-MM-DD");
 
   const formatDateToDisplay = (date) => dayjs(date).format("DD/MM/YYYY");
 
@@ -247,7 +244,6 @@ const ProgramarVacacionesPage = () => {
                 InputLabelProps={{ shrink: true }}
                 value={startDate}
                 onChange={handleStartDateChange}
-                inputProps={{ min: minStartDate, max: lastStartDate}}
               />
             </Grid>
 
