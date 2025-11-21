@@ -55,7 +55,7 @@ const ProgramarVacacionesPage = () => {
   const [modalLeyOpen, setModalLeyOpen] = useState(false);
   const navigate = useNavigate();
 
-  const { solicitud, diasValidos, errorS, loadingS } = useSolicitudById();
+  const { solicitud, diasValidos, errorS, loadingS, sinDias } = useSolicitudById();
   const { coordinadoresList, errorCoordinadoresList, loadingCoordinadoresList } = useGetCoordinadoresList();
 
   const { isLoading, errorDF } = useDiasFestivos();
@@ -448,7 +448,7 @@ const ProgramarVacacionesPage = () => {
         </Modal>
 
         <Modal
-          open={!diasValidos}
+          open={!diasValidos || !sinDias}
           onClose={handleCloseModal}
           aria-labelledby="modal-title"
           aria-describedby="modal-description"
