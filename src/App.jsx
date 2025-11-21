@@ -28,6 +28,7 @@ import SolicitudesPage from './pages/empleadosProfile/Vacations/SolcitudesPage';
 // Rutas Generales
 import './styles/App.css'; // Actualiza la ruta según la ubicación del archivo CSS
 import ProtectedRoute from './components/ProtectRoute/ProtectedRoute';
+import ActivarVacacioenesPage from './pages/Empleados-Admin/ActivarVacaciones/ActivarVacaconesPage';
 
 function App() {
 
@@ -49,6 +50,7 @@ function App() {
         <Route path='/lista-de-empleados' element={ <ReporteEmpleado/> }/>
         <Route path='/vacaciones-empleados' element={ <ReporteVacacionesEmpleados/> }/>
         <Route path='/suspensiones' element={ <SuspensionesPage/> }/>
+        <Route path='/activar-vacaciones' element={ <ActivarVacacioenesPage/> }/>
       </Route>
 
       {/* Rutas protegidas del módulo de empleados */}

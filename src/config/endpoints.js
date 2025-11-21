@@ -16,6 +16,8 @@ const endpoints = {
     GET_COORDINADORES_LIST: '/consultarCoordinadoresList',
     GET_DIAS_DEBITADOS: '/consultarDiasDebitadosPorAnio',
     GET_DIAS_DISPONIBLES: '/consultarDiasDisponibles',
+    GET_EMPLEADOS_ULTIMO_ANIO: '/consultarEmpleadosUltimoAnio',
+
 };
 
 const endpointsPost = {
@@ -24,6 +26,7 @@ const endpointsPost = {
     POST_ACREDITARDIAS: '/acreditarDias',
     POST_INGRESARSUSPENSIONES: '/ingresarSuspension',
     POST_DEBITARDIAS: '/debitarDias',
+    POST_REGISTRA_VACACIONES_ESPECIALES: '/registrarVacacionesEspeciales'
 };
 
 export { endpoints, endpointsPost };

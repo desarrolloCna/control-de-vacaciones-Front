@@ -18,6 +18,7 @@ import {
   Snackbar,
   Slide,
   Alert,
+  Chip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import InfoIcon from "@mui/icons-material/Info";
@@ -44,6 +45,38 @@ const SolicitudesPage = () => {
   const { solicitudesU, cantadSolicitudes, errorU, loadingU } =
     useSolicitudes();
   const [successOpen, setSuccessOpen] = useState(false);
+
+  // Función para obtener el color del badge según el estado
+  const getEstadoColor = (estado) => {
+    switch (estado) {
+      case "enviada":
+        return "warning"; // Naranja/ámbar para espera
+      case "autorizadas":
+        return "success"; // Verde para autorizadas
+      case "rechazada":
+        return "error"; // Rojo para rechazada
+      case "finalizadas":
+        return "info"; // Azul para finalizadas
+      default:
+        return "default"; // Gris por defecto
+    }
+  };
+
+  // Función para obtener el texto del estado
+  const getEstadoText = (estado) => {
+    switch (estado) {
+      case "enviada":
+        return "En espera de aprobación";
+      case "autorizadas":
+        return "Vacaciones autorizadas";
+      case "rechazada":
+        return "Vacaciones Rechazadas";
+      case "finalizadas":
+        return "Vacaciones Finalizadas";
+      default:
+        return estado;
+    }
+  };
 
   const handleVerSolicitud = (solicitud) => {
     setSelectedSolicitud(solicitud);
@@ -252,13 +285,15 @@ const SolicitudesPage = () => {
                       Solicitud de vacaciones
                     </TableCell>
                     <TableCell align="center">
-                      {solicitud.estadoSolicitud === "enviada"
-                        ? "En espera de aprobación"
-                        : solicitud.estadoSolicitud === "autorizadas"
-                        ? "Vacaciones autorizadas"
-                        : solicitud.estadoSolicitud === "rechazada"
-                        ? "Vacaciones Rechazadas"
-                        : "Vacaciones Finalizadas"}
+                      <Chip
+                        label={getEstadoText(solicitud.estadoSolicitud)}
+                        color={getEstadoColor(solicitud.estadoSolicitud)}
+                        variant="filled"
+                        sx={{
+                          fontWeight: "bold",
+                          minWidth: "160px",
+                        }}
+                      />
                     </TableCell>
 
                     <TableCell align="center">
@@ -396,13 +431,21 @@ const SolicitudesPage = () => {
                     </Typography>
                     {selectedSolicitud.cantidadDiasSolicitados}
                   </Grid>
-                </Grid>
 
-                <Grid item xs={6}>
-                  <Typography variant="body1" fontWeight="bold">
-                    Estado de la solicitud
-                  </Typography>
-                  {selectedSolicitud.estadoSolicitud}
+                  <Grid item xs={12}>
+                    <Typography variant="body1" fontWeight="bold">
+                      Estado de la solicitud:
+                    </Typography>
+                    <Chip
+                      label={getEstadoText(selectedSolicitud.estadoSolicitud)}
+                      color={getEstadoColor(selectedSolicitud.estadoSolicitud)}
+                      variant="filled"
+                      sx={{
+                        fontWeight: "bold",
+                        mt: 1,
+                      }}
+                    />
+                  </Grid>
                 </Grid>
 
                 {(selectedSolicitud.estadoSolicitud === "rechazada" ||

@@ -79,6 +79,16 @@ export default function ControlPanel() {
               />
             </Grid>
           )}
+          <Grid item xs={12} sm={6} md={4}>
+            <PanelCard
+              primaryText="Activar vacaciones"
+              secondaryText="Activar solicitud antes del año"
+              icon={<EventIcon sx={{ color: "#fff" }} />}
+              backgroundColor="#9ace65"
+              textColor="#fff"
+              to="/activar-vacaciones"
+            />
+          </Grid>
         </Grid>
       </Container>
     </>
