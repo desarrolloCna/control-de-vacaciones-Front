@@ -3,6 +3,8 @@ import { getLocalStorageData } from "../../services/session/getLocalStorageData.
 import { getSolicitudById } from "../../services/VacationApp/GetSolicidudById.js";
 import { validarCantidadDiasIngreso } from "../../services/utils/dates/vacationUtils.js";
 import { consultarEmpleadosUltimoAnioService } from "../../services/EmpleadosServices/Empleados/Empleados.service.js";
+import { consultarGestionVacacionesEspecialesService } from "../../services/vacacionesespeciales/Vacacionesesepeciales.service.js";
+import dayjs from "dayjs";
 
 
 export function useSolicitudById() {
@@ -11,6 +13,7 @@ export function useSolicitudById() {
   const [errorS, setErrorS] = useState(null);
   const [loadingS, setLoadingS] = useState(true);
   const [sinDias, setSinDias] = useState(false);
+  const [hasGestion, setHasGestion] = useState(false);
 
   useEffect(() => {
     const fetchSolicitud = async () => {
@@ -20,14 +23,20 @@ export function useSolicitudById() {
           throw new Error("Sin datos en localStorage.");
         }
 
+        const fechaEnCurso = dayjs().format('YYYY-MM-DD');
+
         //validar hace cuantos dias ingreso
          const isValidDay =  validarCantidadDiasIngreso(userData.fechaIngreso);
          setDiasValidos(isValidDay);
 
          const empleado = await consultarEmpleadosUltimoAnioService(userData.idEmpleado);
-         
          const hasDays = empleado.empleadosUltimoAnio[0].idEmpleado == 0 ? true : false;
-         setSinDias(hasDays); 
+         setSinDias(hasDays);
+
+         const gestion = await consultarGestionVacacionesEspecialesService(userData.idEmpleado, fechaEnCurso);
+         const hasGestion = gestion.isExist == 0 ? false : true;
+         setHasGestion(hasGestion);
+         
 
 
         const { idEmpleado, idInfoPersonal } = userData;
@@ -49,5 +58,5 @@ export function useSolicitudById() {
     fetchSolicitud();
   }, []); // Corregido: dependencias vacías para evitar llamadas innecesarias
 
-  return { solicitud, diasValidos,  errorS, loadingS, setSolicitud, sinDias };
+  return { solicitud, diasValidos,  errorS, loadingS, setSolicitud, sinDias, hasGestion };
 }

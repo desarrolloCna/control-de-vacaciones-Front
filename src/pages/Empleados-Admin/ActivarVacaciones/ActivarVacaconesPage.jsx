@@ -110,7 +110,6 @@ const ActivarVacacionesPage = () => {
             for (const empleado of empleadosProcesar) {
                 try {
                     const payload = generarPayload(empleado);
-                    console.log('Enviando payload para:', empleado.Nombre, payload);
                     
                     // Llamar al servicio real
                     const respuesta = await registrarVacacionesEspeciales(payload);

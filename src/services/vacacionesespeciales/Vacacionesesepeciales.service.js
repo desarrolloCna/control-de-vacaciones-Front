@@ -1,5 +1,5 @@
 import api from "../../config/api";
-import { endpointsPost } from "../../config/endpoints";
+import { endpoints, endpointsPost } from "../../config/endpoints";
 
 
 export const registrarVacacionesEspeciales = async (data) => {
@@ -13,4 +13,13 @@ export const registrarVacacionesEspeciales = async (data) => {
     console.log(error)
     throw error;
   }
+};
+
+export const consultarGestionVacacionesEspecialesService = async (idEmpleado, fechaEnCurso) => {
+    try {
+        const response = await api.get(`${endpoints.GET_GESTION_VAC_ESPECIALES}?idEmpleado=${idEmpleado}&fechaEnCurso=${fechaEnCurso}`);
+      return response.data.vacacionesEspeciales;
+    } catch (error) {
+      throw error;
+    }
 };
