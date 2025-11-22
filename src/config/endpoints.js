@@ -17,6 +17,7 @@ const endpoints = {
     GET_DIAS_DEBITADOS: '/consultarDiasDebitadosPorAnio',
     GET_DIAS_DISPONIBLES: '/consultarDiasDisponibles',
     GET_EMPLEADOS_ULTIMO_ANIO: '/consultarEmpleadosUltimoAnio',
+    GET_GESTION_VAC_ESPECIALES: '/consultarVacacionesEspeciales',
 
 };
 

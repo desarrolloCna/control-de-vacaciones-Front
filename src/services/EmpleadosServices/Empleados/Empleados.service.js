@@ -1,11 +1,15 @@
 import api from '../../../config/api.js'
 import endpoints from '../../../config/endpoints.js'
 
-export const consultarEmpleadosUltimoAnioService = async (anioEnCurso) => {
+export const consultarEmpleadosUltimoAnioService = async (idEmpleado) => {
     try {
-      const response = await api.get(`${endpoints.GET_EMPLEADOS_ULTIMO_ANIO}?anioEnCurso=${anioEnCurso}`)
-      return response.data;
+        const url = idEmpleado 
+            ? `${endpoints.GET_EMPLEADOS_ULTIMO_ANIO}?idEmpleado=${idEmpleado}`
+            : endpoints.GET_EMPLEADOS_ULTIMO_ANIO;
+            
+        const response = await api.get(url);
+        return response.data;
     } catch (error) {
-      throw error;
+        throw error;
     }
 };

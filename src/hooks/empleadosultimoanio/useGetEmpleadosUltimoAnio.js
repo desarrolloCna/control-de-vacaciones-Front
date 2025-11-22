@@ -14,10 +14,9 @@ export const useGetEmpleadosUltimoAnio = () => {
       const fetchEmpleadosUltimoAnio = async () => {
         try {
 
-            const fechaHoy = dayjs().format('YYYY-MM-DD');
-
-          const response = await consultarEmpleadosUltimoAnioService(fechaHoy);
+          const response = await consultarEmpleadosUltimoAnioService();
           const data = response;
+          console.log(data.empleadosUltimoAnio)
           if (data.status === 200) {
             setEmpleadosU(data.empleadosUltimoAnio);
 

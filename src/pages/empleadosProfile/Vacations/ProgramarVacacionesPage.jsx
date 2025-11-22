@@ -55,7 +55,7 @@ const ProgramarVacacionesPage = () => {
   const [modalLeyOpen, setModalLeyOpen] = useState(false);
   const navigate = useNavigate();
 
-  const { solicitud, diasValidos, errorS, loadingS } = useSolicitudById();
+  const { solicitud, diasValidos, errorS, loadingS, sinDias, hasGestion } = useSolicitudById();
   const { coordinadoresList, errorCoordinadoresList, loadingCoordinadoresList } = useGetCoordinadoresList();
 
   const { isLoading, errorDF } = useDiasFestivos();
@@ -63,6 +63,8 @@ const ProgramarVacacionesPage = () => {
   const lastStartDate = dayjs().endOf("year").subtract(53, "day").format("YYYY-MM-DD");
 
   const formatDateToDisplay = (date) => dayjs(date).format("DD/MM/YYYY");
+
+  console.log(!hasGestion)
 
   useEffect(() => {
     const userData = getLocalStorageData();
@@ -448,7 +450,7 @@ const ProgramarVacacionesPage = () => {
         </Modal>
 
         <Modal
-          open={!diasValidos}
+          open={!hasGestion && (!diasValidos || !sinDias )}
           onClose={handleCloseModal}
           aria-labelledby="modal-title"
           aria-describedby="modal-description"
