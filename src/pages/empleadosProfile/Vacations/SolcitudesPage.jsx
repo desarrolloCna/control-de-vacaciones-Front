@@ -1,27 +1,9 @@
-import React, { useState } from "react";
-import {
-  Box,
-  IconButton,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-  Modal,
-  TextField,
-  MenuItem,
-  Grid,
-  Snackbar,
-  Slide,
-  Alert,
-  Chip,
-} from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box,IconButton,Typography,Table,TableBody,TableCell,TableContainer,TableHead,TableRow, Paper,Button,Modal,TextField,MenuItem,Grid,Snackbar,Slide,Alert,Chip,Card,CardHeader,CardContent,} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import InfoIcon from "@mui/icons-material/Info";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import ViewListIcon from "@mui/icons-material/ViewList";
 import Sidebar from "../../../components/EmpleadosPage/SideBar/SideBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import Spinner from "../../../components/spinners/spinner";
@@ -30,9 +12,38 @@ import { useSolicitudes } from "../../../hooks/VacationAppHooks/useSolicitudes";
 import axios from "axios";
 import { formatDateToDisplay } from "../../../services/utils/dates/vacationUtils";
 import { API_URL } from "../../../config/enviroment";
+import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import { format, parse, startOfWeek, getDay } from "date-fns";
+import { es } from "date-fns/locale";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import "./Solicitudes.styles.css";
+
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek: (date) => startOfWeek(date, { weekStartsOn: 1 }),
+  getDay,
+  locales: { es },
+});
+
+const calendarMessages = {
+  allDay: "Todo el día",
+  previous: "<",
+  next: ">",
+  today: "Hoy",
+  month: "Mes",
+  week: "Semana",
+  day: "Día",
+  agenda: "Agenda",
+  date: "Fecha",
+  time: "Hora",
+  event: "Evento",
+  noEventsInRange: "No hay solicitudes programadas",
+  showMore: (total) => `+ Ver más (${total})`,
+};
 
 const SolicitudesPage = () => {
-  //VAlidar sesion y permisos
+  // Validar sesion y permisos
   const isSessionVerified = useCheckSession();
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -41,24 +52,90 @@ const SolicitudesPage = () => {
   const [descripcionRechazo, setDescripcionRechazo] = useState("");
   const [searchText, setSearchText] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("");
-  const [isEstadoChanged, setIsEstadoChanged] = useState(false); // Nuevo estado para controlar el cambio en el estado
-  const { solicitudesU, cantadSolicitudes, errorU, loadingU } =
-    useSolicitudes();
+  const [isEstadoChanged, setIsEstadoChanged] = useState(false);
+  const { solicitudesU, cantadSolicitudes, errorU, loadingU } = useSolicitudes();
   const [successOpen, setSuccessOpen] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [calendarEvents, setCalendarEvents] = useState([]);
+
+  // Función para verificar si una fecha está entre dos fechas (sin dayjs plugin)
+  const isDateBetween = (date, start, end) => {
+    const checkDate = new Date(date);
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    
+    return checkDate >= startDate && checkDate <= endDate;
+  };
+
+  // Función para verificar si es el mismo día
+  const isSameDay = (date1, date2) => {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+    
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+  };
+
+  // Transformar solicitudes a eventos del calendario
+  useEffect(() => {
+    if (solicitudesU && solicitudesU.length > 0) {
+      const events = solicitudesU.map((solicitud) => {
+        const fechaInicio = new Date(solicitud.fechaInicioVacaciones);
+        const fechaFin = new Date(solicitud.fechaFinVacaciones);
+        const today = new Date();
+        
+        // Determinar color según estado y fechas
+        let color = "#6c757d"; // Default gray
+        
+        if (solicitud.estadoSolicitud === "autorizadas") {
+          color = "#28a745"; // Green for approved
+        } else if (solicitud.estadoSolicitud === "rechazada") {
+          color = "#dc3545"; // Red for rejected
+        } else if (solicitud.estadoSolicitud === "enviada") {
+          color = "#ffc107"; // Yellow for pending
+        } else if (solicitud.estadoSolicitud === "finalizadas") {
+          color = "#17a2b8"; // Blue for finished
+        }
+
+        // Check if vacation starts today or is ongoing
+        const isStartingToday = isSameDay(today, fechaInicio);
+        const isOngoing = isDateBetween(today, fechaInicio, fechaFin);
+        
+        if (isStartingToday || isOngoing) {
+          color = "#fd7e14"; // Orange for active/starting today
+        }
+
+        return {
+          id: solicitud.idSolicitud,
+          title: `${solicitud.nombreCompleto} - ${solicitud.cantidadDiasSolicitados}d`,
+          start: fechaInicio,
+          end: fechaFin,
+          estado: solicitud.estadoSolicitud,
+          empleado: solicitud.nombreCompleto,
+          dias: solicitud.cantidadDiasSolicitados,
+          fechaRetorno: solicitud.fechaRetornoLabores,
+          color: color,
+          solicitudData: solicitud,
+        };
+      });
+      setCalendarEvents(events);
+    }
+  }, [solicitudesU]);
 
   // Función para obtener el color del badge según el estado
   const getEstadoColor = (estado) => {
     switch (estado) {
       case "enviada":
-        return "warning"; // Naranja/ámbar para espera
+        return "warning";
       case "autorizadas":
-        return "success"; // Verde para autorizadas
+        return "success";
       case "rechazada":
-        return "error"; // Rojo para rechazada
+        return "error";
       case "finalizadas":
-        return "info"; // Azul para finalizadas
+        return "info";
       default:
-        return "default"; // Gris por defecto
+        return "default";
     }
   };
 
@@ -81,16 +158,21 @@ const SolicitudesPage = () => {
   const handleVerSolicitud = (solicitud) => {
     setSelectedSolicitud(solicitud);
     setModalOpen(true);
-    setDescripcionRechazo(""); // Reiniciar la descripción al abrir el modal
-    if (solicitud) setIsEstadoChanged(false); // Reiniciar el estado de cambio al abrir el modal
+    setDescripcionRechazo("");
+    if (solicitud) setIsEstadoChanged(false);
+  };
+
+  const handleSelectEvent = (event) => {
+    setSelectedSolicitud(event.solicitudData);
+    setModalOpen(true);
   };
 
   const handleAutorizar = async () => {
     if (!selectedSolicitud) return;
 
     const payload = {
-      estadoSolicitud: "autorizadas", // Cambia el estado a "autorizada"
-      idEmpleado: selectedSolicitud.idEmpleado, // Suponiendo que tienes el idEmpleado en userData
+      estadoSolicitud: "autorizadas",
+      idEmpleado: selectedSolicitud.idEmpleado,
       idSolicitud: selectedSolicitud.idSolicitud,
     };
 
@@ -99,7 +181,7 @@ const SolicitudesPage = () => {
         `${API_URL}/UpdateEstadoSolicitud`,
         payload
       );
-      setSuccessOpen(true); // Mostrar Snackbar de éxito
+      setSuccessOpen(true);
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -116,8 +198,8 @@ const SolicitudesPage = () => {
     }
 
     const payload = {
-      estadoSolicitud: "rechazada", // Cambia el estado a "rechazada"
-      idEmpleado: selectedSolicitud.idEmpleado, // Suponiendo que tienes el idEmpleado en userData
+      estadoSolicitud: "rechazada",
+      idEmpleado: selectedSolicitud.idEmpleado,
       idSolicitud: selectedSolicitud.idSolicitud,
     };
 
@@ -126,7 +208,7 @@ const SolicitudesPage = () => {
         `${API_URL}/UpdateEstadoSolicitud`,
         payload
       );
-      setSuccessOpen(true); // Mostrar Snackbar de éxito
+      setSuccessOpen(true);
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -142,30 +224,41 @@ const SolicitudesPage = () => {
   };
 
   const filteredSolicitudes = solicitudesU
-    .filter(
+    ?.filter(
       (solicitud) =>
         solicitud.nombreCompleto
           .toLowerCase()
           .includes(searchText.toLowerCase()) &&
         (estadoFilter ? solicitud.estadoSolicitud === estadoFilter : true)
     )
-    .sort((a, b) => b.idSolicitud - a.idSolicitud); // Ordenar de mayor a menor
+    .sort((a, b) => b.idSolicitud - a.idSolicitud) || [];
 
-  const handleChangeEstado = (event) => {
-    if (selectedSolicitud) {
-      const nuevoEstado = event.target.value;
-      setSelectedSolicitud({
-        ...selectedSolicitud,
-        estado: nuevoEstado,
-      });
-      setIsEstadoChanged(
-        nuevoEstado !==
-          solicitudes.find((s) => s.id === selectedSolicitud.id).estado
-      ); // Indica si el estado ha cambiado
-    }
+  const eventStyleGetter = (event) => ({
+    style: {
+      backgroundColor: event.color,
+      borderRadius: "4px",
+      opacity: 0.9,
+      color: "white",
+      border: "0px",
+      display: "block",
+      fontSize: "12px",
+      padding: "2px 4px",
+    },
+  });
+
+  // Función auxiliar para verificar si las vacaciones están activas
+  const isVacationActive = (solicitud) => {
+    if (!solicitud) return false;
+    
+    const fechaInicio = new Date(solicitud.fechaInicioVacaciones);
+    const fechaFin = new Date(solicitud.fechaFinVacaciones);
+    const today = new Date();
+    
+    const isStartingToday = isSameDay(today, fechaInicio);
+    const isOngoing = isDateBetween(today, fechaInicio, fechaFin);
+    
+    return isStartingToday || isOngoing;
   };
-
-  const isRechazada = selectedSolicitud?.estado === "rechazada";
 
   if (!isSessionVerified || loadingU) {
     return <Spinner />;
@@ -175,7 +268,7 @@ const SolicitudesPage = () => {
     <Box
       sx={{
         display: "flex",
-        height: solicitudesU && solicitudesU.length > 5 ? "0" : "100vh",
+        minHeight: "100vh",
         backgroundColor: "#f5f5f5",
       }}
     >
@@ -184,7 +277,7 @@ const SolicitudesPage = () => {
         aria-label="open drawer"
         edge="start"
         onClick={() => setMobileOpen(!mobileOpen)}
-        sx={{ mr: 2, display: { md: "none" } }}
+        sx={{ mr: 2, display: { md: "none" }, position: 'fixed', top: 16, left: 16, zIndex: 1300 }}
       >
         <MenuIcon />
       </IconButton>
@@ -206,168 +299,215 @@ const SolicitudesPage = () => {
 
       <Box
         component="main"
-        sx={{ flexGrow: 1, mr: 5, p: 3, ml: { md: "65px" } }}
+        sx={{ 
+          flexGrow: 1, 
+          p: 3, 
+          ml: { md: "0px" },
+          width: { md: `calc(100% - 240px)` }
+        }}
       >
-        <Typography
-          variant="h4"
-          sx={{
-            mb: 2,
-            fontFamily: "'Roboto', sans-serif",
-            fontWeight: "bold",
-            textAlign: "center",
-            marginTop: 2,
-          }}
-        >
-          SOLICITUDES
-        </Typography>
-
-        <Box sx={{ display: "flex", gap: 2, mb: 2, mr: 40 }}>
-          <TextField
-            label="Buscar por empleado"
-            variant="outlined"
-            fullWidth
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography
+            variant="h4"
             sx={{
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "green" },
+              fontFamily: "'Roboto', sans-serif",
+              fontWeight: "bold",
+            }}
+          >
+            SOLICITUDES DE VACACIONES
+          </Typography>
+          
+          <Button
+            variant="contained"
+            startIcon={showCalendar ? <ViewListIcon /> : <CalendarTodayIcon />}
+            onClick={() => setShowCalendar(!showCalendar)}
+            sx={{
+              backgroundColor: showCalendar ? '#6c757d' : '#0d6efd',
+              '&:hover': {
+                backgroundColor: showCalendar ? '#5a6268' : '#0b5ed7',
               },
             }}
-          />
-          <TextField
-            select
-            label="Filtrar por estado"
-            value={estadoFilter}
-            onChange={(e) => setEstadoFilter(e.target.value)}
-            variant="outlined"
-            sx={{ minWidth: 150 }}
           >
-            <MenuItem value="">Todos</MenuItem>
-            <MenuItem value="enviada">En espera</MenuItem>
-            <MenuItem value="autorizadas">Autorizadas</MenuItem>
-            <MenuItem value="rechazada">Rechazada</MenuItem>
-            <MenuItem value="finalizadas">Finalizadas</MenuItem>
-          </TextField>
+            {showCalendar ? "Ver Lista" : "Ver Calendario"}
+          </Button>
         </Box>
 
-        <TableContainer component={Paper} sx={{ mb: 4 }}>
-          <Table aria-label="solicitudes table">
-            <TableHead>
-              <TableRow>
-                {["ID", "Empleado", "Tipo Solicitud", "Estado", "Acción"].map(
-                  (header) => (
-                    <TableCell
-                      key={header}
-                      align="center"
-                      sx={{
-                        fontWeight: "bold",
-                        backgroundColor: "#424242",
-                        color: "#fff",
-                      }}
-                    >
-                      {header}
-                    </TableCell>
-                  )
-                )}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {solicitudesU && solicitudesU.length > 0 ? (
-                filteredSolicitudes.map((solicitud) => (
-                  <TableRow key={solicitud.idSolicitud}>
-                    <TableCell align="center">
-                      {"SLVC" + solicitud.idSolicitud}
-                    </TableCell>
-                    <TableCell align="center">
-                      {solicitud.nombreCompleto}
-                    </TableCell>
-                    <TableCell align="center">
-                      Solicitud de vacaciones
-                    </TableCell>
-                    <TableCell align="center">
-                      <Chip
-                        label={getEstadoText(solicitud.estadoSolicitud)}
-                        color={getEstadoColor(solicitud.estadoSolicitud)}
-                        variant="filled"
-                        sx={{
-                          fontWeight: "bold",
-                          minWidth: "160px",
-                        }}
-                      />
-                    </TableCell>
+        {showCalendar ? (
+          // VISTA CALENDARIO
+          <Card sx={{ mb: 3, boxShadow: 3 }}>
+            <CardHeader 
+              title="Calendario de Vacaciones" 
+              subheader={`Total de solicitudes: ${solicitudesU?.length || 0}`}
+            />
+            <CardContent>
+              <Box sx={{ height: 600 }}>
+                <Calendar
+                  localizer={localizer}
+                  events={calendarEvents}
+                  startAccessor="start"
+                  endAccessor="end"
+                  style={{ height: "100%" }}
+                  onSelectEvent={handleSelectEvent}
+                  eventPropGetter={eventStyleGetter}
+                  messages={calendarMessages}
+                  defaultView="month"
+                  views={["month", "week", "day"]}
+                  culture="es"
+                />
+              </Box>
+            </CardContent>
+          </Card>
+        ) : (
+          // VISTA TABLA
+          <>
+            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+              <TextField
+                label="Buscar por empleado"
+                variant="outlined"
+                fullWidth
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": { borderColor: "green" },
+                  },
+                }}
+              />
+              <TextField
+                select
+                label="Filtrar por estado"
+                value={estadoFilter}
+                onChange={(e) => setEstadoFilter(e.target.value)}
+                variant="outlined"
+                sx={{ minWidth: 150 }}
+              >
+                <MenuItem value="">Todos</MenuItem>
+                <MenuItem value="enviada">En espera</MenuItem>
+                <MenuItem value="autorizadas">Autorizadas</MenuItem>
+                <MenuItem value="rechazada">Rechazada</MenuItem>
+                <MenuItem value="finalizadas">Finalizadas</MenuItem>
+              </TextField>
+            </Box>
 
-                    <TableCell align="center">
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleVerSolicitud(solicitud)}
-                      >
-                        Ver
-                      </Button>
-                    </TableCell>
+            <TableContainer component={Paper} sx={{ mb: 4, boxShadow: 3 }}>
+              <Table aria-label="solicitudes table">
+                <TableHead>
+                  <TableRow>
+                    {["ID", "Empleado", "Tipo Solicitud", "Estado", "Acción"].map(
+                      (header) => (
+                        <TableCell
+                          key={header}
+                          align="center"
+                          sx={{
+                            fontWeight: "bold",
+                            backgroundColor: "#424242",
+                            color: "#fff",
+                          }}
+                        >
+                          {header}
+                        </TableCell>
+                      )
+                    )}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} align="center">
-                    <Typography variant="h6" sx={{ color: "gray" }}>
-                      No hay solicitudes disponibles.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {solicitudesU && solicitudesU.length > 0 ? (
+                    filteredSolicitudes.map((solicitud) => (
+                      <TableRow key={solicitud.idSolicitud}>
+                        <TableCell align="center">
+                          {"SLVC" + solicitud.idSolicitud}
+                        </TableCell>
+                        <TableCell align="center">
+                          {solicitud.nombreCompleto}
+                        </TableCell>
+                        <TableCell align="center">
+                          Solicitud de vacaciones
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={getEstadoText(solicitud.estadoSolicitud)}
+                            color={getEstadoColor(solicitud.estadoSolicitud)}
+                            variant="filled"
+                            sx={{
+                              fontWeight: "bold",
+                              minWidth: "160px",
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell align="center">
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => handleVerSolicitud(solicitud)}
+                          >
+                            Ver
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center">
+                        <Typography variant="h6" sx={{ color: "gray" }}>
+                          No hay solicitudes disponibles.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </>
+        )}
 
         {/* Snackbar para mostrar el mensaje de éxito */}
         <Snackbar
           open={successOpen}
           onClose={() => setSuccessOpen(false)}
-          anchorOrigin={{ vertical: "top", horizontal: "right" }} // Posición superior derecha
-          //autoHideDuration={6000000} // Duración de la visibilidad
-          TransitionComponent={Slide} // Transición para la animación
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          TransitionComponent={Slide}
           sx={{
             "& .MuiSnackbarContent-root": {
               padding: "8px 16px",
               minWidth: "200px",
             },
-          }} // Estilo para el contenido
+          }}
         >
           <Alert
             onClose={() => setSuccessOpen(false)}
             severity="success"
             sx={{
               width: "100%",
-              fontSize: "1.0Srem",
-              backgroundColor: "#28a745", // Color verde Bootstrap
-              color: "#ffffff", // Color de texto blanco para contraste
+              fontSize: "1.0rem",
+              backgroundColor: "#28a745",
+              color: "#ffffff",
               "& .MuiAlert-icon": {
-                color: "#ffffff", // Color del icono
+                color: "#ffffff",
               },
               "& .MuiAlert-action": {
-                color: "#ffffff", // Color de acción si se añade un botón
+                color: "#ffffff",
               },
-            }} // Cambiar tamaño de fuente y ancho
+            }}
           >
-            Solicitud enviada exitosamente
+            Solicitud procesada exitosamente
           </Alert>
         </Snackbar>
 
+        {/* Modal de detalles */}
         <Modal open={modalOpen} onClose={handleCloseModal}>
           <Box
             sx={{
               position: "absolute",
-              top: "2%", // Ajustamos un margen superior pequeño
+              top: "2%",
               left: "55%",
-              transform: "translate(-50%, 0)", // Solo centramos horizontalmente
-              width: "80vw", // Más ancho para mostrar más contenido
-              maxWidth: "700px", // Máximo ancho
+              transform: "translate(-50%, 0)",
+              width: "80vw",
+              maxWidth: "700px",
               bgcolor: "white",
               borderRadius: 2,
               p: 4,
               boxShadow: 24,
-              overflow: "hidden", // Ocultamos cualquier desbordamiento
+              overflow: "hidden",
               outline: "none",
             }}
           >
@@ -446,6 +586,17 @@ const SolicitudesPage = () => {
                       }}
                     />
                   </Grid>
+
+                  {/* Alerta si las vacaciones inician hoy o están en curso */}
+                  {isVacationActive(selectedSolicitud) && selectedSolicitud.estadoSolicitud === "autorizadas" && (
+                    <Grid item xs={12}>
+                      <Alert severity="warning" sx={{ mt: 2 }}>
+                        {isSameDay(new Date(), new Date(selectedSolicitud.fechaInicioVacaciones)) 
+                          ? "⚠️ Las vacaciones de este empleado INICIAN HOY" 
+                          : "⚠️ Este empleado se encuentra actualmente de vacaciones"}
+                      </Alert>
+                    </Grid>
+                  )}
                 </Grid>
 
                 {(selectedSolicitud.estadoSolicitud === "rechazada" ||
@@ -463,7 +614,7 @@ const SolicitudesPage = () => {
                     sx={{ mt: 2 }}
                     inputProps={{
                       readOnly: selectedSolicitud.estadoSolicitud !== "enviada",
-                    }} // Asegúrate de usar inputProps aquí
+                    }}
                   />
                 )}
 
@@ -471,19 +622,19 @@ const SolicitudesPage = () => {
                   <Box
                     sx={{
                       display: "flex",
-                      justifyContent: "center", // Centrar los botones
+                      justifyContent: "center",
                       mt: 2,
                     }}
                   >
                     <Button
                       variant="contained"
                       onClick={handleAutorizar}
-                      disabled={selectedSolicitud.estadoSolicitud !== "enviada"} // Deshabilitar si no está en estado 'enviada'
+                      disabled={selectedSolicitud.estadoSolicitud !== "enviada"}
                       sx={{
                         backgroundColor: "#28a745",
                         "&:hover": { backgroundColor: "#218838" },
                         mt: 3,
-                        mx: 1, // Separación horizontal entre botones
+                        mx: 1,
                       }}
                     >
                       Autorizar
@@ -491,12 +642,12 @@ const SolicitudesPage = () => {
                     <Button
                       variant="contained"
                       onClick={handleRechazar}
-                      disabled={selectedSolicitud.estadoSolicitud !== "enviada"} // Deshabilitar si no está en estado 'enviada'
+                      disabled={selectedSolicitud.estadoSolicitud !== "enviada"}
                       sx={{
                         backgroundColor: "#dc3545",
                         "&:hover": { backgroundColor: "#c82333" },
                         mt: 3,
-                        mx: 1, // Separación horizontal entre botones
+                        mx: 1,
                       }}
                     >
                       Rechazar
