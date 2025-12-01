@@ -15,8 +15,10 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Chip,
 } from "@mui/material";
 import WarningIcon from "@mui/icons-material/Warning";
+import InfoIcon from "@mui/icons-material/Info";
 import Sidebar from "../../../components/EmpleadosPage/SideBar/SideBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import Spinner from "../../../components/spinners/spinner";
@@ -52,19 +54,21 @@ const ProgramarVacacionesPage = () => {
   const [loading, setLoading] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalLeyOpen, setModalLeyOpen] = useState(false);
+  const [diasError, setDiasError] = useState("");
   const navigate = useNavigate();
 
-  const { solicitud, diasValidos, errorS, loadingS, sinDias, hasGestion } = useSolicitudById();
+  const { solicitud, diasValidos, errorS, loadingS, sinDias, hasGestion, diasDebitados } = useSolicitudById();
   const { coordinadoresList, errorCoordinadoresList, loadingCoordinadoresList } = useGetCoordinadoresList();
 
   const { isLoading, errorDF } = useDiasFestivos();
   const minStartDate = dayjs().add(1, "day").format("YYYY-MM-DD");
   const lastStartDate = dayjs().endOf("year").subtract(53, "day").format("YYYY-MM-DD");
 
-  const formatDateToDisplay = (date) => dayjs(date).format("DD/MM/YYYY");
+  // Calcular días disponibles
+  const LIMITE_DIAS_ANUAL = 20;
+  const diasDisponibles = LIMITE_DIAS_ANUAL - (diasDebitados || 0);
 
-  console.log(!hasGestion)
+  const formatDateToDisplay = (date) => dayjs(date).format("DD/MM/YYYY");
 
   useEffect(() => {
     const userData = getLocalStorageData();
@@ -74,7 +78,7 @@ const ProgramarVacacionesPage = () => {
       setIdInfoPersonal(userData.idInfoPersonal);
     }
     // Verifica si hay una solicitud en proceso al cargar
-    if (solicitud && (solicitud.estadoSolicitud == "enviada" || solicitud.estadoSolicitud == "autorizadas") ) {
+    if (solicitud && (solicitud.estadoSolicitud == "enviada" || solicitud.estadoSolicitud == "autorizadas")) {
       setModalOpen(true);
     }
   }, [solicitud]);
@@ -92,14 +96,31 @@ const ProgramarVacacionesPage = () => {
     setDiasHabilitado(true);
     setEndDate("");
     setNextWorkDate("");
+    setDiasError("");
   };
 
   const handleDiasVacacionesChange = (e) => {
     const dias = parseInt(e.target.value, 10) || 0;
     setDiasVacaciones(dias);
+    setDiasError("");
 
+    // Validación: días disponibles según días ya debitados
+    if (dias > diasDisponibles) {
+      const mensaje = diasDisponibles === 1
+        ? `Solo tienes 1 día disponible para solicitar este año.`
+        : diasDisponibles === 0
+        ? `No tienes días disponibles. Ya has utilizado los 20 días permitidos este año.`
+        : `Solo tienes ${diasDisponibles} días disponibles para solicitar este año.`;
+      
+      setDiasError(mensaje);
+      setEndDate("");
+      setNextWorkDate("");
+      return;
+    }
+
+    // Validación: máximo 20 días por solicitud
     if (dias > 20) {
-      alert("Solo puedes programar un máximo de 20 días.");
+      setDiasError("Solo puedes programar un máximo de 20 días por solicitud.");
       setDiasVacaciones("");
       setEndDate("");
       setNextWorkDate("");
@@ -219,6 +240,19 @@ const ProgramarVacacionesPage = () => {
           Programa tus vacaciones
         </Typography>
 
+        {/* Indicador de días disponibles */}
+        <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+          <InfoIcon color="primary" />
+          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+            Días disponibles este año:
+          </Typography>
+          <Chip
+            label={`${diasDisponibles} de ${LIMITE_DIAS_ANUAL}`}
+            color={diasDisponibles > 10 ? "success" : diasDisponibles > 5 ? "warning" : "error"}
+            sx={{ fontWeight: "bold" }}
+          />
+        </Box>
+
         <Box sx={{ height: 30, mb: 3 }}>
           {(error || (errorS && errorS !== "NO EXISTE SOLICITUDES") || errorCoordinadoresList) && (
             <ErrorAlert message={error || errorCoordinadoresList} visible={true} />
@@ -257,8 +291,10 @@ const ProgramarVacacionesPage = () => {
                 InputLabelProps={{ shrink: true }}
                 value={diasVacaciones}
                 onChange={handleDiasVacacionesChange}
-                inputProps={{ min: 1 }}
+                inputProps={{ min: 1, max: diasDisponibles }}
                 disabled={!diasHabilitado}
+                error={!!diasError}
+                helperText={diasError || `Máximo ${diasDisponibles} días disponibles`}
               />
             </Grid>
 
@@ -323,7 +359,7 @@ const ProgramarVacacionesPage = () => {
                 variant="contained"
                 color="primary"
                 fullWidth
-                disabled={!diasHabilitado || loading || !diasVacaciones || !selectedCoordinador}
+                disabled={!diasHabilitado || loading || !diasVacaciones || !selectedCoordinador || !!diasError || diasDisponibles === 0}
               >
                 {loading ? <CircularProgress size={24} /> : "Enviar Solicitud"}
               </Button>
@@ -450,7 +486,7 @@ const ProgramarVacacionesPage = () => {
         </Modal>
 
         <Modal
-          open={!hasGestion && (!diasValidos || !sinDias )}
+          open={!hasGestion && (!diasValidos || !sinDias)}
           onClose={handleCloseModal}
           aria-labelledby="modal-title"
           aria-describedby="modal-description"
@@ -488,8 +524,8 @@ const ProgramarVacacionesPage = () => {
 
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle1">
-                <strong>No aplica a vacaciones segun el articulo 70 del reglamento interno de trabajo
-                  y gestión del recurso humano del Consejo Nacional de Adopcion.      
+                <strong>No aplica a vacaciones según el artículo 70 del reglamento interno de trabajo
+                  y gestión del recurso humano del Consejo Nacional de Adopción.      
                 </strong>{" "}
               </Typography>
             </Box>

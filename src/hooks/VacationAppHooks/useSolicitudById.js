@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getLocalStorageData } from "../../services/session/getLocalStorageData.js";
-import { getSolicitudById } from "../../services/VacationApp/GetSolicidudById.js";
+import { consultarDiasDebitadosServices, consultarDiasDisponiblesServices, getSolicitudById } from "../../services/VacationApp/GetSolicidudById.js";
 import { validarCantidadDiasIngreso } from "../../services/utils/dates/vacationUtils.js";
 import { consultarEmpleadosUltimoAnioService } from "../../services/EmpleadosServices/Empleados/Empleados.service.js";
 import { consultarGestionVacacionesEspecialesService } from "../../services/vacacionesespeciales/Vacacionesesepeciales.service.js";
@@ -14,6 +14,7 @@ export function useSolicitudById() {
   const [loadingS, setLoadingS] = useState(true);
   const [sinDias, setSinDias] = useState(false);
   const [hasGestion, setHasGestion] = useState(false);
+  const [diasDebitados, setDiasDebitados] = useState(0);
 
   useEffect(() => {
     const fetchSolicitud = async () => {
@@ -24,6 +25,7 @@ export function useSolicitudById() {
         }
 
         const fechaEnCurso = dayjs().format('YYYY-MM-DD');
+        const anioEnCurso = dayjs().year();
 
         //validar hace cuantos dias ingreso
          const isValidDay =  validarCantidadDiasIngreso(userData.fechaIngreso);
@@ -36,13 +38,15 @@ export function useSolicitudById() {
          const gestion = await consultarGestionVacacionesEspecialesService(userData.idEmpleado, fechaEnCurso);
          const hasGestion = gestion.isExist == 0 ? false : true;
          setHasGestion(hasGestion);
-         
-
-
         const { idEmpleado, idInfoPersonal } = userData;
         const data = await getSolicitudById(idEmpleado, idInfoPersonal);
         setSolicitud(data);
+
+        const diasDebitados = await consultarDiasDebitadosServices(idEmpleado, anioEnCurso);
+        setDiasDebitados( parseInt(diasDebitados.diasDebitados));
+
       } catch (error) {
+        console.log(error)
         if (error?.message && !error.response) {
           setErrorS("Servicio no disponible, intente más tarde");
         } else if (error?.response?.data?.responseData) {
@@ -58,5 +62,5 @@ export function useSolicitudById() {
     fetchSolicitud();
   }, []); // Corregido: dependencias vacías para evitar llamadas innecesarias
 
-  return { solicitud, diasValidos,  errorS, loadingS, setSolicitud, sinDias, hasGestion };
+  return { solicitud, diasValidos,  errorS, loadingS, setSolicitud, sinDias, hasGestion, diasDebitados };
 }
