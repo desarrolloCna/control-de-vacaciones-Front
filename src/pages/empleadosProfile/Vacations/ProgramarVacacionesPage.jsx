@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import WarningIcon from "@mui/icons-material/Warning";
 import InfoIcon from "@mui/icons-material/Info";
+import EventBusyIcon from "@mui/icons-material/EventBusy";
 import Sidebar from "../../../components/EmpleadosPage/SideBar/SideBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import Spinner from "../../../components/spinners/spinner";
@@ -54,6 +55,8 @@ const ProgramarVacacionesPage = () => {
   const [loading, setLoading] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [weekendModalOpen, setWeekendModalOpen] = useState(false);
+  const [selectedWeekendDate, setSelectedWeekendDate] = useState("");
   const [diasError, setDiasError] = useState("");
   const navigate = useNavigate();
 
@@ -69,6 +72,11 @@ const ProgramarVacacionesPage = () => {
   const diasDisponibles = LIMITE_DIAS_ANUAL - (diasDebitados || 0);
 
   const formatDateToDisplay = (date) => dayjs(date).format("DD/MM/YYYY");
+
+  const getDayName = (date) => {
+    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    return days[dayjs(date).day()];
+  };
 
   useEffect(() => {
     const userData = getLocalStorageData();
@@ -86,7 +94,8 @@ const ProgramarVacacionesPage = () => {
   const handleStartDateChange = (e) => {
     const selectedDate = e.target.value;
     if (!esDiaLaboral(selectedDate)) {
-      alert("Por favor selecciona solo días hábiles (Lunes a Viernes).");
+      setSelectedWeekendDate(selectedDate);
+      setWeekendModalOpen(true);
       setStartDate("");
       setDiasHabilitado(false);
       return;
@@ -182,6 +191,11 @@ const ProgramarVacacionesPage = () => {
   const handleCloseModal = () => {
     setModalOpen(false);
     navigate("/empleados/programar-vacaciones");
+  };
+
+  const handleCloseWeekendModal = () => {
+    setWeekendModalOpen(false);
+    setSelectedWeekendDate("");
   };
 
   if (!isSessionVerified || !isLoading || loadingS || loadingCoordinadoresList) {
@@ -398,6 +412,140 @@ const ProgramarVacacionesPage = () => {
             Solicitud enviada exitosamente
           </Alert>
         </Snackbar>
+
+        {/* Modal para fin de semana */}
+        <Modal
+          open={weekendModalOpen}
+          onClose={handleCloseWeekendModal}
+          aria-labelledby="weekend-modal-title"
+          aria-describedby="weekend-modal-description"
+        >
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: 4,
+              width: { xs: "90%", sm: 450 },
+              maxWidth: 500,
+              borderRadius: 3,
+              outline: "none",
+            }}
+          >
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+              <Box
+                sx={{
+                  bgcolor: "#fff3e0",
+                  borderRadius: "50%",
+                  p: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <EventBusyIcon sx={{ fontSize: 48, color: "#f57c00" }} />
+              </Box>
+            </Box>
+
+            <Typography
+              id="weekend-modal-title"
+              variant="h5"
+              component="h2"
+              align="center"
+              sx={{
+                fontWeight: 600,
+                color: "#f57c00",
+                mb: 2,
+              }}
+            >
+              Día no laborable seleccionado
+            </Typography>
+
+            <Box
+              sx={{
+                bgcolor: "#f5f5f5",
+                borderRadius: 2,
+                p: 2.5,
+                mb: 3,
+                border: "1px solid #e0e0e0",
+              }}
+            >
+              <Typography
+                variant="body1"
+                align="center"
+                sx={{ 
+                  color: "#424242",
+                  lineHeight: 1.6,
+                  mb: 2,
+                }}
+              >
+                Has seleccionado:
+              </Typography>
+              <Box
+                sx={{
+                  bgcolor: "white",
+                  borderRadius: 1.5,
+                  p: 2,
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  align="center"
+                  sx={{ 
+                    color: "#d32f2f",
+                    fontWeight: 700,
+                    mb: 0.5,
+                  }}
+                >
+                  {selectedWeekendDate && getDayName(selectedWeekendDate)}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  align="center"
+                  sx={{ color: "#757575" }}
+                >
+                  {selectedWeekendDate && formatDateToDisplay(selectedWeekendDate)}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Typography
+              variant="body1"
+              align="center"
+              sx={{
+                color: "#616161",
+                mb: 3,
+                lineHeight: 1.7,
+              }}
+            >
+              Solo puedes seleccionar <strong>días hábiles</strong> (de Lunes a Viernes) como fecha de inicio de vacaciones.
+            </Typography>
+
+            <Button
+              onClick={handleCloseWeekendModal}
+              variant="contained"
+              fullWidth
+              sx={{
+                mt: 1,
+                py: 1.5,
+                textTransform: "none",
+                fontSize: "1rem",
+                fontWeight: 600,
+                bgcolor: "#1976d2",
+                "&:hover": {
+                  bgcolor: "#1565c0",
+                },
+                borderRadius: 2,
+              }}
+            >
+              Entendido
+            </Button>
+          </Box>
+        </Modal>
 
         <Modal
           open={modalOpen}
