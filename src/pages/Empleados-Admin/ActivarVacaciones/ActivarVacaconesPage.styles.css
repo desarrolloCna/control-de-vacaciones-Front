@@ -608,3 +608,89 @@ input:disabled + .slider {
         margin-top: 0;
     }
 }
+
+/* Estilos para el campo de descripción */
+.descripcion-container {
+    margin-top: 16px;
+    width: 100%;
+}
+
+.descripcion-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.9rem;
+}
+
+.descripcion-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    resize: vertical;
+    background-color: #ffffff;
+    transition: all 0.3s ease;
+    color: #1e293b;
+    line-height: 1.4;
+}
+
+.descripcion-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background-color: #ffffff;
+}
+
+.descripcion-input:disabled {
+    background-color: #f8fafc;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.descripcion-input::placeholder {
+    color: #9ca3af;
+}
+
+.descripcion-contador {
+    text-align: right;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* Ajustes para las tarjetas de empleado cuando tienen descripción */
+.empleado-card.seleccionado .descripcion-input {
+    background-color: #ffffff;
+    border-color: #d1d5db;
+}
+
+.empleado-card.seleccionado .descripcion-input:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Ajustes responsive para el campo de descripción */
+@media (max-width: 768px) {
+    .descripcion-container {
+        margin-top: 12px;
+    }
+    
+    .descripcion-input {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .descripcion-label {
+        font-size: 0.85rem;
+    }
+    
+    .descripcion-input {
+        padding: 8px 12px;
+    }
+}

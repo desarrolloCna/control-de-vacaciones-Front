@@ -13,6 +13,7 @@ const ActivarVacacionesPage = () => {
     const userData = getLocalStorageData();
     const { empleadosU, loadingEmpleados, showErrorEmpleados, showInfoEmpleados, setEmpleadosU } = useGetEmpleadosUltimoAnio();
     const [empleadosSeleccionados, setEmpleadosSeleccionados] = useState(new Set());
+    const [descripciones, setDescripciones] = useState({});
     const [procesando, setProcesando] = useState(false);
     const [mensaje, setMensaje] = useState({ tipo: '', texto: '' });
     const [terminoBusqueda, setTerminoBusqueda] = useState('');
@@ -46,10 +47,22 @@ const ActivarVacacionesPage = () => {
         const nuevosSeleccionados = new Set(empleadosSeleccionados);
         if (nuevosSeleccionados.has(idEmpleado)) {
             nuevosSeleccionados.delete(idEmpleado);
+            // Limpiar descripción cuando se deselecciona
+            const nuevasDescripciones = { ...descripciones };
+            delete nuevasDescripciones[idEmpleado];
+            setDescripciones(nuevasDescripciones);
         } else {
             nuevosSeleccionados.add(idEmpleado);
         }
         setEmpleadosSeleccionados(nuevosSeleccionados);
+    };
+
+    // Función para actualizar la descripción de un empleado
+    const actualizarDescripcion = (idEmpleado, descripcion) => {
+        setDescripciones(prev => ({
+            ...prev,
+            [idEmpleado]: descripcion
+        }));
     };
 
     // Función para seleccionar/deseleccionar todos los empleados filtrados
@@ -64,6 +77,13 @@ const ActivarVacacionesPage = () => {
             const nuevosSeleccionados = new Set(empleadosSeleccionados);
             empleadosVisiblesIds.forEach(id => nuevosSeleccionados.delete(id));
             setEmpleadosSeleccionados(nuevosSeleccionados);
+            
+            // Limpiar descripciones de los empleados deseleccionados
+            const nuevasDescripciones = { ...descripciones };
+            empleadosVisiblesIds.forEach(id => {
+                delete nuevasDescripciones[id];
+            });
+            setDescripciones(nuevasDescripciones);
         } else {
             // Seleccionar todos los visibles
             const nuevosSeleccionados = new Set(empleadosSeleccionados);
@@ -84,7 +104,8 @@ const ActivarVacacionesPage = () => {
             flagAutorizacion: 1,
             fechaInicioValidez: hoy.format('YYYY-MM-DD'),
             fechaFinValidez: manana.format('YYYY-MM-DD'),
-            fechaIngresoGestion: hoy.format('YYYY-MM-DD HH:mm:ss')
+            fechaIngresoGestion: hoy.format('YYYY-MM-DD HH:mm:ss'),
+            descripcion: descripciones[empleado.idEmpleado] || '' // Agregar descripción al payload
         };
     };
 
@@ -92,6 +113,19 @@ const ActivarVacacionesPage = () => {
     const procesarActivacion = async () => {
         if (empleadosSeleccionados.size === 0) {
             setMensaje({ tipo: 'error', texto: 'Por favor selecciona al menos un empleado' });
+            return;
+        }
+
+        // Validar que todos los empleados seleccionados tengan descripción
+        const empleadosSinDescripcion = Array.from(empleadosSeleccionados).filter(id => 
+            !descripciones[id] || descripciones[id].trim() === ''
+        );
+
+        if (empleadosSinDescripcion.length > 0) {
+            setMensaje({ 
+                tipo: 'error', 
+                texto: `Por favor ingresa una Motivo para todos los empleados seleccionados` 
+            });
             return;
         }
 
@@ -151,9 +185,10 @@ const ActivarVacacionesPage = () => {
                 });
             }
 
-            // Limpiar selecciones solo si todos fueron exitosos
+            // Limpiar selecciones y descripciones solo si todos fueron exitosos
             if (errores.length === 0) {
                 setEmpleadosSeleccionados(new Set());
+                setDescripciones({});
             }
             
         } catch (error) {
@@ -271,6 +306,28 @@ const ActivarVacacionesPage = () => {
                                             <span className="detalle">ID: {empleado.idEmpleado}</span>
                                             {/* <span className="detalle">Personal: {empleado.idInfoPersonal}</span> */}
                                         </div>
+                                        
+                                        {/* Campo de descripción - solo visible cuando está seleccionado */}
+                                        {empleadosSeleccionados.has(empleado.idEmpleado) && (
+                                            <div className="descripcion-container">
+                                                <label htmlFor={`descripcion-${empleado.idEmpleado}`} className="descripcion-label">
+                                                    Motivo de la activación:
+                                                </label>
+                                                <textarea
+                                                    id={`descripcion-${empleado.idEmpleado}`}
+                                                    className="descripcion-input"
+                                                    placeholder="Ingresa el motivo de la activación especial de vacaciones..."
+                                                    value={descripciones[empleado.idEmpleado] || ''}
+                                                    onChange={(e) => actualizarDescripcion(empleado.idEmpleado, e.target.value)}
+                                                    disabled={procesando}
+                                                    rows={3}
+                                                    maxLength={500}
+                                                />
+                                                <div className="descripcion-contador">
+                                                    {descripciones[empleado.idEmpleado]?.length || 0}/500 caracteres
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 
@@ -332,27 +389,12 @@ const ActivarVacacionesPage = () => {
                     </div>
                 )}
 
-                {/* Mensajes de estado - MOVIDO ABAJO */}
+                {/* Mensajes de estado */}
                 {mensaje.texto && (
                     <div className={`mensaje ${mensaje.tipo}`}>
                         {mensaje.texto}
                     </div>
                 )}
-
-                {/* Información del payload */}
-                {/* {empleadosSeleccionados.size > 0 && (
-                    <div className="payload-info">
-                        <h4>Detalles de la activación:</h4>
-                        <ul>
-                            <li>✅ Período de activación: 24 horas</li>
-                            <li>📅 Fecha de inicio: {fechaHoy}</li>
-                            <li>📅 Fecha de finalización: {fechaManana}</li>
-                            <li>👤 Gestor: {userData?.nombre || 'Departamento de RRHH'}</li>
-                            <li>⏰ Hora de gestión: {dayjs().format('HH:mm:ss')}</li>
-                            <li>🔧 Estado: Listo para procesar</li>
-                        </ul>
-                    </div>
-                )} */}
             </div>
         </>
     );

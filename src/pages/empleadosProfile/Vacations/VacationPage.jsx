@@ -50,6 +50,7 @@ const VacationApp = () => {
     return <Spinner />;
   }
 
+  console.log(diasDebitados);
 
   // Calcular total de días solicitados
   const calcularTotalDiasSolicitados = () => {
