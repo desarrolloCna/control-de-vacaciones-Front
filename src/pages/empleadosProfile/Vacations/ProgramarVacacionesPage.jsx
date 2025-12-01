@@ -237,7 +237,8 @@ const ProgramarVacacionesPage = () => {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "flex-start",
+          overflowY: "auto",
         }}
       >
         <Typography
@@ -248,7 +249,6 @@ const ProgramarVacacionesPage = () => {
             fontFamily: "'Roboto', 'cursive', sans-serif",
             color: "#054c95",
             fontWeight: "bold",
-            mt: 10,
           }}
         >
           Programa tus vacaciones
@@ -281,7 +281,7 @@ const ProgramarVacacionesPage = () => {
             width: "100%",
             maxWidth: "500px",
             borderRadius: "8px",
-            mb: 15,
+            mb: 4,
           }}
           onSubmit={handleSubmit}
         >
