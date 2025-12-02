@@ -60,7 +60,7 @@ const ProgramarVacacionesPage = () => {
   const [diasError, setDiasError] = useState("");
   const navigate = useNavigate();
 
-  const { solicitud, diasValidos, errorS, loadingS, sinDias, hasGestion, diasDebitados } = useSolicitudById();
+  const { solicitud, diasValidos, errorS, loadingS, sinDias, hasGestion, diasDebitados, diasDisponiblesT } = useSolicitudById();
   const { coordinadoresList, errorCoordinadoresList, loadingCoordinadoresList } = useGetCoordinadoresList();
 
   const { isLoading, errorDF } = useDiasFestivos();
@@ -68,7 +68,7 @@ const ProgramarVacacionesPage = () => {
   const lastStartDate = dayjs().endOf("year").subtract(53, "day").format("YYYY-MM-DD");
 
   // Calcular días disponibles
-  const LIMITE_DIAS_ANUAL = 20;
+  const LIMITE_DIAS_ANUAL = diasDisponiblesT < 20 ? diasDisponiblesT : 20;
   const diasDisponibles = LIMITE_DIAS_ANUAL - (diasDebitados || 0);
 
   const formatDateToDisplay = (date) => dayjs(date).format("DD/MM/YYYY");

@@ -15,6 +15,7 @@ export function useSolicitudById() {
   const [sinDias, setSinDias] = useState(false);
   const [hasGestion, setHasGestion] = useState(false);
   const [diasDebitados, setDiasDebitados] = useState(0);
+  const [diasDisponiblesT, setDiasDisponiblesT] = useState(0);
 
   useEffect(() => {
     const fetchSolicitud = async () => {
@@ -39,14 +40,20 @@ export function useSolicitudById() {
          const hasGestion = gestion.isExist == 0 ? false : true;
          setHasGestion(hasGestion);
         const { idEmpleado, idInfoPersonal } = userData;
-        const data = await getSolicitudById(idEmpleado, idInfoPersonal);
-        setSolicitud(data);
+
+        const diasDisponibles = await consultarDiasDisponiblesServices(idEmpleado);
+        setDiasDisponiblesT( parseInt(diasDisponibles.diasDisponibles));
 
         const diasDebitados = await consultarDiasDebitadosServices(idEmpleado, anioEnCurso);
         setDiasDebitados( parseInt(diasDebitados.diasDebitados));
 
+
+        const data = await getSolicitudById(idEmpleado, idInfoPersonal);
+        setSolicitud(data);
+
+
+
       } catch (error) {
-        console.log(error)
         if (error?.message && !error.response) {
           setErrorS("Servicio no disponible, intente más tarde");
         } else if (error?.response?.data?.responseData) {
@@ -62,5 +69,5 @@ export function useSolicitudById() {
     fetchSolicitud();
   }, []); // Corregido: dependencias vacías para evitar llamadas innecesarias
 
-  return { solicitud, diasValidos,  errorS, loadingS, setSolicitud, sinDias, hasGestion, diasDebitados };
+  return { solicitud, diasValidos,  errorS, loadingS, setSolicitud, sinDias, hasGestion, diasDebitados, diasDisponiblesT };
 }
