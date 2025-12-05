@@ -261,7 +261,7 @@ const ProgramarVacacionesPage = () => {
             Días disponibles este año:
           </Typography>
           <Chip
-            label={`${diasDisponibles} de ${LIMITE_DIAS_ANUAL}`}
+            label={`${diasDisponibles} de ${20}`}
             color={diasDisponibles > 10 ? "success" : diasDisponibles > 5 ? "warning" : "error"}
             sx={{ fontWeight: "bold" }}
           />
