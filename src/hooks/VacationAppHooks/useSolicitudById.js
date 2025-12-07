@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getLocalStorageData } from "../../services/session/getLocalStorageData.js";
-import { consultarDiasDebitadosServices, consultarDiasDisponiblesServices, getSolicitudById } from "../../services/VacationApp/GetSolicidudById.js";
+import { consultarDiasDebitadosServices, consultarDiasDisponiblesServices, consultarSolicitudesPorEmpleadoServices, getSolicitudById } from "../../services/VacationApp/GetSolicidudById.js";
 import { validarCantidadDiasIngreso } from "../../services/utils/dates/vacationUtils.js";
 import { consultarEmpleadosUltimoAnioService } from "../../services/EmpleadosServices/Empleados/Empleados.service.js";
 import { consultarGestionVacacionesEspecialesService } from "../../services/vacacionesespeciales/Vacacionesesepeciales.service.js";
@@ -16,6 +16,7 @@ export function useSolicitudById() {
   const [hasGestion, setHasGestion] = useState(false);
   const [diasDebitados, setDiasDebitados] = useState(0);
   const [diasDisponiblesT, setDiasDisponiblesT] = useState(0);
+  const [solicitudesEmpleado, setSolicitudesEmpleado] = useState([]);
 
   useEffect(() => {
     const fetchSolicitud = async () => {
@@ -47,6 +48,8 @@ export function useSolicitudById() {
         const diasDebitados = await consultarDiasDebitadosServices(idEmpleado, anioEnCurso);
         setDiasDebitados( parseInt(diasDebitados.diasDebitados));
 
+        const solicitudes = await consultarSolicitudesPorEmpleadoServices(idEmpleado);
+        setSolicitudesEmpleado(solicitudes);
 
         const data = await getSolicitudById(idEmpleado, idInfoPersonal);
         setSolicitud(data);
@@ -69,5 +72,5 @@ export function useSolicitudById() {
     fetchSolicitud();
   }, []); // Corregido: dependencias vacías para evitar llamadas innecesarias
 
-  return { solicitud, diasValidos,  errorS, loadingS, setSolicitud, sinDias, hasGestion, diasDebitados, diasDisponiblesT };
+  return { solicitud, diasValidos,  errorS, loadingS, setSolicitud, sinDias, hasGestion, diasDebitados, diasDisponiblesT, solicitudesEmpleado, setSolicitudesEmpleado };
 }

@@ -86,9 +86,9 @@ const ProgramarVacacionesPage = () => {
       setIdInfoPersonal(userData.idInfoPersonal);
     }
     // Verifica si hay una solicitud en proceso al cargar
-    if (solicitud && (solicitud.estadoSolicitud == "enviada" || solicitud.estadoSolicitud == "autorizadas")) {
-      setModalOpen(true);
-    }
+    // if (solicitud && (solicitud.estadoSolicitud == "enviada" || solicitud.estadoSolicitud == "autorizadas")) {
+    //   setModalOpen(true);
+    // }
   }, [solicitud]);
 
   const handleStartDateChange = (e) => {
@@ -151,7 +151,7 @@ const ProgramarVacacionesPage = () => {
     
     if (coordinadorSeleccionado) {
       setSelectedCoordinador(coordinadorId);
-      setUnidad(coordinadorSeleccionado.coordinadorUnidad);
+      //setUnidad(coordinadorSeleccionado.coordinadorUnidad);
     }
   };
 
@@ -168,6 +168,7 @@ const ProgramarVacacionesPage = () => {
       fechaFinVacaciones: endDate,
       fechaRetornoLabores: nextWorkDate,
       cantidadDiasSolicitados: diasVacaciones,
+      idCoordinador: selectedCoordinador
     };
 
     try {
@@ -261,7 +262,7 @@ const ProgramarVacacionesPage = () => {
             Días disponibles este año:
           </Typography>
           <Chip
-            label={`${diasDisponibles} de ${LIMITE_DIAS_ANUAL}`}
+            label={`${diasDisponibles} de ${20}`}
             color={diasDisponibles > 10 ? "success" : diasDisponibles > 5 ? "warning" : "error"}
             sx={{ fontWeight: "bold" }}
           />
@@ -547,7 +548,8 @@ const ProgramarVacacionesPage = () => {
           </Box>
         </Modal>
 
-        <Modal
+        {/* Modal de solicitud en proceso - COMENTADO */}
+        {/* <Modal
           open={modalOpen}
           onClose={handleCloseModal}
           aria-labelledby="modal-title"
@@ -631,7 +633,7 @@ const ProgramarVacacionesPage = () => {
               Volver
             </Button>
           </Box>
-        </Modal>
+        </Modal> */}
 
         <Modal
           open={!hasGestion && (!diasValidos || !sinDias)}
