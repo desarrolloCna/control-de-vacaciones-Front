@@ -38,3 +38,11 @@ export const consultarDiasDisponiblesServices = async (idEmpleado) => {
   }
 }
 
+export const consultarSolicitudesPorEmpleadoServices = async (idEmpleado) => {
+  try{
+    const response = await api.get(`${endpoints.GET_SOLICITUDES_POR_EMPLEADO}?idEmpleado=${idEmpleado}`);
+    return  response.data.solicitudes;
+  }catch(error){  
+    throw error;
+  }
+}

@@ -3,13 +3,18 @@ import {
   Box, IconButton, Typography, Button, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Alert, Chip, Modal, Select, MenuItem, FormControl,
   InputLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
-  Grid, Divider
+  Grid, Divider, Stack
 } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 import CloseIcon from "@mui/icons-material/Close";
 import ErrorIcon from "@mui/icons-material/Error";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import StopCircleIcon from "@mui/icons-material/StopCircle";
+import AssignmentReturnIcon from "@mui/icons-material/AssignmentReturn";
+import DescriptionIcon from "@mui/icons-material/Description";
 import Sidebar from "../../../components/EmpleadosPage/SideBar/SideBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import Spinner from "../../../components/spinners/spinner";
@@ -40,15 +45,20 @@ const VacationApp = () => {
   const [selectedPeriodo, setSelectedPeriodo] = useState("");
   const [openSolicitudModal, setOpenSolicitudModal] = useState(false);
   const [openAlertDialog, setOpenAlertDialog] = useState(false);
-  const { solicitud, errorS, loadingS, setSolicitud } = useSolicitudById();
+  const [selectedSolicitud, setSelectedSolicitud] = useState(null);
+  const { solicitud, errorS, loadingS, setSolicitud, solicitudesEmpleado, setSolicitudesEmpleado } = useSolicitudById();
   const navigate = useNavigate();
-  const { loadingEstado } = useFinalizarEstado(solicitud, setSolicitud);
+  const { loadingEstado } = useFinalizarEstado(solicitudesEmpleado, setSolicitudesEmpleado);
   const userData = getLocalStorageData();
   const { diasSolicitados, errorD, loadingD, diasDebitados, diasDisponiblesT } = useGetDiasSolicitados();
   const anioEnCurso = dayjs().year();
+  
   if (!isSessionVerified) {
     return <Spinner />;
   }
+
+
+  console.log(solicitudesEmpleado);
 
   // Calcular total de días solicitados
   const calcularTotalDiasSolicitados = () => {
@@ -85,7 +95,6 @@ const VacationApp = () => {
         }
       });
       saldoActual = Number(totalCreditos) - Number(totalDebitos);
-
     }
 
     return { totalCreditos, totalDebitos, saldoActual };
@@ -101,11 +110,14 @@ const VacationApp = () => {
     }
   };
 
-  const handleOpenSolicitudModal = () => {
+  // Función para abrir el modal con los detalles de una solicitud específica
+  const handleOpenSolicitudModal = (solicitud) => {
+    setSelectedSolicitud(solicitud);
     setOpenSolicitudModal(true);
   };
 
   const handleCloseSolicitudModal = () => {
+    setSelectedSolicitud(null);
     setOpenSolicitudModal(false);
   };
 
@@ -158,8 +170,13 @@ const VacationApp = () => {
       : true
   );
 
+  // Función para ordenar las solicitudes por idSolicitud (más reciente primero)
+  const solicitudesOrdenadas = solicitudesEmpleado 
+    ? [...solicitudesEmpleado].sort((a, b) => b.idSolicitud - a.idSolicitud)
+    : [];
+
   return (
-    <Box sx={{ display: "flex", height: "100vh", backgroundColor: "#f1f3f4" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#f1f3f4" }}>
       <IconButton
         color="inherit"
         aria-label="open drawer"
@@ -185,7 +202,7 @@ const VacationApp = () => {
         <Sidebar mobileOpen={mobileOpen} />
       </Box>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3, ml: { md: "10px" } }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 3, ml: { md: "10px" }, pb: 6 }}>
         <Typography
           variant="h4"
           sx={{
@@ -262,10 +279,57 @@ const VacationApp = () => {
               {totaldiasDisponibles}
             </Typography>
           </Paper>
-
         </Box>
 
-        <TableContainer component={Paper} sx={{ mb: 4 }}>
+        {/* Botones de acción - MOVIDO ARRIBA DE LA TABLA */}
+        <Stack 
+          direction="row" 
+          spacing={2} 
+          justifyContent="center" 
+          sx={{ mb: 3 }}
+        >
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleProgramar}
+            disabled={!canRequestVacation()}
+            sx={{
+              minWidth: 180,
+              fontWeight: 'bold',
+              '&:hover': {
+                boxShadow: 2,
+              }
+            }}
+          >
+            {canRequestVacation() ? 'Programar Vacaciones' : 'Sin días disponibles'}
+          </Button>
+          
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleOpenHistorial}
+            disabled={loadingHistorial}
+            sx={{
+              minWidth: 180,
+              fontWeight: 'bold'
+            }}
+          >
+            {loadingHistorial ? (
+              <CircularProgress size={20} color="primary" />
+            ) : (
+              'Ver Historial'
+            )}
+          </Button>
+        </Stack>
+
+        <TableContainer 
+          component={Paper} 
+          sx={{ 
+            mb: 4,
+            boxShadow: 2,
+            borderRadius: 1
+          }}
+        >
           <Table aria-label="vacation table">
             <TableHead>
               <TableRow>
@@ -273,7 +337,7 @@ const VacationApp = () => {
                   "Numero de Gestion",
                   "Descripción",
                   "Estado Actual",
-                  "Acción",
+                  "Detalles"
                 ].map((header) => (
                   <TableCell
                     key={header}
@@ -282,6 +346,8 @@ const VacationApp = () => {
                       fontWeight: "bold",
                       backgroundColor: "#424242",
                       color: "#fff",
+                      fontSize: '0.95rem',
+                      py: 1.5
                     }}
                   >
                     {header}
@@ -304,49 +370,54 @@ const VacationApp = () => {
                     </Alert>
                   </TableCell>
                 </TableRow>
-              ) : (
+              ) : solicitudesOrdenadas.length === 0 ? (
                 <TableRow>
-                  <TableCell align="center">
-                    {solicitud
-                      ? "CNA-URRH-" + solicitud?.idSolicitud
-                      : "No disponible"}
-                  </TableCell>
-                  <TableCell align="center">
-                    {solicitud ? "Solicitud de vacaciones" : "Sin Solicitudes"}
-                  </TableCell>
-                  <TableCell align="center">
-                    {renderEstado(solicitud?.estadoSolicitud || "Sin Datos")}
-                  </TableCell>
-                  <TableCell align="center">
-                    {!solicitud ||
-                      solicitud?.estadoSolicitud?.toLowerCase() ===
-                      "finalizadas" ||
-                      solicitud?.estadoSolicitud?.toLowerCase() ===
-                      "rechazada" ? (
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleProgramar}
-                      >
-                        Programar
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="contained"
-                        sx={{ backgroundColor: "#198754", color: "#fff" }}
-                        onClick={handleOpenSolicitudModal}
-                      >
-                        Ver
-                      </Button>
-                    )}
+                  <TableCell colSpan={4} align="center">
+                    <Alert severity="info">
+                      No hay solicitudes de vacaciones registradas.
+                    </Alert>
                   </TableCell>
                 </TableRow>
+              ) : (
+                solicitudesOrdenadas.map((solicitudItem) => (
+                  <TableRow key={solicitudItem.idSolicitud} hover>
+                    <TableCell align="center" sx={{ py: 1.5 }}>
+                      {"CNA-URRH-" + solicitudItem.idSolicitud}
+                    </TableCell>
+                    <TableCell align="center" sx={{ py: 1.5 }}>
+                      {"Solicitud de vacaciones"}
+                    </TableCell>
+                    <TableCell align="center" sx={{ py: 1.5 }}>
+                      {renderEstado(solicitudItem.estadoSolicitud || "Sin Datos")}
+                    </TableCell>
+                    <TableCell align="center" sx={{ py: 1.5 }}>
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleOpenSolicitudModal(solicitudItem)}
+                        aria-label="ver detalles"
+                        size="small"
+                        sx={{
+                          '&:hover': {
+                            backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                            transform: 'scale(1.1)',
+                            transition: 'transform 0.2s'
+                          }
+                        }}
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>
         </TableContainer>
 
-        {/* Modal para mostrar la información de la solicitud */}
+        {/* Espacio en la parte inferior para evitar que quede pegado al borde */}
+        <Box sx={{ height: 40 }} />
+
+        {/* Modal para mostrar la información de la solicitud seleccionada */}
         <Modal
           open={openSolicitudModal}
           onClose={handleCloseSolicitudModal}
@@ -358,13 +429,13 @@ const VacationApp = () => {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
-              width: 450,
+              width: 550,
+              maxHeight: "95vh",
               bgcolor: "#ffffff",
               boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.3)",
-              borderRadius: 3,
-              p: 4,
-              overflow: "hidden",
-              transition: "all 0.3s ease",
+              borderRadius: 2,
+              p: 3,
+              overflowY: "auto",
             }}
           >
             <Typography
@@ -372,92 +443,177 @@ const VacationApp = () => {
               variant="h6"
               component="h2"
               sx={{
-                mb: 2,
+                mb: 3,
                 textAlign: "center",
                 fontWeight: "bold",
                 color: "#333",
-                fontSize: "1.2rem",
+                fontSize: "1.3rem",
+                borderBottom: "2px solid #1976d2",
+                pb: 1
               }}
             >
-              Gestión en proceso
+              Detalles de la Solicitud {selectedSolicitud ? "CNA-URRH-" + selectedSolicitud.idSolicitud : ""}
             </Typography>
-            <Box
-              sx={{ mb: 2, display: "flex", flexDirection: "column", gap: 1.5 }}
-            >
-              <Typography
-                variant="body1"
-                sx={{ fontSize: "1rem", color: "#666" }}
-              >
-                <strong>Días solicitados:</strong>{" "}
-                {solicitud?.cantidadDiasSolicitados || "Sin Datos"}
+            
+            {selectedSolicitud ? (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {/* Información básica */}
+                <Box sx={{ p: 2, backgroundColor: "#f8f9fa", borderRadius: 1, borderLeft: "4px solid #1976d2" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                    <DescriptionIcon color="primary" sx={{ mr: 1.5 }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#1976d2" }}>
+                      Información General
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, mt: 1.5 }}>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#555" }}>
+                        Días solicitados:
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontSize: "1.1rem", fontWeight: "medium" }}>
+                        {selectedSolicitud.cantidadDiasSolicitados || "Sin Datos"} días
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#555" }}>
+                        Estado:
+                      </Typography>
+                      <Box sx={{ mt: 0.5 }}>
+                        {renderEstado(selectedSolicitud.estadoSolicitud || "Sin Datos")}
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+
+                {/* Fechas importantes */}
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#444", mb: 2 }}>
+                    🗓️ Fechas importantes
+                  </Typography>
+                  
+                  <Grid container spacing={2}>
+                    {/* Fecha de Inicio */}
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ 
+                        p: 2, 
+                        borderLeft: "3px solid #4caf50",
+                        backgroundColor: "#f1f8e9",
+                        height: "100%"
+                      }}>
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                          <PlayCircleOutlineIcon sx={{ color: "#4caf50", mr: 1 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#2e7d32" }}>
+                            INICIO DE VACACIONES
+                          </Typography>
+                        </Box>
+                        <Typography variant="body1" sx={{ fontWeight: "medium", color: "#333" }}>
+                          {formatDateToDisplay(selectedSolicitud.fechaInicioVacaciones) || "Sin Datos"}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+
+                    {/* Fecha de Fin */}
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ 
+                        p: 2, 
+                        borderLeft: "3px solid #f57c00",
+                        backgroundColor: "#fff3e0",
+                        height: "100%"
+                      }}>
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                          <StopCircleIcon sx={{ color: "#f57c00", mr: 1 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#ef6c00" }}>
+                            FIN DE VACACIONES
+                          </Typography>
+                        </Box>
+                        <Typography variant="body1" sx={{ fontWeight: "medium", color: "#333" }}>
+                          {formatDateToDisplay(selectedSolicitud.fechaFinVacaciones) || "Sin Datos"}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+
+                    {/* Fecha de Reintegro */}
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ 
+                        p: 2, 
+                        borderLeft: "3px solid #1976d2",
+                        backgroundColor: "#e3f2fd",
+                        height: "100%"
+                      }}>
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                          <AssignmentReturnIcon sx={{ color: "#1976d2", mr: 1 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#1565c0" }}>
+                            REINTEGRO LABORAL
+                          </Typography>
+                        </Box>
+                        <Typography variant="body1" sx={{ fontWeight: "medium", color: "#333" }}>
+                          {formatDateToDisplay(selectedSolicitud.fechaRetornoLabores) || "Sin Datos"}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+
+                    {/* Fecha de Solicitud */}
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ 
+                        p: 2, 
+                        borderLeft: "3px solid #7b1fa2",
+                        backgroundColor: "#f3e5f5",
+                        height: "100%"
+                      }}>
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                          <DescriptionIcon sx={{ color: "#7b1fa2", mr: 1 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#7b1fa2" }}>
+                            FECHA DE SOLICITUD
+                          </Typography>
+                        </Box>
+                        <Typography variant="body1" sx={{ fontWeight: "medium", color: "#333" }}>
+                          {formatDateToDisplay(selectedSolicitud.fechaSolicitud) || "Sin Datos"}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                {/* Observaciones */}
+                {selectedSolicitud.observaciones && (
+                  <Box sx={{ mt: 2, p: 2, backgroundColor: "#fff8e1", borderRadius: 1, borderLeft: "3px solid #ff9800" }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#555", mb: 1, display: "flex", alignItems: "center" }}>
+                      <ErrorIcon sx={{ color: "#ff9800", mr: 1, fontSize: "1.2rem" }} />
+                      Observaciones:
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "#666", pl: 1, fontStyle: "italic" }}>
+                      "{selectedSolicitud.observaciones}"
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            ) : (
+              <Typography align="center" sx={{ color: "#666", py: 3 }}>
+                No hay datos de solicitud disponibles.
               </Typography>
-              <Typography
-                variant="body1"
-                sx={{ fontSize: "1rem", color: "#666" }}
-              >
-                <strong>Fecha inicio vacaciones:</strong>{" "}
-                {formatDateToDisplay(solicitud?.fechaInicioVacaciones) ||
-                  "Sin Datos"}
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{ fontSize: "1rem", color: "#666" }}
-              >
-                <strong>Fecha fin vacaciones:</strong>{" "}
-                {formatDateToDisplay(solicitud?.fechaFinVacaciones) ||
-                  "Sin Datos"}
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{ fontSize: "1rem", color: "#666" }}
-              >
-                <strong>Fecha reintegro laboral:</strong>{" "}
-                {formatDateToDisplay(solicitud?.fechaRetornoLabores) ||
-                  "Sin Datos"}
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{ fontSize: "1rem", color: "#666" }}
-              >
-                <strong>Estado:</strong>{" "}
-                {renderEstado(solicitud?.estadoSolicitud || "Sin Datos")}
-              </Typography>
-            </Box>
+            )}
+
             <Button
               onClick={handleCloseSolicitudModal}
               color="primary"
               variant="contained"
               sx={{
                 width: "100%",
-                padding: "10px 0",
-                mt: 2,
-                backgroundColor: "#007bff",
+                padding: "12px 0",
+                mt: 3,
+                backgroundColor: "#1976d2",
                 color: "#fff",
                 fontWeight: "bold",
+                fontSize: "1rem",
                 "&:hover": {
-                  backgroundColor: "#0056b3",
+                  backgroundColor: "#1565c0",
                 },
               }}
             >
-              Cerrar
+              Cerrar Detalles
             </Button>
           </Box>
         </Modal>
-
-        {/* Botón para abrir el modal de historial con indicador de carga */}
-        <Button
-          variant="outlined"
-          color="primary"
-          sx={{ display: "block", margin: "0 auto", marginTop: 2 }}
-          onClick={handleOpenHistorial}
-          disabled={loadingHistorial}
-        >
-          {loadingHistorial ? (
-            <CircularProgress size={24} color="primary" />
-          ) : (
-            "Ver Historial"
-          )}
-        </Button>
 
         {/* Modal para mostrar el historial - VERSIÓN ACTUALIZADA */}
         <Modal
@@ -551,9 +707,6 @@ const VacationApp = () => {
                   >
                     {saldoActual} días
                   </Typography>
-                  <Typography variant="caption" sx={{ fontStyle: "italic" }}>
-                    {/* {saldoActual >= 0 ? "Días disponibles" : "Déficit de días"} */}
-                  </Typography>
                 </Paper>
               </Grid>
             </Grid>
@@ -612,10 +765,6 @@ const VacationApp = () => {
                 </TableHead>
                 <TableBody>
                   {filteredHistorial.map((item, index) => {
-                    const saldoParcial = item.tipoRegistro === 1
-                      ? item.totalDiasAcreditados
-                      : -item.totalDiasDebitados;
-
                     return (
                       <TableRow key={`${item.idHistorial}-${index}`}>
                         <TableCell align="center">
@@ -725,7 +874,7 @@ const VacationApp = () => {
           </DialogTitle>
           <DialogContent>
             <Typography variant="body1" id="alert-dialog-description">
-              Has alcanzado el límite máximo de días de vacaciones para este período o no cuentas con dias disponibles.
+              Has alcanzado el límite máximo de días de vacaciones para este período o no cuentas con días disponibles.
               No puedes solicitar días.
             </Typography>
             <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
