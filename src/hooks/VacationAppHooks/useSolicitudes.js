@@ -17,9 +17,9 @@ export function useSolicitudes() {
           throw new Error("Sin datos en localStorage.");
         }
 
-        const { unidad } = userData;
-        const data = await getSolicitudes(unidad);
-        
+        const { idCoordinador } = userData;
+        const data = await getSolicitudes(idCoordinador);
+          
         const cantidadEnviadas = data.filter(solicitud => solicitud.estadoSolicitud === 'enviada').length;
         setCanidadSolicitudes(cantidadEnviadas); // Establecer la cantidad de solicitudes enviadas
 
