@@ -298,7 +298,7 @@ const ActivarVacacionesPage = () => {
                             >
                                 <div className="empleado-info">
                                     <div className="empleado-avatar">
-                                        {empleado.Nombre.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                        {empleado?.Nombre?.split(' ').map(n => n[0]).join('').slice(0, 2)}
                                     </div>
                                     <div className="empleado-datos">
                                         <h3 className="empleado-nombre">{empleado.Nombre}</h3>
