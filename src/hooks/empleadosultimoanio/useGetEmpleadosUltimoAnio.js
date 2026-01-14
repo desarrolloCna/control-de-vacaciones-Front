@@ -16,7 +16,6 @@ export const useGetEmpleadosUltimoAnio = () => {
 
           const response = await consultarEmpleadosUltimoAnioService();
           const data = response;
-          console.log(data.empleadosUltimoAnio)
           if (data.status === 200) {
             setEmpleadosU(data.empleadosUltimoAnio);
 

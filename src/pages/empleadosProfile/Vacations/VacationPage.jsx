@@ -58,8 +58,6 @@ const VacationApp = () => {
   }
 
 
-  console.log(solicitudesEmpleado);
-
   // Calcular total de días solicitados
   const calcularTotalDiasSolicitados = () => {
     if (!diasSolicitados || diasSolicitados.length === 0) return 0;
