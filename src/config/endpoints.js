@@ -19,6 +19,7 @@ const endpoints = {
     GET_EMPLEADOS_ULTIMO_ANIO: '/consultarEmpleadosUltimoAnio',
     GET_GESTION_VAC_ESPECIALES: '/consultarVacacionesEspeciales',
     GET_SOLICITUDES_POR_EMPLEADO: '/consultarSolicitudesPorEmpleado',
+    GET_SOLICITUDES_AUTORIZADAS: '/consultarSolicitudesVacacionesAutorizadas'
 
 };
 
@@ -31,5 +32,11 @@ const endpointsPost = {
     POST_REGISTRA_VACACIONES_ESPECIALES: '/registrarVacacionesEspeciales'
 };
 
-export { endpoints, endpointsPost };
+const endpointsPut = {
+    PUT_CANCELAR_SOLICITUD: '/cancelarSolicitudAutorizada',
+};
+
+
+
+export { endpoints, endpointsPost, endpointsPut };
 export default endpoints; // Exportación por defecto

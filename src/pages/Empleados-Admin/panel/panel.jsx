@@ -4,6 +4,8 @@ import SaveIcon from "@mui/icons-material/Save";
 import PeopleIcon from "@mui/icons-material/People";
 import BeachAccessIcon from "@mui/icons-material/BeachAccess";
 import EventIcon from "@mui/icons-material/Event";
+import EventBusyIcon from "@mui/icons-material/EventBusy";
+import PauseCircleIcon from "@mui/icons-material/PauseCircle";
 import Navbar from "../../../components/navBar/NavBar.jsx";
 import PanelCard from "../../../components/card/cardPanel.jsx";
 import { useCheckSession } from "../../../services/session/checkSession.js";
@@ -61,7 +63,7 @@ export default function ControlPanel() {
             <PanelCard
               primaryText="Suspensiones"
               secondaryText="Realizar suspensión laboral."
-              icon={<EventIcon sx={{ color: "#fff" }} />}
+              icon={<PauseCircleIcon sx={{ color: "#fff" }} />}
               backgroundColor="#cb2570"
               textColor="#fff"
               to="/suspensiones"
@@ -87,6 +89,16 @@ export default function ControlPanel() {
               backgroundColor="#9ace65"
               textColor="#fff"
               to="/activar-vacaciones"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <PanelCard
+              primaryText="Cancelar vacaciones"
+              secondaryText="Cancelar vacaciones programadas"
+              icon={<EventBusyIcon sx={{ color: "#fff" }} />}
+              backgroundColor="#1F9FB5"
+              textColor="#fff"
+              to="/cancelar-vacaciones"
             />
           </Grid>
         </Grid>
