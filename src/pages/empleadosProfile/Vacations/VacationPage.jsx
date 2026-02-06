@@ -34,6 +34,7 @@ const estadoStyles = {
   autorizadas: { color: "#a5d6a7", label: "Solicitud autorizada" },
   rechazada: { color: "#ef9a9a", label: "Solicitud rechazada" },
   finalizadas: { color: "#e483d3", label: "Vacaciones finalizadas" },
+  cancelada: { color: "#ff6b6b", label: "Vacaciones Re Programadas" },
 };
 
 const VacationApp = () => {

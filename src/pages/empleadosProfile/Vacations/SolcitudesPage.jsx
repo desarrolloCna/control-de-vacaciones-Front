@@ -94,7 +94,7 @@ const SolicitudesPage = () => {
   // Función para generar colores únicos por empleado
   const getEmployeeColor = (employeeName) => {
     const colors = [
-      "#4285F4", "#34A853", "#FBBC05", "#EA4335", "#8E44AD",
+      "#4285F4", "#34A853", "#FBBC05", "#EA4335", "#ff6b6b",
       "#2ECC71", "#E74C3C", "#3498DB", "#1ABC9C", "#9B59B6",
       "#34495E", "#16A085", "#27AE60", "#2980B9", "#8E44AD",
       "#2C3E50", "#F39C12", "#D35400", "#C0392B", "#7F8C8D",
