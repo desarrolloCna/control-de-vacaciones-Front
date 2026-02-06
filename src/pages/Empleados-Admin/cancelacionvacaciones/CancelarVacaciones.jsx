@@ -16,8 +16,23 @@ const CancelacionVacaciones = () => {
     const [isCancelling, setIsCancelling] = useState(false);
     const [cancelError, setCancelError] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
     
     const solicitudes = getSolicitudes(solicitudesAutorizadas);
+
+    // Filtrar solicitudes por nombre
+    const filteredSolicitudes = solicitudes.filter((solicitud) => {
+        if (!searchTerm) return true;
+        return solicitud.nombres.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const clearSearch = () => {
+        setSearchTerm("");
+    };
 
     if (loading) {
         return (
@@ -60,20 +75,71 @@ const CancelacionVacaciones = () => {
                     <p className="subtitle">Gestiona las solicitudes de vacaciones autorizadas</p>
                 </div>
 
-                {solicitudes.length === 0 ? (
+                {/* Barra de búsqueda */}
+                {solicitudes.length > 0 && (
+                    <div className="search-container">
+                        <div className="search-wrapper">
+                            <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                            <input
+                                type="text"
+                                className="search-input"
+                                placeholder="Buscar por nombre del empleado..."
+                                value={searchTerm}
+                                onChange={handleSearchChange}
+                            />
+                            {searchTerm && (
+                                <button className="clear-search" onClick={clearSearch} aria-label="Limpiar búsqueda">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            )}
+                        </div>
+                        {searchTerm && (
+                            <p className="search-results-count">
+                                {filteredSolicitudes.length} {filteredSolicitudes.length === 1 ? 'resultado' : 'resultados'} encontrado{filteredSolicitudes.length !== 1 ? 's' : ''}
+                            </p>
+                        )}
+                    </div>
+                )}
+
+                {filteredSolicitudes.length === 0 ? (
                     <div className="empty-state">
                         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                            {searchTerm ? (
+                                <>
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.35-4.35"></path>
+                                </>
+                            ) : (
+                                <>
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </>
+                            )}
                         </svg>
-                        <h3>No hay solicitudes autorizadas</h3>
-                        <p>Actualmente no existen solicitudes de vacaciones para cancelar</p>
+                        <h3>{searchTerm ? 'No se encontraron resultados' : 'No hay solicitudes autorizadas'}</h3>
+                        <p>
+                            {searchTerm 
+                                ? `No hay solicitudes que coincidan con "${searchTerm}"`
+                                : 'Actualmente no existen solicitudes de vacaciones para cancelar'
+                            }
+                        </p>
+                        {searchTerm && (
+                            <button className="btn-clear-search" onClick={clearSearch}>
+                                Limpiar búsqueda
+                            </button>
+                        )}
                     </div>
                 ) : (
                     <div className="solicitudes-grid">
-                        {solicitudes.map((solicitud) => (
+                        {filteredSolicitudes.map((solicitud) => (
                             <div key={solicitud.idSolicitud} className="solicitud-card">
                                 <div className="card-header">
                                     <div className="employee-info">
