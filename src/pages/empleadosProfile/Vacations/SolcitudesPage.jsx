@@ -217,6 +217,8 @@ const SolicitudesPage = () => {
         return "error";
       case "finalizadas":
         return "info";
+      case "cancelada":
+        return "secondary";
       default:
         return "default";
     }
@@ -233,6 +235,8 @@ const SolicitudesPage = () => {
         return "Vacaciones Rechazadas";
       case "finalizadas":
         return "Vacaciones Finalizadas";
+      case "cancelada":
+        return "Vacaciones Re Programadas";
       default:
         return estado;
     }
