@@ -19,7 +19,8 @@ const endpoints = {
     GET_EMPLEADOS_ULTIMO_ANIO: '/consultarEmpleadosUltimoAnio',
     GET_GESTION_VAC_ESPECIALES: '/consultarVacacionesEspeciales',
     GET_SOLICITUDES_POR_EMPLEADO: '/consultarSolicitudesPorEmpleado',
-    GET_SOLICITUDES_AUTORIZADAS: '/consultarSolicitudesVacacionesAutorizadas'
+    GET_SOLICITUDES_AUTORIZADAS: '/consultarSolicitudesVacacionesAutorizadas',
+    GET_EMPLEADOS_SIN_VACACIONES: '/consultarEmpleadosSinVacaciones',
 
 };
 
