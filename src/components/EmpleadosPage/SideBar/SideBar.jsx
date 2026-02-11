@@ -1,5 +1,5 @@
 import React from 'react';
-import { Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, styled, Avatar, Button, Popover, Typography, Box, Badge, useMediaQuery, useTheme, IconButton } from '@mui/material';
+import { Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, styled, Avatar, Button, Popover, Typography, Box, Badge } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'; // Importa el ícono
 import ContactsIcon from '@mui/icons-material/Contacts';
@@ -9,67 +9,27 @@ import SchoolIcon from '@mui/icons-material/School';
 import InfoIcon from '@mui/icons-material/Info';
 import VacationIcon from '@mui/icons-material/BeachAccess';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { getLocalStorageData } from '../../../services/session/getLocalStorageData.js';
 import useLogout from '../../../services/session/logout.js';
 import { useNavigate } from 'react-router-dom';
 import { useSolicitudes } from '../../../hooks/VacationAppHooks/useSolicitudes.js';
 
-const drawerWidth = 240;
-
-const CustomDrawer = styled(Drawer, {
-  shouldForwardProp: (prop) => prop !== 'open',
-})(({ theme, open }) => ({
-  width: drawerWidth,
-  flexShrink: 0,
-  whiteSpace: 'nowrap',
-  boxSizing: 'border-box',
+const CustomDrawer = styled(Drawer)(({ theme }) => ({
   '& .MuiDrawer-paper': {
-    width: drawerWidth,
+    width: 240,
     backgroundColor: '#333',
     color: '#fff',
     borderRight: '1px solid #444',
     display: 'flex',
     flexDirection: 'column',
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-    boxSizing: 'border-box',
-    ...(!open && {
-      overflowX: 'hidden',
-      transition: theme.transitions.create('width', {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-      }),
-      width: theme.spacing(7),
-      [theme.breakpoints.up('sm')]: {
-        width: theme.spacing(9),
-      },
-    }),
   },
 }));
 
-const SidebarListItem = styled(ListItem)(({ theme }) => ({
+const SidebarListItem = styled(ListItem)( {
   '&:hover': {
     backgroundColor: '#555',
   },
-  [theme.breakpoints.down('sm')]: {
-    paddingLeft: theme.spacing(3),
-  },
-  [theme.breakpoints.up('sm')]: {
-    paddingLeft: theme.spacing(2.5),
-  },
-}));
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  padding: theme.spacing(0, 1),
-  ...theme.mixins.toolbar,
-}));
+});
 
 const AvatarContainer = styled('div')({
   display: 'flex',
@@ -94,18 +54,7 @@ const LogoutButton = styled(Button)({
   },
 });
 
-const Sidebar = ({ mobileOpen, handleDrawerToggle, drawerWidth = 240 }) => {
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  const handleDrawerToggleLocal = () => {
-    if (isMobile) {
-      handleDrawerToggle();
-    } else {
-      setSidebarOpen(!sidebarOpen);
-    }
-  };
+const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const userData = getLocalStorageData();
@@ -125,35 +74,16 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, drawerWidth = 240 }) => {
     setAnchorEl(null);
   };
 
-  const popoverOpen = Boolean(anchorEl);
-  const popoverId = popoverOpen ? 'simple-popover' : undefined;
+  const open = Boolean(anchorEl);
+  const id = open ? 'simple-popover' : undefined;
 
   return (
     <>
       <CustomDrawer
-        variant={isMobile ? 'temporary' : 'permanent'}
-        open={isMobile ? mobileOpen : sidebarOpen}
-        onClose={handleDrawerToggleLocal}
-        ModalProps={{
-          keepMounted: true, // Better open performance on mobile
-        }}
-        sx={{
-          display: { xs: 'block', md: 'block' },
-          '& .MuiDrawer-paper': { 
-            boxSizing: 'border-box',
-            width: drawerWidth,
-            [theme.breakpoints.down('sm')]: {
-              width: '100%',
-            },
-          },
-        }}
+        variant="permanent"
+        sx={{ display: { xs: 'none', md: 'block' } }}
+        open
       >
-        <DrawerHeader>
-          <IconButton onClick={handleDrawerToggleLocal} sx={{ color: '#fff' }}>
-            {isMobile ? <ChevronLeftIcon /> : <MenuIcon />}
-          </IconButton>
-        </DrawerHeader>
-        <Divider />
         <AvatarContainer>
           <StyledAvatar 
             sx={{ bgcolor: '#4053ac', color: '#fff' }} 
@@ -210,8 +140,8 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, drawerWidth = 240 }) => {
       {/* Código del Drawer temporal para móviles */}
 
       <Popover
-        id={popoverId}
-        open={popoverOpen}
+        id={id}
+        open={open}
         anchorEl={anchorEl}
         onClose={handlePopoverClose}
         anchorOrigin={{
