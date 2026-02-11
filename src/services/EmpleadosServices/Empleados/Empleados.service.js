@@ -13,3 +13,13 @@ export const consultarEmpleadosUltimoAnioService = async (idEmpleado) => {
         throw error;
     }
 };
+
+export const consultarEmpleadosSinVacacionesServices = async () => {
+    try {
+        const url = endpoints.GET_EMPLEADOS_SIN_VACACIONES;
+        const response = await api.get(url);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};

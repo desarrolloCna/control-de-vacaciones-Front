@@ -18,6 +18,8 @@ const ActivarVacacionesPage = () => {
     const [mensaje, setMensaje] = useState({ tipo: '', texto: '' });
     const [terminoBusqueda, setTerminoBusqueda] = useState('');
 
+    console.log(empleadosU)
+
     // Effect para limpiar mensajes de éxito automáticamente después de 5 segundos
     useEffect(() => {
         if (mensaje.tipo === 'success' && mensaje.texto) {
@@ -37,7 +39,7 @@ const ActivarVacacionesPage = () => {
         }
         
         const terminoLower = terminoBusqueda.toLowerCase().trim();
-        return empleadosU.filter(empleado => 
+        return empleadosU?.filter(empleado => 
             empleado.Nombre.toLowerCase().includes(terminoLower)
         );
     }, [empleadosU, terminoBusqueda]);
@@ -203,11 +205,11 @@ const ActivarVacacionesPage = () => {
     };
 
     // Calcular contadores para empleados filtrados
-    const empleadosSeleccionadosFiltrados = empleadosFiltrados.filter(emp => 
+    const empleadosSeleccionadosFiltrados = empleadosFiltrados?.filter(emp => 
         empleadosSeleccionados.has(emp.idEmpleado)
     ).length;
 
-    const textoSeleccionarTodos = empleadosFiltrados.length > 0 && 
+    const textoSeleccionarTodos = empleadosFiltrados?.length > 0 && 
         empleadosSeleccionadosFiltrados === empleadosFiltrados.length ? 
         'Deseleccionar todos' : 'Seleccionar todos';
 
@@ -268,16 +270,16 @@ const ActivarVacacionesPage = () => {
                         )}
                     </div>
                     <div className="contador-busqueda">
-                        {empleadosFiltrados.length} de {empleadosU.length} empleados encontrados
+                        {empleadosFiltrados?.length} de {empleadosU?.length} empleados encontrados
                     </div>
                 </div>
 
                 {/* Controles de selección */}
                 <div className="controles-superiores">
                     <div className="contador-seleccionados">
-                        {empleadosSeleccionadosFiltrados} de {empleadosFiltrados.length} empleados seleccionados
+                        {empleadosSeleccionadosFiltrados} de {empleadosFiltrados?.length} empleados seleccionados
                     </div>
-                    {empleadosFiltrados.length > 0 && (
+                    {empleadosFiltrados?.length > 0 && (
                         <button 
                             className="btn-seleccionar-todos"
                             onClick={toggleTodosLosEmpleados}
@@ -290,7 +292,7 @@ const ActivarVacacionesPage = () => {
 
                 {/* Lista de empleados */}
                 <div className="lista-empleados">
-                    {empleadosFiltrados.length > 0 ? (
+                    {empleadosFiltrados?.length > 0 ? (
                         empleadosFiltrados.map((empleado, index) => (
                             <div 
                                 key={empleado.idEmpleado}
@@ -370,7 +372,7 @@ const ActivarVacacionesPage = () => {
                 </div>
 
                 {/* Acciones principales */}
-                {empleadosFiltrados.length > 0 && (
+                {empleadosFiltrados?.length > 0 && (
                     <div className="acciones-principales">
                         <button 
                             className="btn-procesar"

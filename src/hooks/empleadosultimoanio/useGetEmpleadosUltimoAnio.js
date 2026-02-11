@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { consultarEmpleadosUltimoAnioService } from "../../services/EmpleadosServices/Empleados/Empleados.service";
+import { consultarEmpleadosSinVacacionesServices } from "../../services/EmpleadosServices/Empleados/Empleados.service";
 import dayjs from "dayjs";
 
 
@@ -14,10 +14,10 @@ export const useGetEmpleadosUltimoAnio = () => {
       const fetchEmpleadosUltimoAnio = async () => {
         try {
 
-          const response = await consultarEmpleadosUltimoAnioService();
+          const response = await consultarEmpleadosSinVacacionesServices();
           const data = response;
           if (data.status === 200) {
-            setEmpleadosU(data.empleadosUltimoAnio);
+            setEmpleadosU(data.empleadosSinVacaciones);
 
           } else {
             setShowEmpleados(true);
