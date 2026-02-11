@@ -99,7 +99,7 @@ function Navbar() {
           component="div"
           sx={{ flexGrow: 1, color: "#ffffff" }}
         >
-          Consejo Nacional de Adopción
+          Consejo Nacional de Adopcines
         </Typography>
 
         {/* Opción Home */}
