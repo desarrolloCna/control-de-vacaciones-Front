@@ -1,0 +1,1116 @@
+import React, { useState } from "react";
+import {
+  Box, IconButton, Typography, Button, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, Alert, Chip, Modal, Select, MenuItem, FormControl,
+  InputLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
+  Grid, Divider, Stack
+} from "@mui/material";
+import InfoIcon from "@mui/icons-material/Info";
+import CloseIcon from "@mui/icons-material/Close";
+import ErrorIcon from "@mui/icons-material/Error";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import StopCircleIcon from "@mui/icons-material/StopCircle";
+import AssignmentReturnIcon from "@mui/icons-material/AssignmentReturn";
+import DescriptionIcon from "@mui/icons-material/Description";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import TimelineIcon from "@mui/icons-material/Timeline";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import GetAppIcon from "@mui/icons-material/GetApp";
+import Sidebar from "../../../components/EmpleadosPage/SideBar/SideBar";
+import MenuIcon from "@mui/icons-material/Menu";
+import Spinner from "../../../components/spinners/spinner";
+import { useCheckSession } from "../../../services/session/checkSession";
+import { useNavigate } from "react-router-dom";
+import { getDiasFestivos } from "../../../services/EmpleadosServices/DiasFestivos/GetDiasFestivos";
+import { useSolicitudById } from "../../../hooks/VacationAppHooks/useSolicitudById";
+import ErrorAlert from "../../../components/ErrorAlert/ErrorAlert";
+import { useFinalizarEstado } from "../../../hooks/VacationAppHooks/useFinalizarEstado";
+import { getLocalStorageData } from "../../../services/session/getLocalStorageData";
+import { obtenerHistorialService } from "../../../services/VacationApp/Historial/ControlDiasVacaciones.service";
+import { formatDateToDisplay } from "../../../services/utils/dates/vacationUtils";
+import { exportToExcel } from "../../../services/utils/exportToExcelUtils";
+import { exportToPdf } from "../../../services/utils/exportToPdfUtils";
+import { useGetDiasSolicitados } from "../../../hooks/VacationAppHooks/useGetDiasSolicitados";
+import api from "../../../config/api";
+import dayjs from "dayjs";
+import { StyledButton, PageHeader } from "../../../components/UI/UIComponents";
+
+const estadoStyles = {
+  enviada: { color: "#90caf9", label: "Solicitud Enviada" },
+  autorizadas: { color: "#a5d6a7", label: "Solicitud autorizada" },
+  rechazada: { color: "#ef9a9a", label: "Solicitud rechazada" },
+  finalizadas: { color: "#e483d3", label: "Vacaciones finalizadas" },
+  cancelada: { color: "#ff6b6b", label: "Vacaciones Re Programadas" },
+};
+
+const VacationApp = () => {
+  const isSessionVerified = useCheckSession();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [openHistorial, setOpenHistorial] = useState(false);
+  const [historial, setHistorial] = useState([]);
+  const [loadingHistorial, setLoadingHistorial] = useState(false);
+  const [selectedPeriodo, setSelectedPeriodo] = useState("");
+  const [openSolicitudModal, setOpenSolicitudModal] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [selectedSolicitud, setSelectedSolicitud] = useState(null);
+  const { solicitud, errorS, loadingS, setSolicitud, solicitudesEmpleado, setSolicitudesEmpleado } = useSolicitudById();
+  const navigate = useNavigate();
+  const { loadingEstado } = useFinalizarEstado(solicitudesEmpleado, setSolicitudesEmpleado);
+
+  // Estados para Días Festivos
+  const [openFestivos, setOpenFestivos] = useState(false);
+  const [listaFestivos, setListaFestivos] = useState([]);
+  const [loadingFestivos, setLoadingFestivos] = useState(false);
+  const userData = getLocalStorageData();
+  const { diasSolicitados, errorD, loadingD, diasDebitados, diasDisponiblesT } = useGetDiasSolicitados();
+  const anioEnCurso = dayjs().year();
+  
+  if (!isSessionVerified) {
+    return <Spinner />;
+  }
+
+
+  // Calcular total de días solicitados
+  const calcularTotalDiasSolicitados = () => {
+    if (!diasSolicitados || diasSolicitados.length === 0) return 0;
+    return Array.isArray(diasSolicitados)
+      ? diasSolicitados.reduce((total, item) => total + (item?.diasSolicitados || 0), 0)
+      : 0;
+  };
+
+  const totalDiasAcumulados = diasDisponiblesT;
+  const totalDiasSolicitados = diasDebitados;
+  const totaldiasDisponibles = totalDiasAcumulados - diasDebitados;
+
+  const canRequestVacation = () => {
+    return totaldiasDisponibles > 0;
+  };
+
+  // Calcular resumen de días del historial
+  const calcularResumenDias = () => {
+    let totalCreditos = 0;
+    let totalDebitos = 0;
+    let saldoActual = 0;
+
+    const historialFiltrado = selectedPeriodo && selectedPeriodo !== "Todos"
+      ? historial.filter(item => item.periodo === selectedPeriodo)
+      : historial;
+
+    if (historialFiltrado && historialFiltrado.length > 0) {
+      historialFiltrado.forEach(item => {
+        if (item.tipoRegistro === 1) { // Crédito
+          totalCreditos += Number(item.totalDiasAcreditados) || 0;
+        } else { // Débito
+          totalDebitos += Number(item.diasSolicitados) || 0;
+        }
+      });
+      saldoActual = Number(totalCreditos) - Number(totalDebitos);
+    }
+
+    return { totalCreditos, totalDebitos, saldoActual };
+  };
+
+  const { totalCreditos, totalDebitos, saldoActual } = calcularResumenDias();
+
+  const handleProgramar = () => {
+    if (canRequestVacation()) {
+      navigate("/empleados/programar-fecha");
+    } else {
+      setOpenAlertDialog(true);
+    }
+  };
+
+  // Función para abrir el modal con los detalles de una solicitud específica
+  const handleOpenSolicitudModal = (solicitud) => {
+    setSelectedSolicitud(solicitud);
+    setOpenSolicitudModal(true);
+  };
+
+  const handleCloseSolicitudModal = () => {
+    setSelectedSolicitud(null);
+    setOpenSolicitudModal(false);
+  };
+
+  const handleOpenHistorial = async () => {
+    const { idEmpleado } = userData;
+    setLoadingHistorial(true);
+    try {
+      const historialData = await obtenerHistorialService(idEmpleado);
+      setHistorial(historialData.historial);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoadingHistorial(false);
+      setOpenHistorial(true);
+    }
+  };
+
+  const handleCloseHistorial = () => {
+    setOpenHistorial(false);
+    setSelectedPeriodo("");
+  };
+
+  const handlePeriodoChange = (event) => {
+    setSelectedPeriodo(event.target.value);
+  };
+
+  const handleOpenFestivos = async () => {
+    setLoadingFestivos(true);
+    try {
+      const data = await getDiasFestivos();
+      setListaFestivos(data || []);
+    } catch (error) {
+      console.log("Error cargando festivos", error);
+    } finally {
+      setLoadingFestivos(false);
+      setOpenFestivos(true);
+    }
+  };
+
+  const handleCloseFestivos = () => {
+    setOpenFestivos(false);
+  };
+
+  const handleCloseAlertDialog = () => {
+    setOpenAlertDialog(false);
+  };
+
+  const renderEstado = (estado) => {
+    const { color, label } = estadoStyles[estado.toLowerCase()] || {};
+    return (
+      <Chip
+        label={label}
+        sx={{
+          backgroundColor: color,
+          color: "#000",
+          fontWeight: "bold",
+          width: "175px",
+          textAlign: "center",
+        }}
+      />
+    );
+  };
+
+  const filteredHistorial = historial.filter((item) =>
+    selectedPeriodo && selectedPeriodo !== "Todos"
+      ? item.periodo === selectedPeriodo
+      : true
+  );
+
+  // Función para ordenar las solicitudes por idSolicitud (más reciente primero)
+  const solicitudesOrdenadas = solicitudesEmpleado 
+    ? [...solicitudesEmpleado].sort((a, b) => b.idSolicitud - a.idSolicitud)
+    : [];
+
+  const handleExportDataToExcel = () => {
+    const dataToExport = filteredHistorial.map((item) => ({
+      Gestion: item.tipoRegistro === 1 ? "CRDV-" + item.Gestion : "SLVC-" + item.Gestion,
+      Tipo: item.tipoRegistro === 1 ? "Crédito" : "Débito",
+      Periodo: item.periodo,
+      "Dias Acreditados": item.tipoRegistro === 1 ? item.totalDiasAcreditados : 0,
+      "Dias Debitados": item.tipoRegistro === 2 ? item.diasSolicitados : 0,
+      "Dias Disponibles": item.diasDisponiblesTotales,
+      Fecha: item.fechaAcreditacion ? formatDateToDisplay(item.fechaAcreditacion) : item.fechaDebito ? formatDateToDisplay(item.fechaDebito) : "-",
+      Descripción: item.tipoRegistro === 1 ? "Acreditación anual de días" : "Solicitud de vacaciones"
+    }));
+
+    exportToExcel(dataToExport, `Historial_Vacaciones_${userData?.primerNombre || 'Empleado'}`);
+  };
+
+  const handleExportDataToPdf = () => {
+    const dataToExport = filteredHistorial.map((item) => ({
+      Gestion: item.tipoRegistro === 1 ? "CRDV-" + item.Gestion : "SLVC-" + item.Gestion,
+      Tipo: item.tipoRegistro === 1 ? "Crédito" : "Débito",
+      Periodo: item.periodo,
+      "Dias Acreditados": item.tipoRegistro === 1 ? item.totalDiasAcreditados : 0,
+      "Dias Debitados": item.tipoRegistro === 2 ? item.diasSolicitados : 0,
+      "Dias Disponibles": item.diasDisponiblesTotales,
+      Fecha: item.fechaAcreditacion ? formatDateToDisplay(item.fechaAcreditacion) : item.fechaDebito ? formatDateToDisplay(item.fechaDebito) : "-",
+      Descripción: item.tipoRegistro === 1 ? "Acreditación anual de días" : "Solicitud de vacaciones"
+    }));
+
+    exportToPdf(dataToExport, `Historial_Vacaciones_${userData?.primerNombre || 'Empleado'}`);
+  };
+
+  const handleDownloadPDF = async (idSolicitud, idEmpleado) => {
+    try {
+      const response = await api.get(`/descargarInformePDF/${idSolicitud}/${idEmpleado}`, {
+        responseType: 'blob'
+      });
+      const fileName = solicitudesEmpleado.find(s => s.idSolicitud === idSolicitud)?.correlativo || `Solicitud_${idSolicitud}`;
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      
+      const pdfWindow = window.open("", "_blank");
+      if (pdfWindow) {
+        pdfWindow.document.write(
+          `<html><head><title>${fileName}</title><style>body { margin: 0; overflow: hidden; } iframe { width: 100vw; height: 100vh; border: none; }</style></head>
+           <body><iframe src="${url}"></iframe></body></html>`
+        );
+        pdfWindow.document.close();
+      }
+      setTimeout(() => window.URL.revokeObjectURL(url), 5000);
+    } catch (error) {
+      console.error("Error al descargar el informe", error);
+      let errorMsg = "No se pudo descargar el informe. Puede que el archivo no esté disponible o haya un error de red.";
+      
+      if (error.response && error.response.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text();
+          const jsonError = JSON.parse(text);
+          errorMsg = `Error del Servidor: ${jsonError.error}`;
+        } catch (e) {
+          // Fallback silencioso
+        }
+      }
+      
+      alert(errorMsg);
+    }
+  };
+
+  return (
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f5f5f5" }}>
+      <Sidebar mobileOpen={mobileOpen} handleDrawerToggle={() => setMobileOpen(!mobileOpen)} />
+      
+      <Box 
+        component="main" 
+        sx={{ 
+          flexGrow: 1, 
+          p: { xs: 2, md: 3 }, 
+          ml: { md: '250px' },
+          width: { md: `calc(100% - 250px)` },
+          transition: "all 0.3s"
+        }}
+      >
+        <Box sx={{ display: { md: 'none' }, mb: 2 }}>
+          <IconButton onClick={() => setMobileOpen(!mobileOpen)} color="primary">
+            <MenuIcon />
+          </IconButton>
+        </Box>
+
+        <PageHeader 
+          title="Control de Vacaciones" 
+          subtitle={`Proceso de planificación de vacaciones del Consejo Nacional de Adopciones ${anioEnCurso} | Fecha de Ingreso: ${userData?.fechaIngreso ? formatDateToDisplay(userData.fechaIngreso) : "Incalculable"}`}
+          showBack={true}
+        />
+
+        {/* Mostrar resumen de días */}
+        <Grid container spacing={3} justifyContent="center" sx={{ mb: 4, px: 2 }}>
+          <Grid item xs={12} sm={4} md={3}>
+            <Paper elevation={2} sx={{ p: 2.5, textAlign: 'center', bgcolor: '#f3e5f5', borderRadius: 2, borderLeft: '4px solid #ab47bc', transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 } }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                Días Acumulados Totales
+              </Typography>
+              <Typography variant="h4" sx={{ color: '#8e24aa', fontWeight: 700, mt: 1 }}>
+                {totalDiasAcumulados}
+              </Typography>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} sm={4} md={3}>
+            <Paper elevation={2} sx={{ p: 2.5, textAlign: 'center', bgcolor: '#e3f2fd', borderRadius: 2, borderLeft: '4px solid #1976d2', transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 } }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                Días Solicitados
+              </Typography>
+              <Typography variant="h4" sx={{ color: '#1565c0', fontWeight: 700, mt: 1 }}>
+                {totalDiasSolicitados}
+              </Typography>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} sm={4} md={3}>
+            <Paper elevation={2} sx={{ p: 2.5, textAlign: 'center', bgcolor: totaldiasDisponibles === 0 ? '#fffbee' : '#e8f5e9', borderRadius: 2, borderLeft: `4px solid ${totaldiasDisponibles > 0 ? '#4caf50' : '#f44336'}`, transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 } }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                Días Disponibles
+              </Typography>
+              <Typography
+                variant="h4"
+                sx={{
+                  color: totaldiasDisponibles > 0 ? '#2e7d32' : '#c62828',
+                  fontWeight: 700,
+                  mt: 1
+                }}
+              >
+                {totaldiasDisponibles}
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+
+        {/* Botones de acción - MOVIDO ARRIBA DE LA TABLA */}
+        <Stack 
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2} 
+          justifyContent="center" 
+          alignItems="center"
+          sx={{ mb: 4 }}
+        >
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleProgramar}
+            disabled={!canRequestVacation()}
+            startIcon={<EventAvailableIcon />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              borderRadius: 2,
+              px: 3,
+              py: 1,
+              boxShadow: 2,
+              '&:hover': { boxShadow: 4 }
+            }}
+          >
+            {canRequestVacation() ? 'Programar Vacaciones' : 'Sin días disponibles'}
+          </Button>
+          
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleOpenHistorial}
+            disabled={loadingHistorial}
+            startIcon={!loadingHistorial && <TimelineIcon />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              borderRadius: 2,
+              px: 3,
+              py: 1,
+              borderWidth: 2,
+              '&:hover': { borderWidth: 2 }
+            }}
+          >
+            {loadingHistorial ? (
+              <CircularProgress size={24} color="primary" />
+            ) : (
+              'Ver Historial'
+            )}
+          </Button>
+
+          {/* NUEVO BOTON: DÍAS FESTIVOS */}
+          <Button
+            variant="outlined"
+            onClick={handleOpenFestivos}
+            disabled={loadingFestivos}
+            startIcon={!loadingFestivos && <EventAvailableIcon />}
+            sx={{
+              minWidth: 200,
+              py: 1.2,
+              fontWeight: 600,
+              textTransform: 'none',
+              fontSize: '1rem',
+              borderRadius: 2,
+              borderWidth: 2,
+              borderColor: '#e65100',
+              color: '#e65100',
+              '&:hover': {
+                borderWidth: 2,
+                backgroundColor: 'rgba(230, 81, 0, 0.05)',
+                borderColor: '#bf360c',
+                color: '#bf360c'
+              }
+            }}
+          >
+            {loadingFestivos ? (
+              <CircularProgress size={24} color="warning" />
+            ) : (
+              'Días Festivos'
+            )}
+          </Button>
+        </Stack>
+
+        <TableContainer 
+          component={Paper} 
+          sx={{ 
+            mb: 4,
+            boxShadow: 2,
+            borderRadius: 1,
+            width: '100%',
+            overflowX: 'auto'
+          }}
+        >
+          <Table aria-label="vacation table">
+            <TableHead>
+              <TableRow>
+                {[
+                  "Numero de Gestión",
+                  "Descripción",
+                  "Estado Actual",
+                  "Detalles"
+                ].map((header) => (
+                  <TableCell
+                    key={header}
+                    align="center"
+                    sx={{
+                      fontWeight: 600,
+                      backgroundColor: "#1565C0",
+                      color: "#fff",
+                      fontSize: '0.9rem',
+                      py: 1.5,
+                    }}
+                  >
+                    {header}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {errorS && errorS !== "NO EXISTE SOLICITUDES" ? (
+                <TableRow>
+                  <TableCell colSpan={4} align="center">
+                    <ErrorAlert message={errorS} visible={true} />
+                  </TableCell>
+                </TableRow>
+              ) : loadingS || loadingEstado ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    <Alert severity="info">
+                      Cargando datos de vacaciones...
+                    </Alert>
+                  </TableCell>
+                </TableRow>
+              ) : solicitudesOrdenadas.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    <Alert severity="info">
+                      No hay solicitudes de vacaciones registradas.
+                    </Alert>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                solicitudesOrdenadas.map((solicitudItem) => (
+                  <TableRow key={solicitudItem.idSolicitud} hover>
+                    <TableCell align="center">
+                      {solicitudItem.correlativo || ("CNA-URRH-" + solicitudItem.idSolicitud)}
+                    </TableCell>
+                    <TableCell align="center">
+                      {"Solicitud de vacaciones"}
+                    </TableCell>
+                    <TableCell align="center">
+                      {renderEstado(solicitudItem.estadoSolicitud || "Sin Datos")}
+                    </TableCell>
+                    <TableCell align="center">
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        size="small"
+                        onClick={() => handleOpenSolicitudModal(solicitudItem)}
+                        startIcon={<VisibilityIcon />}
+                        sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600 }}
+                      >
+                        Ver Detalles
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* Espacio en la parte inferior para evitar que quede pegado al borde */}
+        <Box sx={{ height: 40 }} />
+
+        {/* Modal de Días Festivos */}
+        <Modal
+          open={openFestivos}
+          onClose={handleCloseFestivos}
+          aria-labelledby="festivos-modal-title"
+        >
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: { xs: '90%', sm: '70%', md: 600 },
+              maxHeight: "85vh",
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              borderRadius: 3,
+              p: 4,
+              overflowY: "auto",
+            }}
+          >
+            <IconButton
+              aria-label="close"
+              onClick={handleCloseFestivos}
+              sx={{ position: "absolute", top: 12, right: 12, color: "text.secondary" }}
+            >
+              <CloseIcon />
+            </IconButton>
+            
+            <Typography id="festivos-modal-title" variant="h5" sx={{ mb: 3, fontWeight: "bold", textAlign: "center", color: "#e65100" }}>
+              <EventAvailableIcon sx={{ mr: 1, verticalAlign: "bottom" }} />
+              Días Festivos Oficiales
+            </Typography>
+
+            <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e0e0e0", borderRadius: 2 }}>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: "#fff3e0" }}>
+                    <TableCell><Typography fontWeight="bold" color="#e65100">Fecha</Typography></TableCell>
+                    <TableCell><Typography fontWeight="bold" color="#e65100">Festividad</Typography></TableCell>
+                    <TableCell align="center"><Typography fontWeight="bold" color="#e65100">Estado</Typography></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {listaFestivos && listaFestivos.length > 0 ? (
+                    listaFestivos.map((festivo) => (
+                      <TableRow key={festivo.idDiasFestivos} hover>
+                        <TableCell>{formatDateToDisplay(festivo.fechaDiaFestivo)}</TableCell>
+                        <TableCell>
+                          {festivo.nombreDiaFestivo}
+                          {festivo.medioDia === 1 || festivo.medioDia === true ? (
+                            <Chip label="Medio Día" size="small" color="primary" sx={{ ml: 1, height: 20, fontSize: "0.7rem" }} />
+                          ) : null}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip 
+                            label={festivo.estado === 'A' ? "Activo" : "Inactivo"} 
+                            color={festivo.estado === 'A' ? "success" : "default"} 
+                            size="small" 
+                            variant={festivo.estado === 'A' ? "filled" : "outlined"}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} align="center" sx={{ py: 3, color: "text.secondary" }}>
+                        No hay días festivos registrados o activos en la base de datos.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Box sx={{ mt: 3, textAlign: "center" }}>
+              <Button onClick={handleCloseFestivos} variant="contained" sx={{ bgcolor: "#e65100", "&:hover": { bgcolor: "#bf360c" } }}>
+                Cerrar
+              </Button>
+            </Box>
+          </Box>
+        </Modal>
+
+        {/* Modal para mostrar la información de la solicitud seleccionada */}
+        <Modal
+          open={openSolicitudModal}
+          onClose={handleCloseSolicitudModal}
+          aria-labelledby="solicitud-modal-title"
+        >
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 550,
+              maxHeight: "95vh",
+              bgcolor: "#ffffff",
+              boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.3)",
+              borderRadius: 2,
+              p: 3,
+              overflowY: "auto",
+            }}
+          >
+            <Typography
+              id="solicitud-modal-title"
+              variant="h6"
+              component="h2"
+              sx={{
+                mb: 3,
+                textAlign: "center",
+                fontWeight: "bold",
+                color: "#333",
+                fontSize: "1.3rem",
+                borderBottom: "2px solid #1976d2",
+                pb: 1
+              }}
+            >
+              Detalles de la Solicitud {selectedSolicitud ? (selectedSolicitud.correlativo || "CNA-URRH-" + selectedSolicitud.idSolicitud) : ""}
+            </Typography>
+            
+            {selectedSolicitud ? (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {/* Información básica */}
+                <Box sx={{ p: 2, backgroundColor: "#f8f9fa", borderRadius: 1, borderLeft: "4px solid #1976d2" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                    <DescriptionIcon color="primary" sx={{ mr: 1.5 }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#1976d2" }}>
+                      Información General
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, mt: 1.5 }}>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#555" }}>
+                        Días solicitados:
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontSize: "1.1rem", fontWeight: "medium" }}>
+                        {selectedSolicitud.cantidadDiasSolicitados || "Sin Datos"} días
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#555" }}>
+                        Estado:
+                      </Typography>
+                      <Box sx={{ mt: 0.5 }}>
+                        {renderEstado(selectedSolicitud.estadoSolicitud || "Sin Datos")}
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+
+                {/* Fechas importantes */}
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#444", mb: 2 }}>
+                    🗓️ Fechas importantes
+                  </Typography>
+                  
+                  <Grid container spacing={2}>
+                    {/* Fecha de Inicio */}
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ 
+                        p: 2, 
+                        borderLeft: "3px solid #4caf50",
+                        backgroundColor: "#f1f8e9",
+                        height: "100%"
+                      }}>
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                          <PlayCircleOutlineIcon sx={{ color: "#4caf50", mr: 1 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#2e7d32" }}>
+                            INICIO DE VACACIONES
+                          </Typography>
+                        </Box>
+                        <Typography variant="body1" sx={{ fontWeight: "medium", color: "#333" }}>
+                          {formatDateToDisplay(selectedSolicitud.fechaInicioVacaciones) || "Sin Datos"}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+
+                    {/* Fecha de Fin */}
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ 
+                        p: 2, 
+                        borderLeft: "3px solid #f57c00",
+                        backgroundColor: "#fff3e0",
+                        height: "100%"
+                      }}>
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                          <StopCircleIcon sx={{ color: "#f57c00", mr: 1 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#ef6c00" }}>
+                            FIN DE VACACIONES
+                          </Typography>
+                        </Box>
+                        <Typography variant="body1" sx={{ fontWeight: "medium", color: "#333" }}>
+                          {formatDateToDisplay(selectedSolicitud.fechaFinVacaciones) || "Sin Datos"}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+
+                    {/* Fecha de Reintegro */}
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ 
+                        p: 2, 
+                        borderLeft: "3px solid #1976d2",
+                        backgroundColor: "#e3f2fd",
+                        height: "100%"
+                      }}>
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                          <AssignmentReturnIcon sx={{ color: "#1976d2", mr: 1 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#1565c0" }}>
+                            REINTEGRO LABORAL
+                          </Typography>
+                        </Box>
+                        <Typography variant="body1" sx={{ fontWeight: "medium", color: "#333" }}>
+                          {formatDateToDisplay(selectedSolicitud.fechaRetornoLabores) || "Sin Datos"}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+
+                    {/* Fecha de Solicitud */}
+                    <Grid item xs={12} sm={6}>
+                      <Paper sx={{ 
+                        p: 2, 
+                        borderLeft: "3px solid #7b1fa2",
+                        backgroundColor: "#f3e5f5",
+                        height: "100%"
+                      }}>
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                          <DescriptionIcon sx={{ color: "#7b1fa2", mr: 1 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#7b1fa2" }}>
+                            FECHA DE SOLICITUD
+                          </Typography>
+                        </Box>
+                        <Typography variant="body1" sx={{ fontWeight: "medium", color: "#333" }}>
+                          {formatDateToDisplay(selectedSolicitud.fechaSolicitud) || "Sin Datos"}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                {/* Observaciones */}
+                {selectedSolicitud.observaciones && (
+                  <Box sx={{ mt: 2, p: 2, backgroundColor: "#fff8e1", borderRadius: 1, borderLeft: "3px solid #ff9800" }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#555", mb: 1, display: "flex", alignItems: "center" }}>
+                      <ErrorIcon sx={{ color: "#ff9800", mr: 1, fontSize: "1.2rem" }} />
+                      Observaciones:
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "#666", pl: 1, fontStyle: "italic" }}>
+                      "{selectedSolicitud.observaciones}"
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            ) : (
+              <Typography align="center" sx={{ color: "#666", py: 3 }}>
+                No hay datos de solicitud disponibles.
+              </Typography>
+            )}
+
+            <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+              {selectedSolicitud && selectedSolicitud.estadoSolicitud === "autorizadas" && (
+                <Button
+                  onClick={() => handleDownloadPDF(selectedSolicitud.idSolicitud, selectedSolicitud.idEmpleado)}
+                  color="success"
+                  variant="contained"
+                  sx={{
+                    flex: 1,
+                    padding: "12px 0",
+                    backgroundColor: "#2e7d32",
+                    color: "#fff",
+                    fontWeight: "bold",
+                    fontSize: "1rem",
+                    "&:hover": {
+                      backgroundColor: "#1b5e20",
+                    },
+                  }}
+                  startIcon={<DescriptionIcon />}
+                >
+                  Descargar Informe Oficial
+                </Button>
+              )}
+              <Button
+                onClick={handleCloseSolicitudModal}
+                color="primary"
+                variant="outlined"
+                sx={{
+                  flex: selectedSolicitud && selectedSolicitud.estadoSolicitud === "autorizadas" ? 1 : '100%',
+                  padding: "12px 0",
+                  borderColor: "#1976d2",
+                  color: "#1976d2",
+                  fontWeight: "bold",
+                  fontSize: "1rem",
+                  "&:hover": {
+                    backgroundColor: "rgba(25, 118, 210, 0.05)",
+                  },
+                }}
+              >
+                Cerrar Detalles
+              </Button>
+            </Box>
+          </Box>
+        </Modal>
+
+        {/* Modal para mostrar el historial - VERSIÓN ACTUALIZADA */}
+        <Modal
+          open={openHistorial}
+          onClose={handleCloseHistorial}
+          aria-labelledby="historial-modal-title"
+        >
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: { xs: '95%', md: '85%', lg: '75%' },
+              maxWidth: 1400,
+              maxHeight: "90vh",
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: { xs: 2, sm: 3, md: 4 },
+              borderRadius: 2,
+              overflowY: "auto",
+            }}
+          >
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+              <InfoIcon sx={{ fontSize: 40, color: "primary.main" }} />
+            </Box>
+
+            <IconButton
+              aria-label="close"
+              onClick={handleCloseHistorial}
+              sx={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                color: "#f44336",
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+
+            <Typography
+              id="historial-modal-title"
+              variant="h6"
+              component="h2"
+              sx={{ textAlign: "center", mb: 2, fontWeight: "bold" }}
+            >
+              Historial y Balance de Vacaciones
+            </Typography>
+
+            {/* Resumen de Balance */}
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid item xs={4}>
+                <Paper sx={{ p: 2, textAlign: "center", bgcolor: "#e8f5e9" }}>
+                  <Box display="flex" alignItems="center" justifyContent="center">
+                    <AddIcon color="success" sx={{ mr: 1 }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                      Total Días Acreditados:
+                    </Typography>
+                  </Box>
+                  <Typography variant="h5" color="success.main" sx={{ mt: 1 }}>
+                    {totalCreditos} días
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={4}>
+                <Paper sx={{ p: 2, textAlign: "center", bgcolor: "#ffebee" }}>
+                  <Box display="flex" alignItems="center" justifyContent="center">
+                    <RemoveIcon color="error" sx={{ mr: 1 }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                      Total Días Debitados:
+                    </Typography>
+                  </Box>
+                  <Typography variant="h5" color="error.main" sx={{ mt: 1 }}>
+                    {totalDebitos} días
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={4}>
+                <Paper sx={{
+                  p: 2,
+                  textAlign: "center",
+                  bgcolor: saldoActual >= 0 ? "#e8f5e9" : "#ffebee"
+                }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                    Dias Disponibles:
+                  </Typography>
+                  <Typography
+                    variant="h5"
+                    color={saldoActual >= 0 ? "success.main" : "error.main"}
+                    sx={{ mt: 1 }}
+                  >
+                    {saldoActual} días
+                  </Typography>
+                </Paper>
+              </Grid>
+            </Grid>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: "wrap", gap: 2 }}>
+              <FormControl variant="outlined" sx={{ width: 300 }}>
+              <InputLabel>Seleccionar Periodo</InputLabel>
+              <Select
+                value={selectedPeriodo}
+                onChange={handlePeriodoChange}
+                label="Seleccionar Periodo"
+              >
+                <MenuItem value="Todos">Todos</MenuItem>
+                {Array.from(new Set(historial.map((item) => item.periodo))).map(
+                  (periodo) => (
+                    <MenuItem key={periodo} value={periodo}>
+                      {periodo}
+                    </MenuItem>
+                  )
+                )}
+              </Select>
+            </FormControl>
+
+              <Button
+                variant="outlined"
+                color="success"
+                startIcon={<GetAppIcon />}
+                onClick={handleExportDataToExcel}
+                sx={{ height: 56, fontWeight: 'bold' }}
+              >
+                Exportar Historial
+              </Button>
+
+              <Button
+                variant="outlined"
+                color="secondary"
+                startIcon={<DescriptionIcon />}
+                onClick={handleExportDataToPdf}
+                sx={{ height: 56, fontWeight: 'bold' }}
+              >
+                Constancia PDF
+              </Button>
+            </Box>
+
+            <TableContainer component={Paper} sx={{ maxHeight: 400, width: '100%', overflowX: 'auto' }}>
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    {[
+                      "Gestion",
+                      "Tipo",
+                      "Periodo",
+                      "Dias Acreditados",
+                      "Dias Debitados",
+                      "Dias Disponibles",
+                      "Fecha",
+                      "Descripción"
+                    ].map((header) => (
+                      <TableCell
+                        key={header}
+                        align="center"
+                        sx={{
+                          backgroundColor: "#424242",
+                          color: "#fff",
+                          fontWeight: "bold",
+                          whiteSpace: "nowrap",
+                          px: 2
+                        }}
+                      >
+                        {header}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredHistorial.map((item, index) => {
+                    return (
+                      <TableRow key={`${item.idHistorial}-${index}`}>
+                        <TableCell align="center">
+                          {item.tipoRegistro === 1
+                            ? "CRDV-" + item.Gestion
+                            : "SLVC-" + item.Gestion}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={item.tipoRegistro === 1 ? "Crédito" : "Débito"}
+                            color={item.tipoRegistro === 1 ? "success" : "error"}
+                            sx={{
+                              color: "#fff",
+                              fontWeight: "bold",
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell align="center">{item.periodo}</TableCell>
+                        <TableCell align="center">
+                          <Typography
+                            color={"success.main"}
+                            fontWeight="bold"
+                          >
+                            {item.tipoRegistro === 1 ? item.totalDiasAcreditados : "-"}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Typography
+                            color={"error.main"}
+                            fontWeight="bold"
+                          >
+                            {item.tipoRegistro === 2 ? item.diasSolicitados : "-"}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Typography
+                            color={"info.main"}
+                            fontWeight="bold"
+                          >
+                            {item.diasDisponiblesTotales}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          {item.fechaAcreditacion
+                            ? formatDateToDisplay(item.fechaAcreditacion)
+                            : item.fechaDebito
+                              ? formatDateToDisplay(item.fechaDebito)
+                              : "-"}
+                        </TableCell>
+                        <TableCell align="center">
+                          {item.tipoRegistro === 1
+                            ? "Acreditación anual de días"
+                            : "Solicitud de vacaciones"}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {/* Resumen al final de la tabla */}
+            <Box sx={{
+              mt: 3,
+              p: 2,
+              backgroundColor: "#f5f5f5",
+              borderRadius: 1,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
+            }}>
+              <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+                Resumen Final:
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+                <Typography>
+                  <span style={{ color: "#2e7d32" }}>+{totalCreditos} días</span> (Acreditados)
+                </Typography>
+                <Typography>
+                  <span style={{ color: "#d32f2f" }}>-{totalDebitos} días</span> (Debitados)
+                </Typography>
+                <Typography sx={{ fontWeight: "bold" }}>
+                  Saldo: <span style={{
+                    color: saldoActual >= 0 ? "#2e7d32" : "#d32f2f",
+                    fontSize: "1.1rem"
+                  }}>
+                    {saldoActual} días
+                  </span>
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Modal>
+
+        {/* Diálogo de alerta cuando no puede solicitar más días */}
+        <Dialog
+          open={openAlertDialog}
+          onClose={handleCloseAlertDialog}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title" sx={{ color: "#d32f2f" }}>
+            <Box display="flex" alignItems="center">
+              <ErrorIcon color="error" sx={{ mr: 1 }} />
+              Límite de días alcanzado
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" id="alert-dialog-description">
+              Has alcanzado el límite máximo de días de vacaciones para este período o no cuentas con días disponibles.
+              No puedes solicitar días.
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
+              Si necesitas ajustar tus vacaciones, por favor contacta al departamento de RRHH.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseAlertDialog} color="primary" autoFocus>
+              Entendido
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    </Box>
+  );
+};
+
+export default VacationApp;
