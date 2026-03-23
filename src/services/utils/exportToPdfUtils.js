@@ -57,8 +57,8 @@ export const exportToPdf = (data, title = "Reporte_Institucional.pdf") => {
     styles: {
       fontSize: 9,
       cellPadding: 4,
+      overflow: 'linebreak'
     },
-    styles: { overflow: 'linebreak' },
     margin: { top: 100 },
   });
 

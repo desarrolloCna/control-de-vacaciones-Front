@@ -187,7 +187,6 @@ const AjusteSaldosPage = () => {
                                         button 
                                         onClick={() => handleOpenModal(empleado)}
                                         sx={{ 
-                                            '&:hover': { bgcolor: '#f1f5f9' },
                                             py: 2.5,
                                             px: 3,
                                             borderRadius: 2,
@@ -195,6 +194,7 @@ const AjusteSaldosPage = () => {
                                             border: '1px solid transparent',
                                             transition: 'all 0.2s',
                                             '&:hover': {
+                                                bgcolor: '#f1f5f9',
                                                 borderColor: 'primary.light',
                                                 boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
                                             }
