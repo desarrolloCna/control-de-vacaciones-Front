@@ -773,7 +773,7 @@ const VacationApp = () => {
             )}
 
             <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-              {selectedSolicitud && selectedSolicitud.estadoSolicitud === "autorizadas" && (
+              {selectedSolicitud && (selectedSolicitud.estadoSolicitud === "autorizadas" || selectedSolicitud.estadoSolicitud === "finalizadas") && (
                 <Button
                   onClick={() => handleDownloadPDF(selectedSolicitud.idSolicitud, selectedSolicitud.idEmpleado)}
                   color="success"

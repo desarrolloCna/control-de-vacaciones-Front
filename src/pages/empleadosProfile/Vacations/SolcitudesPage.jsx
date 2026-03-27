@@ -1144,7 +1144,7 @@ const SolicitudesPage = () => {
 
                 {/* Modal Footer y Botones de Aprobación */}
                 
-                {(selectedSolicitud.estadoSolicitud === "autorizadas" || selectedSolicitud.estadoSolicitud === "enviada") && (
+                {(selectedSolicitud.estadoSolicitud === "autorizadas" || selectedSolicitud.estadoSolicitud === "enviada" || selectedSolicitud.estadoSolicitud === "finalizadas") && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
                     <Button
                       variant="contained"
