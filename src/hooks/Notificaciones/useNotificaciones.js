@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
-import { API_URL } from "../../config/enviroment";
+import api from "../../config/api";
 import { useSolicitudes } from "../VacationAppHooks/useSolicitudes";
 import { getDiasFestivos } from "../../services/EmpleadosServices/DiasFestivos/GetDiasFestivos";
 import dayjs from "dayjs";
@@ -17,7 +16,7 @@ export const useNotificaciones = () => {
   const fetchNotificaciones = async () => {
     setLoadingN(true);
     try {
-      const response = await axios.get(`${API_URL}/notificaciones`);
+      const response = await api.get('/notificaciones');
       if (response.data && response.data.notificaciones) {
         setDbNotificaciones(response.data.notificaciones);
       }
@@ -51,7 +50,7 @@ export const useNotificaciones = () => {
     }
 
     try {
-      await axios.put(`${API_URL}/notificaciones/${idNotificacion}/leer`);
+      await api.put(`/notificaciones/${idNotificacion}/leer`);
       setDbNotificaciones((prev) =>
         prev.map((notif) =>
           notif.idNotificacion === idNotificacion

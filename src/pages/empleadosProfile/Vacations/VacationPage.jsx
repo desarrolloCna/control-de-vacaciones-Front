@@ -39,11 +39,12 @@ import dayjs from "dayjs";
 import { StyledButton, PageHeader } from "../../../components/UI/UIComponents";
 
 const estadoStyles = {
-  enviada: { color: "#90caf9", label: "Solicitud Enviada" },
-  autorizadas: { color: "#a5d6a7", label: "Solicitud autorizada" },
-  rechazada: { color: "#ef9a9a", label: "Solicitud rechazada" },
-  finalizadas: { color: "#e483d3", label: "Vacaciones finalizadas" },
-  cancelada: { color: "#ff6b6b", label: "Vacaciones Re Programadas" },
+  enviada: { color: "#ff9800", label: "Solicitud en espera", textColor: "#fff" },
+  autorizadas: { color: "#4caf50", label: "Solicitud autorizada", textColor: "#fff" },
+  rechazada: { color: "#f44336", label: "Solicitud rechazada", textColor: "#fff" },
+  finalizadas: { color: "#9c27b0", label: "Vacaciones finalizadas", textColor: "#fff" },
+  cancelada: { color: "#9e9e9e", label: "Solicitud Anulada", textColor: "#fff" },
+  reprogramacion: { color: "#03a9f4", label: "Vacaciones Re Programadas", textColor: "#fff" },
 };
 
 const VacationApp = () => {
@@ -179,15 +180,16 @@ const VacationApp = () => {
   };
 
   const renderEstado = (estado) => {
-    const { color, label } = estadoStyles[estado.toLowerCase()] || {};
+    const estadoKey = estado ? estado.toLowerCase() : "";
+    const { color, label, textColor } = estadoStyles[estadoKey] || { color: "#9e9e9e", label: estado || "Desconocido", textColor: "#fff" };
     return (
       <Chip
         label={label}
         sx={{
           backgroundColor: color,
-          color: "#000",
+          color: textColor,
           fontWeight: "bold",
-          width: "175px",
+          width: "200px",
           textAlign: "center",
         }}
       />
