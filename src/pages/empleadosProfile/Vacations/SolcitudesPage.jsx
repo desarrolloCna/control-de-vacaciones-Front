@@ -241,11 +241,11 @@ const SolicitudesPage = () => {
       case "rechazada":
         return "error";
       case "finalizadas":
-        return "secondary";
+        return "info";
       case "cancelada":
         return "default";
       case "reprogramacion":
-        return "info";
+        return "secondary";
       default:
         return "default";
     }
@@ -255,15 +255,17 @@ const SolicitudesPage = () => {
   const getEstadoText = (estado) => {
     switch (estado) {
       case "enviada":
-        return "En espera de aprobación";
+        return "Pendiente";
       case "autorizadas":
-        return "Vacaciones autorizadas";
+        return "Autorizada";
       case "rechazada":
-        return "Vacaciones Rechazadas";
+        return "Rechazada";
       case "finalizadas":
-        return "Vacaciones Finalizadas";
+        return "Finalizada";
       case "cancelada":
-        return "Vacaciones Re Programadas";
+        return "Anulada";
+      case "reprogramacion":
+        return "Reprogramada";
       default:
         return estado;
     }

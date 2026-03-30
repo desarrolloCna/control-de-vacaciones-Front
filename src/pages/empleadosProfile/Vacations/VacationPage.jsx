@@ -39,12 +39,12 @@ import dayjs from "dayjs";
 import { StyledButton, PageHeader } from "../../../components/UI/UIComponents";
 
 const estadoStyles = {
-  enviada: { color: "#ff9800", label: "Solicitud en espera", textColor: "#fff" },
-  autorizadas: { color: "#4caf50", label: "Solicitud autorizada", textColor: "#fff" },
-  rechazada: { color: "#f44336", label: "Solicitud rechazada", textColor: "#fff" },
-  finalizadas: { color: "#9c27b0", label: "Vacaciones finalizadas", textColor: "#fff" },
-  cancelada: { color: "#9e9e9e", label: "Solicitud Anulada", textColor: "#fff" },
-  reprogramacion: { color: "#03a9f4", label: "Vacaciones Re Programadas", textColor: "#fff" },
+  enviada: { color: "#ff9800", label: "Pendiente", textColor: "#fff" },
+  autorizadas: { color: "#4caf50", label: "Autorizada", textColor: "#fff" },
+  rechazada: { color: "#f44336", label: "Rechazada", textColor: "#fff" },
+  finalizadas: { color: "#2196f3", label: "Finalizada", textColor: "#fff" },
+  cancelada: { color: "#9e9e9e", label: "Anulada", textColor: "#fff" },
+  reprogramacion: { color: "#9c27b0", label: "Reprogramada", textColor: "#fff" },
 };
 
 const VacationApp = () => {
