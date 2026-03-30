@@ -38,7 +38,8 @@ const ChartsDashboard = () => {
       autorizadas: 0,
       rechazada: 0,
       finalizadas: 0,
-      cancelada: 0
+      cancelada: 0,
+      reprogramacion: 0
     };
 
     solicitudesEmpleado.forEach(sol => {
@@ -48,10 +49,11 @@ const ChartsDashboard = () => {
     });
 
     return [
-      { name: 'Enviadas', Cantidad: counts.enviada, fill: '#ff9800' },
-      { name: 'Aprobadas', Cantidad: counts.autorizadas, fill: '#4caf50' },
-      { name: 'Rechazadas', Cantidad: counts.rechazada, fill: '#f44336' },
-      { name: 'Finalizadas', Cantidad: counts.finalizadas, fill: '#9c27b0' },
+      { name: 'Pendiente', Cantidad: counts.enviada, fill: '#ff9800' },
+      { name: 'Autorizada', Cantidad: counts.autorizadas, fill: '#4caf50' },
+      { name: 'Rechazada', Cantidad: counts.rechazada, fill: '#f44336' },
+      { name: 'Finalizada', Cantidad: counts.finalizadas, fill: '#2196f3' },
+      { name: 'Reprogramada', Cantidad: counts.reprogramacion, fill: '#9c27b0' },
     ];
   }, [solicitudesEmpleado]);
 

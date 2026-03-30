@@ -19,6 +19,7 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import TimelineIcon from "@mui/icons-material/Timeline";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import GetAppIcon from "@mui/icons-material/GetApp";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import Sidebar from "../../../components/EmpleadosPage/SideBar/SideBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import Spinner from "../../../components/spinners/spinner";
@@ -35,6 +36,7 @@ import { exportToExcel } from "../../../services/utils/exportToExcelUtils";
 import { exportToPdf } from "../../../services/utils/exportToPdfUtils";
 import { useGetDiasSolicitados } from "../../../hooks/VacationAppHooks/useGetDiasSolicitados";
 import api from "../../../config/api";
+import { API_URL } from "../../../config/enviroment";
 import dayjs from "dayjs";
 import { StyledButton, PageHeader } from "../../../components/UI/UIComponents";
 
@@ -115,6 +117,28 @@ const VacationApp = () => {
   };
 
   const { totalCreditos, totalDebitos, saldoActual } = calcularResumenDias();
+
+  const getPeriodosSummary = () => {
+    const summary = {};
+    if (!historial || historial.length === 0) return [];
+    
+    historial.forEach(item => {
+      const p = item.periodo;
+      if (!summary[p]) { summary[p] = { creditos: 0, debitos: 0 }; }
+      if (item.tipoRegistro === 1) summary[p].creditos += Number(item.totalDiasAcreditados) || 0;
+      else summary[p].debitos += Number(item.diasSolicitados) || 0;
+    });
+    return Object.keys(summary).map(p => ({
+      periodo: p,
+      saldo: summary[p].creditos - summary[p].debitos
+    })).sort((a, b) => Number(b.periodo) - Number(a.periodo));
+  };
+
+  const handleDownloadFiniquito = (periodo, event) => {
+    if (event) event.stopPropagation(); // Prevenir cualquier propagación si está dentro de un botón/fila
+    const url = `${API_URL}/vacacionesApp/descargarFiniquito/${userData.idEmpleado}/${periodo}`;
+    window.open(url, "_blank");
+  };
 
   const handleProgramar = () => {
     if (canRequestVacation()) {
@@ -915,6 +939,66 @@ const VacationApp = () => {
             </Grid>
 
             <Divider sx={{ my: 2 }} />
+
+            {/* SECCIÓN FINIQUITOS POR PERÍODO */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" color="primary.main" fontWeight={700} sx={{ mb: 2 }}>
+                📄 Finiquitos por Período Vacacional
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+                {getPeriodosSummary().map((p) => (
+                  <Paper
+                    key={`finiquito-${p.periodo}`}
+                    elevation={2}
+                    sx={{
+                      p: 2,
+                      borderRadius: 2,
+                      border: "2px solid",
+                      borderColor: p.saldo <= 0 ? "#f44336" : "#4caf50",
+                      minWidth: "180px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      transition: "transform 0.2s",
+                      "&:hover": { transform: "translateY(-2px)" }
+                    }}
+                  >
+                    <Typography variant="subtitle2" color="text.secondary" fontWeight={600}>
+                      Período {p.periodo}
+                    </Typography>
+                    {p.saldo <= 0 ? (
+                      <>
+                        <Chip label="Agotado (0 días)" sx={{ bgcolor: "#f44336", color: "#fff", fontWeight: "bold", my: 1 }} size="small" />
+                        <Button
+                          variant="contained"
+                          size="small"
+                          startIcon={<PictureAsPdfIcon />}
+                          onClick={(e) => handleDownloadFiniquito(p.periodo, e)}
+                          sx={{
+                            bgcolor: "#d32f2f",
+                            textTransform: "none",
+                            mt: 0.5,
+                            px: 2,
+                            borderRadius: 2,
+                            fontWeight: 600,
+                            "&:hover": { bgcolor: "#b71c1c" }
+                          }}
+                        >
+                          Descargar Finiquito
+                        </Button>
+                      </>
+                    ) : (
+                      <Chip label={`Activo (${p.saldo} días)`} sx={{ bgcolor: "#4caf50", color: "#fff", fontWeight: "bold", my: 1 }} size="small" />
+                    )}
+                  </Paper>
+                ))}
+                {getPeriodosSummary().length === 0 && (
+                  <Typography variant="body2" color="text.secondary">No hay historiales registrados.</Typography>
+                )}
+              </Box>
+            </Box>
+
+            <Divider sx={{ mb: 2 }} />
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: "wrap", gap: 2 }}>
               <FormControl variant="outlined" sx={{ width: 300 }}>

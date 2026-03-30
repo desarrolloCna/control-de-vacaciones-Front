@@ -153,7 +153,8 @@ const SolicitudesPage = () => {
         
         // Estado dinámico para el tooltip con capitalización inicial
         const rawStatus = solicitud.estadoSolicitud || "Desconocido";
-        const estado = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+        const estadoMap = {enviada:"Pendiente",autorizadas:"Autorizada",rechazada:"Rechazada",finalizadas:"Finalizada",cancelada:"Anulada",reprogramacion:"Reprogramada"};
+        const estado = estadoMap[rawStatus] || rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
         
         // Crear un evento para cada día del rango (INCLUSIVE - ambos extremos incluidos)
         let currentDate = fechaInicio;
