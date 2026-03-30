@@ -134,10 +134,26 @@ const VacationApp = () => {
     })).sort((a, b) => Number(b.periodo) - Number(a.periodo));
   };
 
-  const handleDownloadFiniquito = (periodo, event) => {
-    if (event) event.stopPropagation(); // Prevenir cualquier propagación si está dentro de un botón/fila
-    const url = `${API_URL}/vacacionesApp/descargarFiniquito/${userData.idEmpleado}/${periodo}`;
-    window.open(url, "_blank");
+  const handleDownloadFiniquito = async (periodo, event) => {
+    if (event) event.stopPropagation();
+    try {
+      const response = await api.get(`/descargarFiniquito/${userData.idEmpleado}/${periodo}`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const pdfWindow = window.open("", "_blank");
+      if (pdfWindow) {
+        pdfWindow.document.write(
+          `<html><head><title>Finiquito_${periodo}</title><style>body { margin: 0; overflow: hidden; } iframe { width: 100vw; height: 100vh; border: none; }</style></head>
+           <body><iframe src="${url}"></iframe></body></html>`
+        );
+        pdfWindow.document.close();
+      }
+      setTimeout(() => window.URL.revokeObjectURL(url), 5000);
+    } catch (error) {
+      console.error("Error al descargar finiquito", error);
+      alert("No se pudo generar el finiquito. Verifique que el período tenga registros.");
+    }
   };
 
   const handleProgramar = () => {
