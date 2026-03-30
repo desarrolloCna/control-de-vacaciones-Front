@@ -241,7 +241,7 @@ const SolicitudesPage = () => {
       case "rechazada":
         return "error";
       case "finalizadas":
-        return "info";
+        return "success";
       case "cancelada":
         return "secondary";
       default:
