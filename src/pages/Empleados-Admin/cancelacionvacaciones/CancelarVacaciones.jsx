@@ -14,6 +14,7 @@ const CancelacionVacaciones = () => {
     const { solicitudesAutorizadas, error, loading, setSolicitudesAutorizadas } = useGetSolicitudesAutorizadas();
     const [selectedSolicitud, setSelectedSolicitud] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [motivo, setMotivo] = useState("");
     const [isCancelling, setIsCancelling] = useState(false);
     const [cancelError, setCancelError] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
@@ -198,12 +199,15 @@ const CancelacionVacaciones = () => {
                         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                             <div className="modal-header">
                                 <h2>Detalles de la Solicitud</h2>
-                                <button className="btn-close" onClick={() => handleCloseModal(
-                                    setIsModalOpen, 
-                                    setSelectedSolicitud, 
-                                    setCancelError, 
-                                    setSuccessMessage
-                                )}>
+                                <button className="btn-close" onClick={() => {
+                                    handleCloseModal(
+                                        setIsModalOpen, 
+                                        setSelectedSolicitud, 
+                                        setCancelError, 
+                                        setSuccessMessage
+                                    );
+                                    setMotivo("");
+                                }}>
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                         <line x1="18" y1="6" x2="6" y2="18"></line>
                                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -296,17 +300,31 @@ const CancelacionVacaciones = () => {
                                         </div>
                                     </div>
                                 </div>
+                                <div className="detail-section">
+                                    <h3>Motivo de Reprogramación</h3>
+                                    <textarea 
+                                        className="motivo-input"
+                                        placeholder="Ingrese el motivo o justificación formal para enviar al empleado..."
+                                        style={{ width: '100%', minHeight: '80px', padding: '10px', borderRadius: '8px', border: '1px solid #ccc', marginTop: '10px' }}
+                                        value={motivo}
+                                        onChange={(e) => setMotivo(e.target.value)}
+                                        disabled={isCancelling || successMessage}
+                                    />
+                                </div>
                             </div>
 
                             <div className="modal-footer">
                                 <button 
                                     className="btn-secondary" 
-                                    onClick={() => handleCloseModal(
-                                        setIsModalOpen, 
-                                        setSelectedSolicitud, 
-                                        setCancelError, 
-                                        setSuccessMessage
-                                    )}
+                                    onClick={() => {
+                                        handleCloseModal(
+                                            setIsModalOpen, 
+                                            setSelectedSolicitud, 
+                                            setCancelError, 
+                                            setSuccessMessage
+                                        );
+                                        setMotivo("");
+                                    }}
                                     disabled={isCancelling}
                                 >
                                     Cerrar
@@ -315,6 +333,7 @@ const CancelacionVacaciones = () => {
                                     className="btn-danger" 
                                     onClick={() => handleCancelarSolicitud(
                                         selectedSolicitud, 
+                                        motivo,
                                         setIsModalOpen, 
                                         setSelectedSolicitud, 
                                         setCancelError, 
@@ -322,7 +341,7 @@ const CancelacionVacaciones = () => {
                                         setIsCancelling, 
                                         setSolicitudesAutorizadas
                                     )}
-                                    disabled={isCancelling || successMessage}
+                                    disabled={isCancelling || successMessage || !motivo.trim()}
                                 >
                                     {isCancelling ? (
                                         <>
@@ -336,7 +355,7 @@ const CancelacionVacaciones = () => {
                                                 <line x1="15" y1="9" x2="9" y2="15"></line>
                                                 <line x1="9" y1="9" x2="15" y2="15"></line>
                                             </svg>
-                                            Cancelar Solicitud
+                                            Solicitar Reprogramación
                                         </>
                                     )}
                                 </button>

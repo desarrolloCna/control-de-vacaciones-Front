@@ -241,9 +241,11 @@ const SolicitudesPage = () => {
       case "rechazada":
         return "error";
       case "finalizadas":
-        return "success";
-      case "cancelada":
         return "secondary";
+      case "cancelada":
+        return "default";
+      case "reprogramacion":
+        return "info";
       default:
         return "default";
     }
