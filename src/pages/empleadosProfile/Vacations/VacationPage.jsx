@@ -799,7 +799,7 @@ const VacationApp = () => {
                 color="primary"
                 variant="outlined"
                 sx={{
-                  flex: selectedSolicitud && selectedSolicitud.estadoSolicitud === "autorizadas" ? 1 : '100%',
+                  flex: selectedSolicitud && (selectedSolicitud.estadoSolicitud === "autorizadas" || selectedSolicitud.estadoSolicitud === "finalizadas") ? 1 : '100%',
                   padding: "12px 0",
                   borderColor: "#1976d2",
                   color: "#1976d2",
