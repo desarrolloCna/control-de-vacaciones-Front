@@ -153,7 +153,7 @@ const SolicitudesPage = () => {
         
         // Estado dinámico para el tooltip con capitalización inicial
         const rawStatus = solicitud.estadoSolicitud || "Desconocido";
-        const estadoMap = {enviada:"Pendiente",autorizadas:"Autorizada",rechazada:"Rechazada",finalizadas:"Finalizada",cancelada:"Anulada",reprogramacion:"Reprogramada"};
+        const estadoMap = {enviada:"Pendiente",autorizadas:"Autorizada",rechazada:"Rechazada",finalizadas:"Finalizada",cancelada:"Reprogramada",reprogramacion:"Reprogramada"};
         const estado = estadoMap[rawStatus] || rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
         
         // Crear un evento para cada día del rango (INCLUSIVE - ambos extremos incluidos)
@@ -244,7 +244,7 @@ const SolicitudesPage = () => {
       case "finalizadas":
         return "info";
       case "cancelada":
-        return "default";
+        return "secondary";
       case "reprogramacion":
         return "secondary";
       default:
@@ -264,7 +264,7 @@ const SolicitudesPage = () => {
       case "finalizadas":
         return "Finalizada";
       case "cancelada":
-        return "Anulada";
+        return "Reprogramada";
       case "reprogramacion":
         return "Reprogramada";
       default:

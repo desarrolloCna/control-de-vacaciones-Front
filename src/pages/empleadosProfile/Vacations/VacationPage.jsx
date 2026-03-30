@@ -45,7 +45,7 @@ const estadoStyles = {
   autorizadas: { color: "#4caf50", label: "Autorizada", textColor: "#fff" },
   rechazada: { color: "#f44336", label: "Rechazada", textColor: "#fff" },
   finalizadas: { color: "#2196f3", label: "Finalizada", textColor: "#fff" },
-  cancelada: { color: "#9e9e9e", label: "Anulada", textColor: "#fff" },
+  cancelada: { color: "#9c27b0", label: "Reprogramada", textColor: "#fff" },
   reprogramacion: { color: "#9c27b0", label: "Reprogramada", textColor: "#fff" },
 };
 

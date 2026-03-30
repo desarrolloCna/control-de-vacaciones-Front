@@ -75,7 +75,7 @@ export const ReporteVacacionesEmpleados = () => {
       finalizadas: { label: "Finalizada", color: "#2196f3" },
       reprogramada: { label: "Reprogramada", color: "#9c27b0" },
       reprogramacion: { label: "Reprogramada", color: "#9c27b0" },
-      cancelada: { label: "Anulada", color: "#9e9e9e" },
+      cancelada: { label: "Reprogramada", color: "#9c27b0" },
     };
     const info = map[(estado || "").toLowerCase()] || { label: estado, color: "#9e9e9e" };
     return info;
@@ -227,7 +227,6 @@ export const ReporteVacacionesEmpleados = () => {
             <MenuItem value="enviada"><Chip label="Pendiente" sx={{ backgroundColor: '#ff9800', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
             <MenuItem value="rechazada"><Chip label="Rechazada" sx={{ backgroundColor: '#f44336', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
             <MenuItem value="finalizadas"><Chip label="Finalizada" sx={{ backgroundColor: '#2196f3', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
-            <MenuItem value="cancelada"><Chip label="Anulada" sx={{ backgroundColor: '#9e9e9e', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
             <MenuItem value="reprogramacion"><Chip label="Reprogramada" sx={{ backgroundColor: '#9c27b0', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
           </Select>
         </FormControl>

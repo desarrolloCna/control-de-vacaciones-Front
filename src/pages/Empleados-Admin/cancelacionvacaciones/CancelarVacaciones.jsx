@@ -296,7 +296,7 @@ const CancelacionVacaciones = () => {
                                         </div>
                                         <div className="detail-item">
                                             <span className="detail-label">Estado:</span>
-                                            <span className="status-badge">{({enviada:"Pendiente",autorizadas:"Autorizada",rechazada:"Rechazada",finalizadas:"Finalizada",cancelada:"Anulada",reprogramacion:"Reprogramada"})[selectedSolicitud.estadoSolicitud] || selectedSolicitud.estadoSolicitud}</span>
+                                            <span className="status-badge">{({enviada:"Pendiente",autorizadas:"Autorizada",rechazada:"Rechazada",finalizadas:"Finalizada",cancelada:"Reprogramada",reprogramacion:"Reprogramada"})[selectedSolicitud.estadoSolicitud] || selectedSolicitud.estadoSolicitud}</span>
                                         </div>
                                     </div>
                                 </div>
