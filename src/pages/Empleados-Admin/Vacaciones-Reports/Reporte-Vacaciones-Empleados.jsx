@@ -69,14 +69,15 @@ export const ReporteVacacionesEmpleados = () => {
 
   const getEstadoChip = (estado) => {
     const map = {
-      autorizadas: { label: "Autorizada", color: "#43a047" },
-      enviada: { label: "Pendiente", color: "#f57c00" },
-      rechazada: { label: "Rechazada", color: "#e53935" },
-      finalizadas: { label: "Finalizada", color: "#1e88e5" },
-      reprogramada: { label: "Reprogramada", color: "#8e24aa" },
-      cancelada: { label: "Reprogramada", color: "#8e24aa" },
+      autorizadas: { label: "Autorizada", color: "#4caf50" },
+      enviada: { label: "Pendiente", color: "#ff9800" },
+      rechazada: { label: "Rechazada", color: "#f44336" },
+      finalizadas: { label: "Finalizada", color: "#2196f3" },
+      reprogramada: { label: "Reprogramada", color: "#9c27b0" },
+      reprogramacion: { label: "Reprogramada", color: "#9c27b0" },
+      cancelada: { label: "Anulada", color: "#9e9e9e" },
     };
-    const info = map[(estado || "").toLowerCase()] || { label: estado, color: "#757575" };
+    const info = map[(estado || "").toLowerCase()] || { label: estado, color: "#9e9e9e" };
     return info;
   };
 
@@ -222,11 +223,12 @@ export const ReporteVacacionesEmpleados = () => {
             onChange={(e) => setSelectedEstado(e.target.value)}
           >
             <MenuItem value="Todos"><strong>📊 Todos los Estados</strong></MenuItem>
-            <MenuItem value="autorizadas"><Chip label="Autorizada" sx={{ backgroundColor: '#43a047', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
-            <MenuItem value="enviada"><Chip label="Pendiente" sx={{ backgroundColor: '#f57c00', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
-            <MenuItem value="rechazada"><Chip label="Rechazada" sx={{ backgroundColor: '#e53935', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
-            <MenuItem value="finalizadas"><Chip label="Finalizada" sx={{ backgroundColor: '#1e88e5', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
-            <MenuItem value="reprogramada"><Chip label="Reprogramada" sx={{ backgroundColor: '#8e24aa', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
+            <MenuItem value="autorizadas"><Chip label="Autorizada" sx={{ backgroundColor: '#4caf50', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
+            <MenuItem value="enviada"><Chip label="Pendiente" sx={{ backgroundColor: '#ff9800', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
+            <MenuItem value="rechazada"><Chip label="Rechazada" sx={{ backgroundColor: '#f44336', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
+            <MenuItem value="finalizadas"><Chip label="Finalizada" sx={{ backgroundColor: '#2196f3', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
+            <MenuItem value="cancelada"><Chip label="Anulada" sx={{ backgroundColor: '#9e9e9e', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
+            <MenuItem value="reprogramacion"><Chip label="Reprogramada" sx={{ backgroundColor: '#9c27b0', color: '#fff', fontWeight: 600 }} size="small" /></MenuItem>
           </Select>
         </FormControl>
       </Box>
