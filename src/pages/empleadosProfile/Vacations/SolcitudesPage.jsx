@@ -1060,15 +1060,13 @@ const SolicitudesPage = () => {
                       </Typography>
                       <Chip
                         label={getEstado(selectedSolicitud.estadoSolicitud).label}
+                        variant="filled"
                         sx={{
                           backgroundColor: getEstado(selectedSolicitud.estadoSolicitud).color,
                           color: getEstado(selectedSolicitud.estadoSolicitud).textColor || '#fff',
-                        }}
-                        variant="filled"
-                        sx={{
                           fontWeight: "bold",
-                          fontSize: '0.9rem',
-                          height: '32px'
+                          fontSize: "0.9rem",
+                          height: "32px",
                         }}
                       />
                     </Box>

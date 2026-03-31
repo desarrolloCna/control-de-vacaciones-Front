@@ -234,7 +234,7 @@ const HomePage = () => {
                   }}
                   onClick={() => navigate('/empleados/programar-fecha')}
                 >
-                  <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: 'primary.light', color: 'primary.main', display: 'inline-block', mb: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(99, 102, 241, 0.2)' : '#EEF2FF' }}>
+                  <Box sx={{ p: 1.5, borderRadius: 2, color: 'primary.main', display: 'inline-block', mb: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(99, 102, 241, 0.2)' : '#EEF2FF' }}>
                     <EventAvailableIcon />
                   </Box>
                   <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Programar</Typography>
