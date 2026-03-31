@@ -63,7 +63,7 @@ export default function ControlPanel() {
                 primaryText="Dashboard RRHH"
                 secondaryText="Estadísticas y panorama general"
                 icon={<DashboardIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #FF9800 0%, #E65100 100%)"
+                gradientBg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
                 to="/dashboard-rrhh"
               />
             </Grid>
@@ -74,7 +74,7 @@ export default function ControlPanel() {
                 primaryText="Panel de Finiquitos"
                 secondaryText="Constancias oficiales por período"
                 icon={<DescriptionIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #42A5F5 0%, #0D47A1 100%)"
+                gradientBg="linear-gradient(135deg, #0093E9 0%, #80D0C7 100%)"
                 to="/finiquito-rrhh"
               />
             </Grid>
@@ -85,7 +85,7 @@ export default function ControlPanel() {
                 primaryText="Ingresar Empleados"
                 secondaryText="Registro de nuevos colaboradores"
                 icon={<PersonAddIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #1976D2 0%, #0D47A1 100%)"
+                gradientBg="linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
                 to="/ingresar-nuevo-empleado"
               />
             </Grid>
@@ -96,7 +96,7 @@ export default function ControlPanel() {
                 primaryText="Informe de Empleados"
                 secondaryText="Directorio y datos del personal"
                 icon={<PeopleIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #7E57C2 0%, #4527A0 100%)"
+                gradientBg="linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)"
                 to="/lista-de-empleados"
               />
             </Grid>
@@ -107,7 +107,7 @@ export default function ControlPanel() {
                 primaryText="Reporte de Vacaciones"
                 secondaryText="Solicitudes y estados de vacaciones"
                 icon={<BeachAccessIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #43A047 0%, #1B5E20 100%)"
+                gradientBg="linear-gradient(135deg, #F97316 0%, #FACC15 100%)"
                 to="/vacaciones-empleados"
               />
             </Grid>
@@ -118,7 +118,7 @@ export default function ControlPanel() {
                 primaryText="Suspensiones"
                 secondaryText="Gestión de suspensiones laborales"
                 icon={<PauseCircleIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #EF5350 0%, #B71C1C 100%)"
+                gradientBg="linear-gradient(135deg, #DC2626 0%, #991B1B 100%)"
                 to="/suspensiones"
               />
             </Grid>
@@ -129,7 +129,7 @@ export default function ControlPanel() {
                 primaryText="Días Festivos"
                 secondaryText="Configurar feriados institucionales"
                 icon={<EventIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #FFA726 0%, #E65100 100%)"
+                gradientBg="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
                 to="/dias-festivos"
               />
             </Grid>
@@ -140,7 +140,7 @@ export default function ControlPanel() {
                 primaryText="Usuarios RRHH"
                 secondaryText="Gestión de accesos y roles"
                 icon={<AdminPanelSettingsIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #EC407A 0%, #880E4F 100%)"
+                gradientBg="linear-gradient(135deg, #1e3a5f 0%, #4a90d9 100%)"
                 to="/crear-usuarios-rrhh"
               />
             </Grid>
@@ -151,7 +151,7 @@ export default function ControlPanel() {
                 primaryText="Activar Vacaciones"
                 secondaryText="Activar beneficio antes del año"
                 icon={<PlaylistAddCheckIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #66BB6A 0%, #2E7D32 100%)"
+                gradientBg="linear-gradient(135deg, #0E7490 0%, #22D3EE 100%)"
                 to="/activar-vacaciones"
               />
             </Grid>
@@ -162,7 +162,7 @@ export default function ControlPanel() {
                 primaryText="Excepciones de Límite"
                 secondaryText="Autorizar >20 días de vacaciones"
                 icon={<GavelIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #FFC107 0%, #FF8F00 100%)"
+                gradientBg="linear-gradient(135deg, #B45309 0%, #D97706 100%)"
                 to="/excepcion-limite"
               />
             </Grid>
@@ -173,7 +173,7 @@ export default function ControlPanel() {
                 primaryText="Cancelar Vacaciones"
                 secondaryText="Revocar vacaciones programadas"
                 icon={<EventBusyIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #26A69A 0%, #004D40 100%)"
+                gradientBg="linear-gradient(135deg, #374151 0%, #6B7280 100%)"
                 to="/cancelar-vacaciones"
               />
             </Grid>
@@ -184,7 +184,7 @@ export default function ControlPanel() {
                 primaryText="Bitácora de Cambios"
                 secondaryText="Historial de modificaciones"
                 icon={<HistoryIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #5C6BC0 0%, #283593 100%)"
+                gradientBg="linear-gradient(135deg, #7C2D12 0%, #EA580C 100%)"
                 to="/bitacora"
               />
             </Grid>
@@ -195,7 +195,7 @@ export default function ControlPanel() {
                 primaryText="Ajuste de Saldos"
                 secondaryText="Regularizar historial vacacional"
                 icon={<TuneIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #00BCD4 0%, #006064 100%)"
+                gradientBg="linear-gradient(135deg, #4338CA 0%, #6366F1 100%)"
                 to="/ajustar-saldos"
               />
             </Grid>
