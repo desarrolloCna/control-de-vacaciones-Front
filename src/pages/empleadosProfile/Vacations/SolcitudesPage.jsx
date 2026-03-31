@@ -345,7 +345,7 @@ const SolicitudesPage = () => {
       ID: solicitud.correlativo || ("SLVC" + solicitud.idSolicitud),
       Empleado: solicitud.nombreCompleto,
       "Tipo Solicitud": "Solicitud de vacaciones",
-      Estado: getEstadoText(solicitud.estadoSolicitud),
+      Estado: getEstado(solicitud.estadoSolicitud).label,
       "Fecha Inicio": formatDateToDisplay(solicitud.fechaInicioVacaciones),
       "Fecha Fin": formatDateToDisplay(solicitud.fechaFinVacaciones),
       "Fecha Reintegro": formatDateToDisplay(solicitud.fechaRetornoLabores),
@@ -360,7 +360,7 @@ const SolicitudesPage = () => {
       ID: solicitud.correlativo || ("SLVC" + solicitud.idSolicitud),
       Empleado: solicitud.nombreCompleto,
       "Tipo Solicitud": "Solicitud de vacaciones",
-      Estado: getEstadoText(solicitud.estadoSolicitud),
+      Estado: getEstado(solicitud.estadoSolicitud).label,
       "Fecha Inicio": formatDateToDisplay(solicitud.fechaInicioVacaciones),
       "Fecha Fin": formatDateToDisplay(solicitud.fechaFinVacaciones),
       "Fecha Reintegro": formatDateToDisplay(solicitud.fechaRetornoLabores),
@@ -601,18 +601,20 @@ const SolicitudesPage = () => {
       <Box sx={{ mb: 3 }}>
           
           <Button
-            variant="contained"
+            variant="outlined"
             startIcon={showCalendar ? <ViewListIcon /> : <CalendarTodayIcon />}
             onClick={() => setShowCalendar(!showCalendar)}
             sx={{
-              backgroundColor: showCalendar ? '#5f6368' : '#1a73e8',
-              '&:hover': {
-                backgroundColor: showCalendar ? '#4a4d51' : '#0d5fc1',
-              },
               borderRadius: '24px',
               textTransform: 'none',
-              fontWeight: 500,
-              boxShadow: '0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15)',
+              fontWeight: 600,
+              padding: '6px 20px',
+              transition: 'all 0.2s ease',
+              backgroundColor: 'transparent',
+              '&:hover': {
+                backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+              }
             }}
           >
             {showCalendar ? "Ver Lista" : "Ver Calendario"}
@@ -773,92 +775,105 @@ const SolicitudesPage = () => {
               </TextField>
             </Box>
 
-            <TableContainer component={Paper} sx={{ mb: 4, boxShadow: 3, borderRadius: '12px', width: '100%', overflowX: 'auto' }}>
-              <Table aria-label="solicitudes table">
-                <TableHead>
-                  <TableRow>
-                    {["ID", "Empleado", "Tipo Solicitud", "Estado", "Acción"].map(
-                      (header) => (
-                        <TableCell
-                          key={header}
-                          align="center"
-                          sx={{
-                            fontWeight: 600,
-                            backgroundColor: "#1565C0",
-                            color: "#fff",
-                            py: 1.5,
-                            fontSize: '0.9rem'
-                          }}
-                        >
-                          {header}
-                        </TableCell>
-                      )
-                    )}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {solicitudesU && solicitudesU.length > 0 ? (
-                    filteredSolicitudes.map((solicitud) => (
-                      <TableRow 
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 4, width: '100%' }}>
+              {solicitudesU && solicitudesU.length > 0 ? (
+                filteredSolicitudes.length > 0 ? (
+                  filteredSolicitudes.map((solicitud) => {
+                    const estadoObj = getEstado(solicitud.estadoSolicitud || "");
+                    return (
+                      <Paper
                         key={solicitud.idSolicitud}
-                        sx={{ 
-                          '&:hover': { backgroundColor: '#f5f5f5' },
-                          '&:last-child td, &:last-child th': { border: 0 }
+                        elevation={0}
+                        sx={{
+                          p: { xs: 2.5, sm: 3 },
+                          borderRadius: 4,
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderLeft: `6px solid ${estadoObj?.color || '#94a3b8'}`,
+                          display: 'flex',
+                          flexDirection: { xs: 'column', sm: 'row' },
+                          justifyContent: 'space-between',
+                          alignItems: { xs: 'flex-start', sm: 'center' },
+                          gap: 2,
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+                            transform: 'translateY(-2px)'
+                          }
                         }}
                       >
-                        <TableCell align="center" sx={{ fontWeight: '500' }}>
-                          {solicitud.correlativo || ("SLVC" + solicitud.idSolicitud)}
-                        </TableCell>
-                        <TableCell align="center">
-                          {solicitud.nombreCompleto}
-                        </TableCell>
-                        <TableCell align="center">
-                          Solicitud de vacaciones
-                        </TableCell>
-                        <TableCell align="center">
-                          <Chip
-                            label={getEstadoText(solicitud.estadoSolicitud)}
-                            color={getEstadoColor(solicitud.estadoSolicitud)}
-                            variant="filled"
-                            sx={{
-                              fontWeight: "bold",
-                              minWidth: "160px",
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell align="center">
-                          <Button
-                            variant="outlined"
-                            color="primary"
-                            size="small"
-                            onClick={() => handleVerSolicitud(solicitud)}
-                            startIcon={<VisibilityIcon />}
-                            sx={{
-                              borderRadius: 2,
-                              textTransform: 'none',
-                              fontWeight: 600,
-                            }}
-                          >
-                            Ver Detalles
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} align="center">
-                        <Box sx={{ py: 4 }}>
-                          <EventNoteIcon sx={{ fontSize: 60, color: '#e0e0e0', mb: 2 }} />
-                          <Typography variant="h6" sx={{ color: "gray" }}>
-                            No hay solicitudes disponibles.
+                        <Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 700, m: 0, lineHeight: 1 }}>
+                              {solicitud.correlativo || ("SLVC" + solicitud.idSolicitud)}
+                            </Typography>
+                            <Chip
+                              label={estadoObj.label}
+                              sx={{
+                                backgroundColor: estadoObj.color,
+                                color: estadoObj.textColor || '#fff',
+                                fontWeight: "bold",
+                                minWidth: "120px",
+                              }}
+                            />
+                          </Box>
+                          <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
+                            {solicitud.nombreCompleto}
                           </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            Tipo: Solicitud de vacaciones
+                          </Typography>
+                          <Box sx={{ mt: 2, display: 'flex', gap: 3 }}>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary" display="block">Inicio</Typography>
+                              <Typography variant="body2" fontWeight="600">{formatDateToDisplay(solicitud.fechaInicioVacaciones || solicitud.fechaAcreditacion)}</Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary" display="block">Fin</Typography>
+                              <Typography variant="body2" fontWeight="600">{formatDateToDisplay(solicitud.fechaFinVacaciones || solicitud.fechaAcreditacion)}</Typography>
+                            </Box>
+                          </Box>
                         </Box>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+
+                        <Button
+                          variant="outlined"
+                          startIcon={<VisibilityIcon />}
+                          onClick={() => handleVerSolicitud(solicitud)}
+                          sx={{
+                            borderRadius: 3,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            alignSelf: { xs: 'flex-start', sm: 'center' },
+                            minWidth: 140,
+                            color: 'secondary.main',
+                            borderColor: 'secondary.main',
+                            '&:hover': {
+                              backgroundColor: 'secondary.light',
+                              color: '#fff',
+                            }
+                          }}
+                        >
+                          Ver Detalles
+                        </Button>
+                      </Paper>
+                    );
+                  })
+                ) : (
+                  <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 4, border: '2px dashed', borderColor: 'divider', bgcolor: 'transparent' }}>
+                    <SearchIcon sx={{ fontSize: 60, color: 'text.secondary', opacity: 0.5, mb: 2 }} />
+                    <Typography variant="h6" color="text.secondary" fontWeight="600">No se encontraron solicitudes</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Cambia los filtros de búsqueda para ver más resultados.</Typography>
+                  </Paper>
+                )
+              ) : (
+                <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 4, border: '2px dashed', borderColor: 'divider', bgcolor: 'transparent' }}>
+                  <EventNoteIcon sx={{ fontSize: 60, color: '#e0e0e0', mb: 2 }} />
+                  <Typography variant="h6" sx={{ color: "gray" }}>
+                    No hay solicitudes disponibles.
+                  </Typography>
+                </Paper>
+              )}
+            </Box>
           </>
         )}
 
@@ -1044,8 +1059,11 @@ const SolicitudesPage = () => {
                         Estado de la solicitud:
                       </Typography>
                       <Chip
-                        label={getEstadoText(selectedSolicitud.estadoSolicitud)}
-                        color={getEstadoColor(selectedSolicitud.estadoSolicitud)}
+                        label={getEstado(selectedSolicitud.estadoSolicitud).label}
+                        sx={{
+                          backgroundColor: getEstado(selectedSolicitud.estadoSolicitud).color,
+                          color: getEstado(selectedSolicitud.estadoSolicitud).textColor || '#fff',
+                        }}
                         variant="filled"
                         sx={{
                           fontWeight: "bold",
