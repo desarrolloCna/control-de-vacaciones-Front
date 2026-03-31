@@ -20,6 +20,7 @@ import TimelineIcon from "@mui/icons-material/Timeline";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import ScheduleIcon from "@mui/icons-material/Schedule";
 import Sidebar from "../../../components/EmpleadosPage/SideBar/SideBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import Spinner from "../../../components/spinners/spinner";
@@ -456,94 +457,104 @@ const VacationApp = () => {
           </Button>
         </Stack>
 
-        <TableContainer 
-          component={Paper} 
-          sx={{ 
-            mb: 4,
-            boxShadow: 2,
-            borderRadius: 1,
-            width: '100%',
-            overflowX: 'auto'
-          }}
-        >
-          <Table aria-label="vacation table">
-            <TableHead>
-              <TableRow>
-                {[
-                  "Numero de Gestión",
-                  "Descripción",
-                  "Estado Actual",
-                  "Detalles"
-                ].map((header) => (
-                  <TableCell
-                    key={header}
-                    align="center"
+        {/* CONTENEDOR TIPO TIMELINE (En vez de tabla) */}
+        {errorS && errorS !== "NO EXISTE SOLICITUDES" ? (
+          <ErrorAlert message={errorS} visible={true} />
+        ) : loadingS || loadingEstado ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : solicitudesOrdenadas.length === 0 ? (
+          <Paper 
+            elevation={0} 
+            sx={{ 
+              p: 6, 
+              textAlign: 'center', 
+              borderRadius: 4, 
+              border: '2px dashed',
+              borderColor: 'divider',
+              bgcolor: 'transparent'
+            }}
+          >
+            <AssignmentIcon sx={{ fontSize: 60, color: 'text.secondary', opacity: 0.5, mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" fontWeight="600">
+              Aún no tienes solicitudes en el historial
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Cuando programes vacaciones, aparecerán aquí para tu seguimiento.
+            </Typography>
+          </Paper>
+        ) : (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: 800, margin: '0 auto', mb: 6 }}>
+            {solicitudesOrdenadas.map((solicitudItem) => {
+              const estadoObj = getEstado(solicitudItem.estadoSolicitud || "");
+              return (
+                <Paper
+                  key={solicitudItem.idSolicitud}
+                  elevation={0}
+                  sx={{
+                    p: { xs: 2.5, sm: 3 },
+                    borderRadius: 4,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderLeft: `6px solid ${estadoObj?.color || '#94a3b8'}`,
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'space-between',
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    gap: 2,
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+                      transform: 'translateY(-2px)'
+                    }
+                  }}
+                >
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, m: 0, lineHeight: 1 }}>
+                        {solicitudItem.correlativo || ("CNA-URRH-" + solicitudItem.idSolicitud)}
+                      </Typography>
+                      {renderEstado(solicitudItem.estadoSolicitud || "Sin Datos")}
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <ScheduleIcon fontSize="small" /> Solicitada el {formatDateToDisplay(solicitudItem.fechaSolicitud)}
+                    </Typography>
+                    <Box sx={{ mt: 2, display: 'flex', gap: 3 }}>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" display="block">Inicio</Typography>
+                        <Typography variant="body2" fontWeight="600">{formatDateToDisplay(solicitudItem.fechaInicioVacaciones)}</Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" display="block">Fin</Typography>
+                        <Typography variant="body2" fontWeight="600">{formatDateToDisplay(solicitudItem.fechaFinVacaciones)}</Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" display="block">Días</Typography>
+                        <Typography variant="body2" fontWeight="800" color="primary.main">{solicitudItem.cantidadDiasSolicitados}</Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  <Button
+                    variant="outlined"
+                    startIcon={<VisibilityIcon />}
+                    onClick={() => handleOpenSolicitudModal(solicitudItem)}
                     sx={{
+                      borderRadius: 3,
+                      textTransform: 'none',
                       fontWeight: 600,
-                      backgroundColor: "#1565C0",
-                      color: "#fff",
-                      fontSize: '0.9rem',
-                      py: 1.5,
+                      alignSelf: { xs: 'flex-start', sm: 'center' },
+                      minWidth: 140
                     }}
                   >
-                    {header}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {errorS && errorS !== "NO EXISTE SOLICITUDES" ? (
-                <TableRow>
-                  <TableCell colSpan={4} align="center">
-                    <ErrorAlert message={errorS} visible={true} />
-                  </TableCell>
-                </TableRow>
-              ) : loadingS || loadingEstado ? (
-                <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    <Alert severity="info">
-                      Cargando datos de vacaciones...
-                    </Alert>
-                  </TableCell>
-                </TableRow>
-              ) : solicitudesOrdenadas.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    <Alert severity="info">
-                      No hay solicitudes de vacaciones registradas.
-                    </Alert>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                solicitudesOrdenadas.map((solicitudItem) => (
-                  <TableRow key={solicitudItem.idSolicitud} hover>
-                    <TableCell align="center">
-                      {solicitudItem.correlativo || ("CNA-URRH-" + solicitudItem.idSolicitud)}
-                    </TableCell>
-                    <TableCell align="center">
-                      {"Solicitud de vacaciones"}
-                    </TableCell>
-                    <TableCell align="center">
-                      {renderEstado(solicitudItem.estadoSolicitud || "Sin Datos")}
-                    </TableCell>
-                    <TableCell align="center">
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        size="small"
-                        onClick={() => handleOpenSolicitudModal(solicitudItem)}
-                        startIcon={<VisibilityIcon />}
-                        sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600 }}
-                      >
-                        Ver Detalles
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                    Ver Detalles
+                  </Button>
+                </Paper>
+              );
+            })}
+          </Box>
+        )}
 
         {/* Espacio en la parte inferior para evitar que quede pegado al borde */}
         <Box sx={{ height: 40 }} />
