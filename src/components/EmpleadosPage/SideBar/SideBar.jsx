@@ -24,54 +24,60 @@ import CloseIcon from '@mui/icons-material/Close';
 
 const CustomDrawer = styled(Drawer)(({ theme }) => ({
   '& .MuiDrawer-paper': {
-    width: 260,
-    background: 'linear-gradient(180deg, #0f172a 0%, #1e1e2f 100%)',
+    width: 270,
+    background: 'linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%)',
     color: '#fff',
     borderRight: 'none',
-    boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
+    boxShadow: '10px 0 30px rgba(0,0,0,0.25)',
     display: 'flex',
     flexDirection: 'column',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
   },
 }));
 
 const SidebarListItem = styled(ListItem)(({ theme, active }) => ({
-  margin: '6px 16px',
-  borderRadius: '10px',
-  width: 'calc(100% - 32px)',
-  backgroundColor: active ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-  borderLeft: active ? `4px solid #6366f1` : '4px solid transparent',
-  transition: 'all 0.2s ease',
-  padding: '10px 16px',
+  margin: '4px 12px',
+  borderRadius: '12px',
+  width: 'calc(100% - 24px)',
+  backgroundColor: active ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
+  borderLeft: active ? `4px solid #818cf8` : '4px solid transparent',
+  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+  padding: '12px 18px',
   '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    transform: 'translateX(4px)',
+    backgroundColor: active ? 'rgba(99, 102, 241, 0.18)' : 'rgba(255, 255, 255, 0.05)',
+    transform: 'translateX(6px)',
   },
+  '& .MuiListItemIcon-root': {
+    transition: 'all 0.25s',
+    transform: active ? 'scale(1.1)' : 'scale(1)',
+  }
 }));
 
 const AvatarContainer = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  padding: '28px 16px',
-  background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%)',
-  borderBottom: '1px solid rgba(255,255,255,0.05)',
+  padding: '32px 16px',
+  background: 'linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%)',
+  borderBottom: '1px solid rgba(255,255,255,0.08)',
   position: 'relative'
 });
 
 const StyledAvatar = styled(Avatar)(({ theme }) => ({
   cursor: 'pointer',
-  width: 70,
-  height: 70,
-  border: '3px solid #6366f1',
-  boxShadow: '0 8px 16px rgba(99, 102, 241, 0.3)',
-  transition: 'all 0.3s ease',
+  width: 76,
+  height: 76,
+  border: '3px solid rgba(129, 140, 248, 0.8)',
+  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
+  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
   backgroundColor: '#4f46e5',
   fontWeight: 'bold',
-  fontSize: '1.5rem',
+  fontSize: '1.8rem',
   '&:hover': {
-    transform: 'scale(1.08) translateY(-2px)',
-    boxShadow: '0 12px 20px rgba(99, 102, 241, 0.4)',
+    transform: 'scale(1.1) rotate(5deg)',
+    boxShadow: '0 15px 30px rgba(99, 102, 241, 0.4)',
+    borderColor: '#818cf8',
   }
 }));
 
@@ -131,12 +137,32 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
 
   const drawerContent = (
     <>
-      <Box sx={{ p: 3, textAlign: 'center', borderBottom: '1px solid #1f2937' }}>
-        <Typography variant="h6" sx={{ fontWeight: 800, color: '#7986cb', lineHeight: 1.2 }}>
+      <Box sx={{ p: 4, textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            fontWeight: 900, 
+            color: '#818cf8', 
+            lineHeight: 1,
+            letterSpacing: '-0.5px',
+            textShadow: '0 2px 10px rgba(129, 140, 248, 0.3)'
+          }}
+        >
           CNA Sistema
         </Typography>
-        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 1 }}>
-          Vacaciones
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            color: 'rgba(255,255,255,0.4)', 
+            textTransform: 'uppercase', 
+            letterSpacing: 2,
+            fontWeight: 700,
+            fontSize: '0.65rem',
+            mt: 0.5,
+            display: 'block'
+          }}
+        >
+          Portal de Vacaciones
         </Typography>
       </Box>
       <AvatarContainer>
@@ -214,19 +240,27 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
           </SidebarListItem>
         )}
       </List>
-      <Box sx={{ p: 2, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: 'rgba(0,0,0,0.1)' }}>
+      <Box sx={{ 
+        p: 2.5, 
+        borderTop: '1px solid rgba(255,255,255,0.08)', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        bgcolor: 'rgba(0,0,0,0.15)',
+        backdropFilter: 'blur(5px)'
+      }}>
         <Tooltip title="Notificaciones">
           <IconButton 
             onClick={handleNotifClick} 
             color="inherit"
             sx={{ 
-              bgcolor: "rgba(255, 255, 255, 0.15)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.25)', transform: 'translateY(-1px)' },
-              transition: 'all 0.2s'
+              bgcolor: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.12)', transform: 'translateY(-2px)' },
+              transition: 'all 0.3s'
             }}
           >
-            <Badge badgeContent={noLeidasCount} color="error">
+            <Badge badgeContent={noLeidasCount} color="error" overlap="circular">
               <NotificationsIcon />
             </Badge>
           </IconButton>
@@ -238,9 +272,10 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
               onClick={colorMode.toggleColorMode} 
               color="inherit"
               sx={{ 
-                bgcolor: "rgba(255, 255, 255, 0.1)",
-                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.2)', transform: 'translateY(-1px)' },
-                transition: 'all 0.2s'
+                bgcolor: "rgba(255, 255, 255, 0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.12)', transform: 'translateY(-2px)' },
+                transition: 'all 0.3s'
               }}
             >
               {themeContext.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}

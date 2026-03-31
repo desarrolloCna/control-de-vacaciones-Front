@@ -188,7 +188,13 @@ const HomePage = () => {
                 <Box sx={{ display: 'flex', gap: 2 }}>
                   <Button 
                     variant="contained" 
-                    sx={{ bgcolor: '#fff', color: '#1E1B4B', '&:hover': { bgcolor: '#f8fafc' } }}
+                    sx={{ 
+                      bgcolor: '#fff', 
+                      color: '#1E1B4B', 
+                      fontWeight: 700,
+                      '&:hover': { bgcolor: '#f1f5f9' },
+                      px: 3
+                    }}
                     onClick={() => navigate('/empleados/programar-fecha')}
                   >
                     Solicitar

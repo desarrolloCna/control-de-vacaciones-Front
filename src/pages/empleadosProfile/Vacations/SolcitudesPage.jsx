@@ -781,54 +781,95 @@ const SolicitudesPage = () => {
                       <Paper
                         key={solicitud.idSolicitud}
                         elevation={0}
+                        className="fade-in-up"
                         sx={{
-                          p: { xs: 2.5, sm: 3 },
-                          borderRadius: 4,
+                          p: { xs: 2, md: 3 },
+                          borderRadius: '20px',
                           border: '1px solid',
-                          borderColor: 'divider',
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                          background: theme.palette.mode === 'dark' 
+                            ? 'linear-gradient(135deg, rgba(30,41,59,0.5) 0%, rgba(15,23,42,0.5) 100%)'
+                            : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                          backdropFilter: 'blur(10px)',
                           borderLeft: `6px solid ${estadoObj?.color || '#94a3b8'}`,
                           display: 'flex',
-                          flexDirection: { xs: 'column', sm: 'row' },
+                          flexDirection: { xs: 'column', md: 'row' },
                           justifyContent: 'space-between',
-                          alignItems: { xs: 'flex-start', sm: 'center' },
-                          gap: 2,
-                          transition: 'all 0.2s',
+                          alignItems: { xs: 'flex-start', md: 'center' },
+                          gap: 3,
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          position: 'relative',
+                          overflow: 'hidden',
                           '&:hover': {
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
-                            transform: 'translateY(-2px)'
+                            boxShadow: '0 12px 30px rgba(0,0,0,0.08)',
+                            transform: 'translateY(-4px)',
+                            borderColor: 'primary.light',
                           }
                         }}
                       >
-                        <Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 700, m: 0, lineHeight: 1 }}>
-                              {solicitud.correlativo || ("SLVC" + solicitud.idSolicitud)}
+                        <Box sx={{ display: 'flex', flex: 1, gap: 3, alignItems: 'center' }}>
+                          <Box sx={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            minWidth: 90,
+                            p: 1.5,
+                            borderRadius: '12px',
+                            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#f1f5f9',
+                            border: '1px solid rgba(0,0,0,0.05)'
+                          }}>
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>Folio</Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main', m: 0 }}>
+                              {solicitud.correlativo ? solicitud.correlativo.split('-').pop() : solicitud.idSolicitud}
                             </Typography>
-                            <Chip
-                              label={estadoObj.label}
-                              sx={{
-                                backgroundColor: estadoObj.color,
-                                color: estadoObj.textColor || '#fff',
-                                fontWeight: "bold",
-                                minWidth: "120px",
-                              }}
-                            />
                           </Box>
-                          <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
-                            {solicitud.nombreCompleto}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            Tipo: Solicitud de vacaciones
-                          </Typography>
-                          <Box sx={{ mt: 2, display: 'flex', gap: 3 }}>
-                            <Box>
-                              <Typography variant="caption" color="text.secondary" display="block">Inicio</Typography>
-                              <Typography variant="body2" fontWeight="600">{formatDateToDisplay(solicitud.fechaInicioVacaciones || solicitud.fechaAcreditacion)}</Typography>
+
+                          <Box sx={{ flex: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
+                              <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', m: 0 }}>
+                                {solicitud.nombreCompleto}
+                              </Typography>
+                              <Chip
+                                label={estadoObj.label}
+                                size="small"
+                                sx={{
+                                  backgroundColor: estadoObj.color,
+                                  color: '#fff',
+                                  fontWeight: 800,
+                                  fontSize: '0.7rem',
+                                  textTransform: 'uppercase',
+                                  px: 1
+                                }}
+                              />
                             </Box>
-                            <Box>
-                              <Typography variant="caption" color="text.secondary" display="block">Fin</Typography>
-                              <Typography variant="body2" fontWeight="600">{formatDateToDisplay(solicitud.fechaFinVacaciones || solicitud.fechaAcreditacion)}</Typography>
-                            </Box>
+                            
+                            <Grid container spacing={2} sx={{ mt: 1 }}>
+                              <Grid item>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <CalendarTodayIcon sx={{ fontSize: 14 }} /> Inicio: 
+                                  <Box component="span" sx={{ fontWeight: 700, color: 'text.primary', ml: 0.5 }}>
+                                    {formatDateToDisplay(solicitud.fechaInicioVacaciones)}
+                                  </Box>
+                                </Typography>
+                              </Grid>
+                              <Grid item>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <EventNoteIcon sx={{ fontSize: 14 }} /> Fin: 
+                                  <Box component="span" sx={{ fontWeight: 700, color: 'text.primary', ml: 0.5 }}>
+                                    {formatDateToDisplay(solicitud.fechaFinVacaciones)}
+                                  </Box>
+                                </Typography>
+                              </Grid>
+                              <Grid item>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <DescriptionIcon sx={{ fontSize: 14 }} /> Días: 
+                                  <Box component="span" sx={{ fontWeight: 700, color: 'text.primary', ml: 0.5 }}>
+                                    {solicitud.cantidadDiasSolicitados}
+                                  </Box>
+                                </Typography>
+                              </Grid>
+                            </Grid>
                           </Box>
                         </Box>
 
@@ -837,16 +878,16 @@ const SolicitudesPage = () => {
                           startIcon={<VisibilityIcon />}
                           onClick={() => handleVerSolicitud(solicitud)}
                           sx={{
-                            borderRadius: 3,
+                            borderRadius: '12px',
                             textTransform: 'none',
-                            fontWeight: 600,
-                            alignSelf: { xs: 'flex-start', sm: 'center' },
-                            minWidth: 140,
-                            color: 'secondary.main',
-                            borderColor: 'secondary.main',
+                            fontWeight: 700,
+                            px: 3,
+                            py: 1,
+                            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
                             '&:hover': {
-                              backgroundColor: 'secondary.light',
+                              backgroundColor: 'primary.main',
                               color: '#fff',
+                              boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
                             }
                           }}
                         >
