@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { 
     Box, Container, Card, CardContent, TextField, Typography, Button, 
     List, ListItem, ListItemAvatar, Avatar, ListItemText, CircularProgress,
-    Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton, Alert
+    Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton, Alert, Chip
 } from "@mui/material";
 import Navbar from "../../../components/navBar/NavBar";
 import PrintIcon from '@mui/icons-material/Print';
@@ -12,7 +12,6 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import BackButton from "../../../components/BackButton/BackButton";
 import { useCheckSession } from "../../../services/session/checkSession";
 import api from "../../../config/api";
-import { jsPDF } from "jspdf";
 
 export default function FiniquitoRRHH() {
     useCheckSession();
@@ -29,7 +28,6 @@ export default function FiniquitoRRHH() {
     useEffect(() => {
         const fetchEmpleados = async () => {
             try {
-                // Obtener lista completa (incluso bajas si es posible) o empleados regulares
                 const response = await api.get('/employeesList');
                 setEmpleados(response.data.responseData.emplloyeesList || []);
             } catch (error) {
@@ -58,7 +56,6 @@ export default function FiniquitoRRHH() {
         try {
             const response = await api.get(`/getHistorial?idEmpleado=${empleado.idEmpleado}`);
             if (response.data && response.data.historial) {
-                // Filtramos por tipoRegistro = 1 para mostrar solo los periodos de acreditacion base
                 const periods = response.data.historial.filter(h => h.tipoRegistro === 1);
                 setHistorial(periods);
             }
@@ -75,80 +72,51 @@ export default function FiniquitoRRHH() {
         setSelectedEmpleado(null);
     };
 
-    const generarPdfFiniquito = async () => {
+    /**
+     * Descarga el finiquito desde el BACKEND (mismo formato que el del empleado).
+     * Usa el endpoint /descargarFiniquito/:idEmpleado/:periodo que genera
+     * el PDF con PDFKit, logo CNA, colores institucionales, firmas, etc.
+     */
+    const handleDownloadFiniquito = async (periodo) => {
         if (!selectedEmpleado) return;
-        const empleado = selectedEmpleado;
-        const periodos = historial;
-        
         try {
-            const totalDiasPendientes = periodos.reduce((acc, p) => acc + (p.diasDisponiblesTotales || 0), 0);
-            
-            // Usar jsPDF para un documento elegante
-            const doc = new jsPDF();
-            
-            // 1. Membrete
-            doc.setFontSize(22);
-            doc.setTextColor(26, 35, 126); // Azul institucional
-            doc.text("Consejo Nacional de Adopciones", 105, 30, { align: "center" });
-            
-            doc.setFontSize(14);
-            doc.setTextColor(100);
-            doc.text("Departamento de Recursos Humanos", 105, 40, { align: "center" });
-            
-            // Línea separadora
-            doc.setDrawColor(245, 166, 35); // Naranja institucional
-            doc.setLineWidth(1);
-            doc.line(20, 45, 190, 45);
-
-            // 2. Título
-            doc.setFontSize(16);
-            doc.setTextColor(0);
-            doc.setFont("helvetica", "bold");
-            doc.text("CONSTANCIA DE SALDOS DE VACACIONES", 105, 60, { align: "center" });
-
-            // 3. Cuerpo del documento
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(12);
-            const bodyText = `Por medio de la presente se hace constar que el colaborador(a) ${empleado.Nombres}, laborando bajo la unidad de ${empleado.unidad || 'Asignación General'}, tiene a la fecha un saldo total a su favor de ${totalDiasPendientes} día(s) hábiles en concepto de vacaciones acumuladas pre-finiquito.`;
-            
-            const splitBody = doc.splitTextToSize(bodyText, 170);
-            doc.text(splitBody, 20, 80);
-
-            // 4. Detalle
-            doc.setFont("helvetica", "bold");
-            doc.text("Detalle por período:", 20, 110);
-            
-            doc.setFont("helvetica", "normal");
-            let yPos = 120;
-            periodos.forEach((p, index) => {
-                const fila = `- Período ${p.periodo}: ${p.diasDisponiblesTotales} días disponibles`;
-                doc.text(fila, 25, yPos);
-                yPos += 10;
-            });
-
-            // 5. Fecha y Firma
-            const fechaHoy = new Date().toLocaleDateString('es-GT', { year: 'numeric', month: 'long', day: 'numeric' });
-            doc.text(`Emitido en Ciudad de Guatemala, el ${fechaHoy}.`, 20, yPos + 20);
-
-            doc.line(70, yPos + 50, 140, yPos + 50);
-            doc.text("Firma Autorizada RRHH", 105, yPos + 60, { align: "center" });
-
-            // Generar y descargar PDF forzando el nombre con Blob
-            const nombreArchivo = `Finiquito_${empleado.Nombres.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "_")}.pdf`;
-            const pdfBlob = doc.output('blob');
-            const pdfUrl = URL.createObjectURL(pdfBlob);
-            const link = document.createElement("a");
-            link.href = pdfUrl;
-            link.download = nombreArchivo;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(pdfUrl);
-            
+            const response = await api.get(
+                `/descargarFiniquito/${selectedEmpleado.idEmpleado}/${periodo}`,
+                { responseType: 'blob' }
+            );
+            const url = window.URL.createObjectURL(
+                new Blob([response.data], { type: 'application/pdf' })
+            );
+            // Abrir en nueva pestaña para previsualizar (mismo comportamiento que VacationPage)
+            const pdfWindow = window.open("", "_blank");
+            if (pdfWindow) {
+                pdfWindow.document.write(
+                    `<html><head><title>Finiquito_${periodo}_${selectedEmpleado.Nombres}</title>
+                     <style>body { margin: 0; overflow: hidden; } iframe { width: 100vw; height: 100vh; border: none; }</style></head>
+                     <body><iframe src="${url}"></iframe></body></html>`
+                );
+                pdfWindow.document.close();
+            }
+            setTimeout(() => window.URL.revokeObjectURL(url), 5000);
         } catch (error) {
-            console.error("Error generando PDF: ", error);
-            alert("Hubo un problema procesando el PDF.");
+            console.error("Error al descargar finiquito:", error);
+            alert("No se pudo generar el finiquito. Verifique que el período tenga registros.");
         }
+    };
+
+    // Calcular resumen por período
+    const getPeriodosSummary = () => {
+        const summary = {};
+        historial.forEach(item => {
+            const p = item.periodo;
+            if (!summary[p]) { summary[p] = { creditos: 0, debitos: 0 }; }
+            summary[p].creditos += Number(item.totalDiasAcreditados) || 0;
+        });
+        // Ahora recorrer todos los registros de historial (no solo tipo 1)
+        return Object.keys(summary).map(p => ({
+            periodo: p,
+            saldo: summary[p].creditos - summary[p].debitos
+        })).sort((a, b) => Number(b.periodo) - Number(a.periodo));
     };
 
     return (
@@ -162,7 +130,7 @@ export default function FiniquitoRRHH() {
                     </Typography>
                 </Box>
                 <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                    Busque al empleado y genere el documento oficial de constancia de días pendientes (membrado CNA).
+                    Busque al empleado, revise su historial completo y genere la constancia oficial de finiquito por período.
                 </Typography>
 
                 <Card sx={{ borderRadius: 3, boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}>
@@ -192,7 +160,7 @@ export default function FiniquitoRRHH() {
                                             }}
                                         >
                                             <ListItemAvatar>
-                                                <Avatar sx={{ bgcolor: 'secondary.main', fontWeight: 'bold' }}>
+                                                <Avatar sx={{ bgcolor: '#4F46E5', fontWeight: 'bold' }}>
                                                     {empleado.Nombres ? empleado.Nombres.charAt(0) : 'E'}
                                                 </Avatar>
                                             </ListItemAvatar>
@@ -226,7 +194,9 @@ export default function FiniquitoRRHH() {
                 <Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="md" fullWidth>
                     <DialogTitle>
                         <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Typography variant="h6" fontWeight="bold">Historial Pre-Finiquito: {selectedEmpleado?.Nombres}</Typography>
+                            <Typography variant="h6" fontWeight="bold">
+                                Historial Pre-Finiquito: {selectedEmpleado?.Nombres}
+                            </Typography>
                             <IconButton onClick={handleCloseModal}>
                                 <CloseIcon />
                             </IconButton>
@@ -248,54 +218,75 @@ export default function FiniquitoRRHH() {
                                     </Typography>
                                 </Alert>
                                 <Grid container spacing={2}>
-                                    {historial.map((periodo) => (
-                                        <Grid item xs={12} key={periodo.idHistorial}>
-                                            <Card elevation={0} sx={{ borderRadius: 3, border: "2px solid #e2e8f0" }}>
-                                                <CardContent sx={{ p: 3 }}>
-                                                    <Typography variant="h6" fontWeight="800" sx={{ color: "#1A237E", display: 'flex', alignItems: 'center', mb: 2 }}>
-                                                        <CalendarTodayIcon sx={{ mr: 1, fontSize: 'large' }} /> Período: {periodo.periodo}
-                                                    </Typography>
-                                                    <Grid container spacing={2}>
-                                                        <Grid item xs={4}>
-                                                            <Box sx={{ p: 2, textAlign: 'center', bgcolor: '#f0f4f8', borderRadius: 2 }}>
-                                                                <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>ACREDITADOS</Typography>
-                                                                <Typography variant="h5" sx={{ fontWeight: 800, color: "success.main" }}>{periodo.totalDiasAcreditados}</Typography>
-                                                            </Box>
+                                    {historial.map((periodo) => {
+                                        const saldo = periodo.diasDisponiblesTotales || 0;
+                                        const agotado = saldo <= 0;
+                                        return (
+                                            <Grid item xs={12} key={periodo.idHistorial}>
+                                                <Card elevation={0} sx={{ borderRadius: 3, border: "2px solid", borderColor: agotado ? '#ef5350' : '#4F46E5' }}>
+                                                    <CardContent sx={{ p: 3 }}>
+                                                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                                                            <Typography variant="h6" fontWeight="800" sx={{ color: "#1A237E", display: 'flex', alignItems: 'center' }}>
+                                                                <CalendarTodayIcon sx={{ mr: 1 }} /> Período: {periodo.periodo}
+                                                            </Typography>
+                                                            <Chip 
+                                                                label={agotado ? `Agotado (${saldo} días)` : `Activo (${saldo} días)`}
+                                                                color={agotado ? "error" : "success"}
+                                                                size="small"
+                                                                sx={{ fontWeight: 'bold' }}
+                                                            />
+                                                        </Box>
+                                                        <Grid container spacing={2}>
+                                                            <Grid item xs={4}>
+                                                                <Box sx={{ p: 2, textAlign: 'center', bgcolor: '#f0f4f8', borderRadius: 2 }}>
+                                                                    <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>ACREDITADOS</Typography>
+                                                                    <Typography variant="h5" sx={{ fontWeight: 800, color: "success.main" }}>{periodo.totalDiasAcreditados}</Typography>
+                                                                </Box>
+                                                            </Grid>
+                                                            <Grid item xs={4}>
+                                                                <Box sx={{ p: 2, textAlign: 'center', bgcolor: '#f0f4f8', borderRadius: 2 }}>
+                                                                    <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>DEBITADOS</Typography>
+                                                                    <Typography variant="h5" sx={{ fontWeight: 800, color: "error.main" }}>{periodo.totalDiasDebitados || 0}</Typography>
+                                                                </Box>
+                                                            </Grid>
+                                                            <Grid item xs={4}>
+                                                                <Box sx={{ p: 2, textAlign: 'center', bgcolor: '#1A237E', borderRadius: 2, color: '#fff' }}>
+                                                                    <Typography variant="caption" sx={{ fontWeight: 'bold', opacity: 0.8 }}>DISPONIBLES</Typography>
+                                                                    <Typography variant="h5" sx={{ fontWeight: 800 }}>{saldo}</Typography>
+                                                                </Box>
+                                                            </Grid>
                                                         </Grid>
-                                                        <Grid item xs={4}>
-                                                            <Box sx={{ p: 2, textAlign: 'center', bgcolor: '#f0f4f8', borderRadius: 2 }}>
-                                                                <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>DEBITADOS</Typography>
-                                                                <Typography variant="h5" sx={{ fontWeight: 800, color: "error.main" }}>{periodo.totalDiasDebitados || 0}</Typography>
-                                                            </Box>
-                                                        </Grid>
-                                                        <Grid item xs={4}>
-                                                            <Box sx={{ p: 2, textAlign: 'center', bgcolor: '#1A237E', borderRadius: 2, color: '#fff' }}>
-                                                                <Typography variant="caption" sx={{ fontWeight: 'bold', opacity: 0.8 }}>DISPONIBLES</Typography>
-                                                                <Typography variant="h5" sx={{ fontWeight: 800 }}>{periodo.diasDisponiblesTotales}</Typography>
-                                                            </Box>
-                                                        </Grid>
-                                                    </Grid>
-                                                </CardContent>
-                                            </Card>
-                                        </Grid>
-                                    ))}
+
+                                                        {/* Botón de descargar finiquito por período */}
+                                                        <Box sx={{ mt: 2, textAlign: 'center' }}>
+                                                            <Button
+                                                                variant="contained"
+                                                                size="small"
+                                                                startIcon={<PrintIcon />}
+                                                                onClick={() => handleDownloadFiniquito(periodo.periodo)}
+                                                                sx={{ 
+                                                                    borderRadius: 2, 
+                                                                    textTransform: 'none', 
+                                                                    fontWeight: 'bold',
+                                                                    bgcolor: '#4F46E5',
+                                                                    '&:hover': { bgcolor: '#3730A3' }
+                                                                }}
+                                                            >
+                                                                Descargar Finiquito - Período {periodo.periodo}
+                                                            </Button>
+                                                        </Box>
+                                                    </CardContent>
+                                                </Card>
+                                            </Grid>
+                                        );
+                                    })}
                                 </Grid>
                             </Box>
                         )}
                     </DialogContent>
                     <DialogActions sx={{ p: 2 }}>
-                        <Button onClick={handleCloseModal} color="inherit" sx={{ mr: 2 }}>
+                        <Button onClick={handleCloseModal} color="inherit">
                             Cerrar Ventana
-                        </Button>
-                        <Button 
-                            variant="contained" 
-                            color="primary" 
-                            startIcon={<PrintIcon />}
-                            onClick={generarPdfFiniquito}
-                            disabled={loadingHistorial || historial.length === 0}
-                            sx={{ fontWeight: 'bold', px: 3, borderRadius: 2, bgcolor: '#0D47A1' }}
-                        >
-                            Generar Constancia PDF Oficial
                         </Button>
                     </DialogActions>
                 </Dialog>
