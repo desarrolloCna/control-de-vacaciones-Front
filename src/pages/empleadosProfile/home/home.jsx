@@ -189,14 +189,14 @@ const HomePage = () => {
                   <Button 
                     variant="contained" 
                     sx={{ bgcolor: '#fff', color: '#1E1B4B', '&:hover': { bgcolor: '#f8fafc' } }}
-                    onClick={() => navigate('/empleados/programar-vacaciones')}
+                    onClick={() => navigate('/empleados/programar-fecha')}
                   >
                     Solicitar
                   </Button>
                   <Button 
                     variant="outlined" 
                     sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.5)', '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,0.1)' } }}
-                    onClick={() => navigate('/empleados/status')}
+                    onClick={() => navigate('/empleados/programar-vacaciones')}
                   >
                     Historial
                   </Button>
@@ -232,7 +232,7 @@ const HomePage = () => {
                       transform: 'translateY(-4px)'
                     }
                   }}
-                  onClick={() => navigate('/empleados/programar-vacaciones')}
+                  onClick={() => navigate('/empleados/programar-fecha')}
                 >
                   <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: 'primary.light', color: 'primary.main', display: 'inline-block', mb: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(99, 102, 241, 0.2)' : '#EEF2FF' }}>
                     <EventAvailableIcon />
@@ -260,7 +260,7 @@ const HomePage = () => {
                       transform: 'translateY(-4px)'
                     }
                   }}
-                  onClick={() => navigate('/empleados/status')}
+                  onClick={() => navigate('/empleados/programar-vacaciones')}
                 >
                   <Box sx={{ p: 1.5, borderRadius: 2, color: 'info.main', display: 'inline-block', mb: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.2)' : '#EFF6FF' }}>
                     <HistoryIcon />
@@ -322,18 +322,15 @@ const HomePage = () => {
                 </Box>
                 <Divider />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2" color="text.secondary">Días Base (Mes)</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>1.66 días</Typography>
-                </Box>
-                <Divider />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" color="text.secondary">Estado Laboral</Typography>
                   <Chip label="Activo" size="small" color="success" />
                 </Box>
               </Box>
             </Paper>
 
-            <CumpleanerosWidget />
+            <Box sx={{ maxHeight: 350, overflow: 'hidden' }}>
+              <CumpleanerosWidget />
+            </Box>
           </Grid>
         </Grid>
         

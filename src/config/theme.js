@@ -91,6 +91,10 @@ export const getDesignTokens = (mode) => ({
             boxShadow: '0 8px 16px rgba(79, 70, 229, 0.25)',
             transform: 'translateY(-1px)',
           },
+          '&.Mui-disabled': {
+            background: mode === 'light' ? '#E2E8F0' : '#334155',
+            color: mode === 'light' ? '#94A3B8' : '#64748B',
+          }
         },
       },
     },
