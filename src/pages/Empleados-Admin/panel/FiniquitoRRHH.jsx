@@ -257,23 +257,29 @@ export default function FiniquitoRRHH() {
                                                             </Grid>
                                                         </Grid>
 
-                                                        {/* Botón de descargar finiquito por período */}
+                                                        {/* Botón de descargar finiquito: solo si el período está agotado */}
                                                         <Box sx={{ mt: 2, textAlign: 'center' }}>
-                                                            <Button
-                                                                variant="contained"
-                                                                size="small"
-                                                                startIcon={<PrintIcon />}
-                                                                onClick={() => handleDownloadFiniquito(periodo.periodo)}
-                                                                sx={{ 
-                                                                    borderRadius: 2, 
-                                                                    textTransform: 'none', 
-                                                                    fontWeight: 'bold',
-                                                                    bgcolor: '#4F46E5',
-                                                                    '&:hover': { bgcolor: '#3730A3' }
-                                                                }}
-                                                            >
-                                                                Descargar Finiquito - Período {periodo.periodo}
-                                                            </Button>
+                                                            {agotado ? (
+                                                                <Button
+                                                                    variant="contained"
+                                                                    size="small"
+                                                                    startIcon={<PrintIcon />}
+                                                                    onClick={() => handleDownloadFiniquito(periodo.periodo)}
+                                                                    sx={{ 
+                                                                        borderRadius: 2, 
+                                                                        textTransform: 'none', 
+                                                                        fontWeight: 'bold',
+                                                                        bgcolor: '#4F46E5',
+                                                                        '&:hover': { bgcolor: '#3730A3' }
+                                                                    }}
+                                                                >
+                                                                    Descargar Finiquito - Período {periodo.periodo}
+                                                                </Button>
+                                                            ) : (
+                                                                <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                                                    Finiquito no disponible — el período aún tiene días pendientes
+                                                                </Typography>
+                                                            )}
                                                         </Box>
                                                     </CardContent>
                                                 </Card>
