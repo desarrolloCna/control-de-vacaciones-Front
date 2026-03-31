@@ -1,7 +1,7 @@
 import React from 'react';
-import { Button, IconButton, Typography, Box, styled } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Button, Typography, Box, styled } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import BackButton from '../BackButton/BackButton';
 
 // 1. Botón Estilizado con Micro-animaciones
 export const StyledButton = styled(Button)(({ theme, variant = 'contained' }) => ({
@@ -21,29 +21,8 @@ export const StyledButton = styled(Button)(({ theme, variant = 'contained' }) =>
   },
 }));
 
-// 2. Botón de Volver Universal
-export const BackButton = () => {
-  const navigate = useNavigate();
-  return (
-    <IconButton 
-      onClick={() => navigate(-1)}
-      size="medium"
-      sx={{ 
-        bgcolor: 'rgba(255,255,255,0.8)',
-        backdropFilter: 'blur(4px)',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        transition: 'all 0.2s',
-        '&:hover': { 
-          bgcolor: '#fff',
-          transform: 'translateX(-4px)',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        }
-      }}
-    >
-      <ArrowBackIcon fontSize="medium" color="primary" />
-    </IconButton>
-  );
-};
+// 2. Botón de Volver — Re-exportado desde el componente unificado
+export { default as BackButton } from '../BackButton/BackButton';
 
 // 3. Encabezado de Página Unificado
 export const PageHeader = ({ title, subtitle, showBack = true }) => {

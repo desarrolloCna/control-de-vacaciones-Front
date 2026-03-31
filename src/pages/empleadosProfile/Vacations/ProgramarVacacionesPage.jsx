@@ -8,9 +8,7 @@ import {
   Grid,
   Paper,
   CircularProgress,
-  Snackbar,
   Alert,
-  Modal,
   MenuItem,
   Select,
   FormControl,
@@ -41,10 +39,11 @@ import { getLocalStorageData } from "../../../services/session/getLocalStorageDa
 import { ingresarSolicitudService } from "../../../services/VacationApp/InresarSolicitud.service.js";
 import ErrorAlert from "../../../components/ErrorAlert/ErrorAlert";
 import { useNavigate } from "react-router-dom";
-import Slide from "@mui/material/Slide";
 import { useSolicitudById } from "../../../hooks/VacationAppHooks/useSolicitudById.js";
 import { useGetCoordinadoresList } from "../../../hooks/Coordinadores/useGetCoordinadoresList.js";
 import { consultarExcepcionLimiteService } from "../../../services/vacacionesespeciales/Vacacionesesepeciales.service.js";
+import NotificationSnackbar from "../../../components/UI/NotificationSnackbar";
+import ConfirmationModal from "../../../components/UI/ConfirmationModal";
 
 const ProgramarVacacionesPage = () => {
   const isSessionVerified = useCheckSession();
@@ -511,171 +510,73 @@ const ProgramarVacacionesPage = () => {
           </Grid>
         </Paper>
 
-        <Snackbar
+        <NotificationSnackbar
           open={successOpen}
           onClose={() => setSuccessOpen(false)}
-          anchorOrigin={{ vertical: "top", horizontal: "right" }}
-          TransitionComponent={Slide}
-          sx={{
-            "& .MuiSnackbarContent-root": {
-              padding: "8px 16px",
-              minWidth: "200px",
-            },
-          }}
-        >
-          <Alert
-            onClose={() => setSuccessOpen(false)}
-            severity="success"
-            sx={{
-              width: "100%",
-              fontSize: "1.0Srem",
-              backgroundColor: "#28a745",
-              color: "#ffffff",
-              "& .MuiAlert-icon": {
-                color: "#ffffff",
-              },
-              "& .MuiAlert-action": {
-                color: "#ffffff",
-              },
-            }}
-          >
-            Solicitud enviada exitosamente
-          </Alert>
-        </Snackbar>
+          message="Solicitud enviada exitosamente"
+          severity="success"
+        />
 
         {/* Modal para fin de semana */}
-        <Modal
+        <ConfirmationModal
           open={weekendModalOpen}
           onClose={handleCloseWeekendModal}
-          aria-labelledby="weekend-modal-title"
-          aria-describedby="weekend-modal-description"
+          icon={<EventBusyIcon />}
+          iconBgColor="#fff3e0"
+          iconColor="#f57c00"
+          title="Día no laborable seleccionado"
+          buttonText="Entendido"
+          buttonColor="#1976d2"
+          buttonHoverColor="#1565c0"
         >
           <Box
             sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              bgcolor: "background.paper",
-              boxShadow: 24,
-              p: 4,
-              width: { xs: "90%", sm: 450 },
-              maxWidth: 500,
-              borderRadius: 3,
-              outline: "none",
+              bgcolor: "#f5f5f5",
+              borderRadius: 2,
+              p: 2.5,
+              mb: 2,
+              border: "1px solid #e0e0e0",
             }}
           >
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-              <Box
-                sx={{
-                  bgcolor: "#fff3e0",
-                  borderRadius: "50%",
-                  p: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <EventBusyIcon sx={{ fontSize: 48, color: "#f57c00" }} />
-              </Box>
-            </Box>
-
-            <Typography
-              id="weekend-modal-title"
-              variant="h5"
-              component="h2"
-              align="center"
-              sx={{
-                fontWeight: 600,
-                color: "#f57c00",
-                mb: 2,
-              }}
-            >
-              Día no laborable seleccionado
-            </Typography>
-
-            <Box
-              sx={{
-                bgcolor: "#f5f5f5",
-                borderRadius: 2,
-                p: 2.5,
-                mb: 3,
-                border: "1px solid #e0e0e0",
-              }}
-            >
-              <Typography
-                variant="body1"
-                align="center"
-                sx={{ 
-                  color: "#424242",
-                  lineHeight: 1.6,
-                  mb: 2,
-                }}
-              >
-                Has seleccionado:
-              </Typography>
-              <Box
-                sx={{
-                  bgcolor: "white",
-                  borderRadius: 1.5,
-                  p: 2,
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  align="center"
-                  sx={{ 
-                    color: "#d32f2f",
-                    fontWeight: 700,
-                    mb: 0.5,
-                  }}
-                >
-                  {selectedWeekendDate && getDayName(selectedWeekendDate)}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  align="center"
-                  sx={{ color: "#757575" }}
-                >
-                  {selectedWeekendDate && formatDateToDisplay(selectedWeekendDate)}
-                </Typography>
-              </Box>
-            </Box>
-
             <Typography
               variant="body1"
               align="center"
-              sx={{
-                color: "#616161",
-                mb: 3,
-                lineHeight: 1.7,
-              }}
+              sx={{ color: "#424242", lineHeight: 1.6, mb: 2 }}
             >
-              Solo puedes seleccionar <strong>días hábiles</strong> (de Lunes a Viernes) y que no coincidan con <strong>Días Festivos Oficiales</strong> como fecha de inicio de vacaciones.
+              Has seleccionado:
             </Typography>
-
-            <Button
-              onClick={handleCloseWeekendModal}
-              variant="contained"
-              fullWidth
+            <Box
               sx={{
-                mt: 1,
-                py: 1.5,
-                textTransform: "none",
-                fontSize: "1rem",
-                fontWeight: 600,
-                bgcolor: "#1976d2",
-                "&:hover": {
-                  bgcolor: "#1565c0",
-                },
-                borderRadius: 2,
+                bgcolor: "white",
+                borderRadius: 1.5,
+                p: 2,
+                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
               }}
             >
-              Entendido
-            </Button>
+              <Typography
+                variant="h6"
+                align="center"
+                sx={{ color: "#d32f2f", fontWeight: 700, mb: 0.5 }}
+              >
+                {selectedWeekendDate && getDayName(selectedWeekendDate)}
+              </Typography>
+              <Typography
+                variant="body2"
+                align="center"
+                sx={{ color: "#757575" }}
+              >
+                {selectedWeekendDate && formatDateToDisplay(selectedWeekendDate)}
+              </Typography>
+            </Box>
           </Box>
-        </Modal>
+          <Typography
+            variant="body1"
+            align="center"
+            sx={{ color: "#616161", lineHeight: 1.7 }}
+          >
+            Solo puedes seleccionar <strong>días hábiles</strong> (de Lunes a Viernes) y que no coincidan con <strong>Días Festivos Oficiales</strong> como fecha de inicio de vacaciones.
+          </Typography>
+        </ConfirmationModal>
 
         {/* Modal de solicitud en proceso - COMENTADO */}
         {/* <Modal
@@ -764,60 +665,24 @@ const ProgramarVacacionesPage = () => {
           </Box>
         </Modal> */}
 
-        <Modal
+        <ConfirmationModal
           open={!hasGestion && (!diasValidos || !sinDias)}
           onClose={handleCloseModal}
-          aria-labelledby="modal-title"
-          aria-describedby="modal-description"
+          icon={<WarningIcon />}
+          iconBgColor="#fef2f2"
+          iconColor="#A00000"
+          title="No puedes solicitar vacaciones"
+          titleColor="#A00000"
+          buttonText="Volver"
+          buttonColor="#1A237E"
+          buttonHoverColor="#0D47A1"
         >
-          <Box
-            sx={{
-              position: "absolute",
-              top: "40%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              bgcolor: "background.paper",
-              boxShadow: 24,
-              p: 4,
-              width: 400,
-              height: "auto",
-              minHeight: 300,
-              borderRadius: 2,
-            }}
-          >
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-              <WarningIcon color="warning" sx={{ fontSize: 40 }} />
-            </Box>
-            <Typography
-              id="modal-title"
-              variant="h6"
-              component="h2"
-              align="center"
-              sx={{
-                fontFamily: '"Times New Roman", Times, serif',
-                color: "#A00000",
-              }}
-            >
-              No puedes solicitar vacaciones
-            </Typography>
-
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="subtitle1">
-                <strong>No aplica a vacaciones según el artículo 70 del reglamento interno de trabajo
-                  y gestión del recurso humano del Consejo Nacional de Adopciones.      
-                </strong>{" "}
-              </Typography>
-            </Box>
-
-            <Button
-              onClick={handleCloseModal}
-              variant="contained"
-              sx={{ mt: 2, display: "block", mx: "auto" }}
-            >
-              Volver
-            </Button>
-          </Box>
-        </Modal>
+          <Typography variant="subtitle1" align="center" sx={{ lineHeight: 1.6 }}>
+            <strong>No aplica a vacaciones según el artículo 70 del reglamento interno de trabajo
+              y gestión del recurso humano del Consejo Nacional de Adopciones.
+            </strong>
+          </Typography>
+        </ConfirmationModal>
       </Box>
     </Box>
   );

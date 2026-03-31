@@ -9,10 +9,7 @@ import {
 } from "../../services/utils/dates/vacationUtils";
 import ErrorAlert from "../../components/ErrorAlert/ErrorAlert";
 import {
-  Alert,
   Grid,
-  Slide,
-  Snackbar,
   TextField,
   Pagination,
   Box,
@@ -27,10 +24,11 @@ import {
 import { ingresarSuspension } from "../../services/EmpleadosServices/Suspensiones/Suspensiones.service";
 import api from "../../config/api";
 import { PageHeader } from "../../components/UI/UIComponents";
+import NotificationSnackbar from "../../components/UI/NotificationSnackbar";
 
 const SuspensionesPage = () => {
   const isSessionVerified = useCheckSession();
-  const { suspensiones, error, loading } = useGetSuspensiones();
+  const { suspensiones, error, loading, refetch } = useGetSuspensiones();
   const { alertVisible } = useErrorAlert(error);
   const [successOpen, setSuccessOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -113,6 +111,8 @@ const SuspensionesPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+
     const payload = {
       idEmpleado: formData.idEmpleado || null,
       CUI: formData.dpi,
@@ -129,7 +129,6 @@ const SuspensionesPage = () => {
       const response = await ingresarSuspension(payload);
       if (response && response.status === 200) {
         // Registro en Bitácora
-        const userData = JSON.parse(localStorage.getItem("userData") || "{}");
         try {
           await api.post("/registrarBitacora", {
             idUsuario: userData.idUsuario || userData.idEmpleado,
@@ -165,7 +164,7 @@ const SuspensionesPage = () => {
             : "Suspensión ingresada correctamente."
         );
         setSuccessOpen(true);
-        setTimeout(() => { window.location.reload(); }, 1500);
+        await refetch();
       }
     } catch (error) {
       console.error("Error al registrar:", error.message);
@@ -360,34 +359,13 @@ const SuspensionesPage = () => {
         </div>
       </Box>
 
-      {/* Snackbar */}
-      <Snackbar
+      {/* Notificación de éxito */}
+      <NotificationSnackbar
         open={successOpen}
         onClose={() => setSuccessOpen(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        TransitionComponent={Slide}
-        sx={{
-          "& .MuiSnackbarContent-root": {
-            padding: "8px 16px",
-            minWidth: "200px",
-          },
-        }}
-      >
-        <Alert
-          onClose={() => setSuccessOpen(false)}
-          severity="success"
-          sx={{
-            width: "100%",
-            fontSize: "1.0rem",
-            backgroundColor: "#28a745",
-            color: "#ffffff",
-            "& .MuiAlert-icon": { color: "#ffffff" },
-            "& .MuiAlert-action": { color: "#ffffff" },
-          }}
-        >
-          {successMessage}
-        </Alert>
-      </Snackbar>
+        message={successMessage}
+        severity="success"
+      />
 
       {/* Modal */}
       {showModal && (

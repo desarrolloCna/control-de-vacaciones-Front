@@ -15,9 +15,6 @@ import {
   TextField,
   MenuItem,
   Grid,
-  Snackbar,
-  Slide,
-  Alert,
   Chip,
   Card,
   CardHeader,
@@ -44,6 +41,7 @@ import api from "../../../config/api";
 import { formatDateToDisplay } from "../../../services/utils/dates/vacationUtils";
 import { getDiasFestivos } from "../../../services/EmpleadosServices/DiasFestivos/GetDiasFestivos";
 import { StyledButton } from "../../../components/UI/UIComponents";
+import NotificationSnackbar from "../../../components/UI/NotificationSnackbar";
 import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { es } from "date-fns/locale";
@@ -92,7 +90,7 @@ const SolicitudesPage = () => {
   const [searchText, setSearchText] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("");
   const [isEstadoChanged, setIsEstadoChanged] = useState(false);
-  const { solicitudesU, cantadSolicitudes, errorU, loadingU } = useSolicitudes();
+  const { solicitudesU, cantadSolicitudes, errorU, loadingU, refetch } = useSolicitudes();
   const [successOpen, setSuccessOpen] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarEvents, setCalendarEvents] = useState([]);
@@ -281,10 +279,9 @@ const SolicitudesPage = () => {
         payload
       );
 
+      setModalOpen(false);
       setSuccessOpen(true);
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      await refetch();
     } catch (error) {
       console.error("Error al autorizar la solicitud:", error);
       alert("Hubo un error al autorizar la solicitud.");
@@ -314,10 +311,10 @@ const SolicitudesPage = () => {
         payload
       );
 
+      setModalOpen(false);
+      setDescripcionRechazo("");
       setSuccessOpen(true);
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      await refetch();
     } catch (error) {
       console.error("Error al rechazar la solicitud:", error);
       alert("Hubo un error al rechazar la solicitud.");
@@ -877,38 +874,13 @@ const SolicitudesPage = () => {
           </>
         )}
 
-        {/* Snackbar para mostrar el mensaje de éxito */}
-        <Snackbar
+        {/* Notificación de éxito */}
+        <NotificationSnackbar
           open={successOpen}
           onClose={() => setSuccessOpen(false)}
-          anchorOrigin={{ vertical: "top", horizontal: "right" }}
-          TransitionComponent={Slide}
-          sx={{
-            "& .MuiSnackbarContent-root": {
-              padding: "8px 16px",
-              minWidth: "200px",
-            },
-          }}
-        >
-          <Alert
-            onClose={() => setSuccessOpen(false)}
-            severity="success"
-            sx={{
-              width: "100%",
-              fontSize: "1.0rem",
-              backgroundColor: "#34A853",
-              color: "#ffffff",
-              "& .MuiAlert-icon": {
-                color: "#ffffff",
-              },
-              "& .MuiAlert-action": {
-                color: "#ffffff",
-              },
-            }}
-          >
-            Solicitud procesada exitosamente
-          </Alert>
-        </Snackbar>
+          message="Solicitud procesada exitosamente"
+          severity="success"
+        />
 
         {/* Modal de detalles */}
         <Modal open={modalOpen} onClose={handleCloseModal}>
