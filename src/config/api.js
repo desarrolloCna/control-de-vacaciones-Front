@@ -22,14 +22,15 @@ api.interceptors.request.use((config) => {
 
 export default api;
 
-// Interceptor de respuesta: detecta sesión expirada (401/403)
+// Interceptor de respuesta: detecta sesión expirada (solo 401 = token inválido/expirado)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
-    if (status === 401 || status === 403) {
-      // Evitar bucle si ya estamos en login
-      if (!window.location.pathname.includes('/') || window.location.pathname !== '/') {
+    // Solo redirigir al login si el token expiró (401), NO por falta de permisos (403)
+    if (status === 401) {
+      const isLoginPage = window.location.pathname === '/' || window.location.pathname === '/login';
+      if (!isLoginPage) {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userData');
         window.location.href = '/?expired=1';
