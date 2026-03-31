@@ -34,6 +34,7 @@ export default function ControlPanel() {
 
   const hasAccess = (modulePath) => {
     if (userData.idRol === 1) return true; // Super Admin has access to everything
+    if ((modulePath === "/dashboard-rrhh" || modulePath === "/finiquito-rrhh") && (userData.idRol === 3 || userData.idRol === 1)) return true; // RRHH has custom dashboard access
     return allowedModules.includes(modulePath);
   };
 
@@ -51,6 +52,28 @@ export default function ControlPanel() {
         </Box>
 
         <Grid container spacing={3}>
+          {hasAccess("/dashboard-rrhh") && (
+            <Grid item xs={12} sm={6} md={4}>
+              <PanelCard
+                primaryText="Dashboard RRHH"
+                secondaryText="Estadísticas y estado general"
+                icon={<DashboardIcon sx={{ color: "#fff" }} />}
+                gradientBg="linear-gradient(135deg, #FF9800 0%, #E65100 100%)"
+                to="/dashboard-rrhh"
+              />
+            </Grid>
+          )}
+          {hasAccess("/finiquito-rrhh") && (
+            <Grid item xs={12} sm={6} md={4}>
+              <PanelCard
+                primaryText="Panel de Finiquitos"
+                secondaryText="Calcular saldos y PDF de Bajas"
+                icon={<DashboardIcon sx={{ color: "#fff" }} />}
+                gradientBg="linear-gradient(135deg, #2196F3 0%, #0D47A1 100%)"
+                to="/finiquito-rrhh"
+              />
+            </Grid>
+          )}
           {hasAccess("/ingresar-nuevo-empleado") && (
             <Grid item xs={12} sm={6} md={4}>
               <PanelCard

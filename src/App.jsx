@@ -1,8 +1,10 @@
 import React from 'react';
-import { Route, Routes, Navigate, Outlet } from 'react-router-dom';
+import { Route, Routes, Navigate } from 'react-router-dom';
 import SignIn from './pages/login/login.jsx';
 import Panel from './pages/Empleados-Admin/panel/panel.jsx';
-
+import DashboardRRHH from './pages/Empleados-Admin/panel/DashboardRRHH.jsx';
+import FiniquitoRRHH from './pages/Empleados-Admin/panel/FiniquitoRRHH.jsx';
+import ProtectedRoute from './components/ProtectRoute/ProtectedRoute.jsx';
 // Rutas modulo administrativo
 import DocumentForm from './pages/Empleados-Admin/empleado/dpiForm';
 import InforPersonalForm from './pages/Empleados-Admin/empleado/infoPersonalForm';
@@ -48,38 +50,46 @@ function App() {
         <Route path='/' element={<SignIn />} />
 
         {/* Rutas Administrativas (ADMIN y RRHH) */}
-        <Route path='/panel' element={ <Panel />} />
-        <Route path='/ingresar-nuevo-empleado' element={ <DocumentForm/> }/>
-        <Route path='/ingresar-infoPersonal' element={ <InforPersonalForm/> }/>
-        <Route path='/familiares' element={ <FamiliaresForm/> }/>
-        <Route path='/nivel-educativo' element={ <NivelEducativoForm/> }/>
-        <Route path='/datos-generales' element={ <DatosGeneralesForm/> }/>
-        <Route path='/nuevo-empleado' element={ <EmpleadoNuevoForm/> }/>
-        <Route path='/lista-de-empleados' element={ <ReporteEmpleado/> }/>
-        <Route path='/vacaciones-empleados' element={ <ReporteVacacionesEmpleados/> }/>
-        <Route path='/suspensiones' element={ <SuspensionesPage/> }/>
-        <Route path='/activar-vacaciones' element={ <ActivarVacacioenesPage/> }/>
-        <Route path='/excepcion-limite' element={ <ExcepcionLimitePage/> }/>
-        <Route path='/cancelar-vacaciones' element={ <CancelacionVacaciones/> }/>
-        <Route path='/dias-festivos' element={ <DiasFestivosPage/> }/>
+        <Route element={<ProtectedRoute allowedRoles={[1, 3]} />}>
+          <Route path='/panel' element={ <Panel />} />
+          <Route path='/dashboard-rrhh' element={<DashboardRRHH />} />
+          <Route path='/finiquito-rrhh' element={<FiniquitoRRHH />} />
+          <Route path='/ingresar-nuevo-empleado' element={ <DocumentForm/> }/>
+          <Route path='/ingresar-infoPersonal' element={ <InforPersonalForm/> }/>
+          <Route path='/familiares' element={ <FamiliaresForm/> }/>
+          <Route path='/nivel-educativo' element={ <NivelEducativoForm/> }/>
+          <Route path='/datos-generales' element={ <DatosGeneralesForm/> }/>
+          <Route path='/nuevo-empleado' element={ <EmpleadoNuevoForm/> }/>
+          <Route path='/lista-de-empleados' element={ <ReporteEmpleado/> }/>
+          <Route path='/vacaciones-empleados' element={ <ReporteVacacionesEmpleados/> }/>
+          <Route path='/suspensiones' element={ <SuspensionesPage/> }/>
+          <Route path='/activar-vacaciones' element={ <ActivarVacacioenesPage/> }/>
+          <Route path='/excepcion-limite' element={ <ExcepcionLimitePage/> }/>
+          <Route path='/cancelar-vacaciones' element={ <CancelacionVacaciones/> }/>
+          <Route path='/dias-festivos' element={ <DiasFestivosPage/> }/>
+        </Route>
 
         {/* Rutas exclusivas del Super Admin */}
-        <Route path='/bitacora' element={ <BitacoraPage/> }/>
-        <Route path='/crear-usuarios-rrhh' element={ <GestionUsuariosRRHH/> }/>
-        <Route path='/ajustar-saldos' element={ <AjusteSaldosPage/> }/>
+        <Route element={<ProtectedRoute allowedRoles={[1]} />}>
+          <Route path='/bitacora' element={ <BitacoraPage/> }/>
+          <Route path='/crear-usuarios-rrhh' element={ <GestionUsuariosRRHH/> }/>
+          <Route path='/ajustar-saldos' element={ <AjusteSaldosPage/> }/>
+        </Route>
 
         {/* Rutas del módulo de empleados */}
-        <Route path='/empleados/home' element={ <HomePage/> }/>
-        <Route path='/empleados/infoPersonal' element={ <ContactsPage/> }/>
-        <Route path='/empleados/family' element={ <FamilyPage/> }/>
-        <Route path='/empleados/informacion-profesional' element={ <ProfetionalPage/> }/>
-        <Route path='/empleados/informacion-General' element={ <GeneralInfoPage/> }/>
-        <Route path='/empleados/informacion-laboral' element={ <EmployeePage/> }/>
-        <Route path='/empleados/programar-vacaciones' element={ <VacationApp/> }/>
-        <Route path='/empleados/programar-fecha' element={ <ProgramarVacacionesPage/> }/>
-        <Route path='/empleados/calendario' element={ <CalendarioGlobalPage/> }/>
-        <Route path='/empleados/actualizar-datos' element={ <ActualizarDatosPage/> }/>
-        <Route path='/empleados/solicitudes' element={ <SolicitudesPage/> }/>
+        <Route element={<ProtectedRoute allowedRoles={[1, 2, 3, 4, 5]} />}>
+          <Route path='/empleados/home' element={ <HomePage/> }/>
+          <Route path='/empleados/infoPersonal' element={ <ContactsPage/> }/>
+          <Route path='/empleados/family' element={ <FamilyPage/> }/>
+          <Route path='/empleados/informacion-profesional' element={ <ProfetionalPage/> }/>
+          <Route path='/empleados/informacion-General' element={ <GeneralInfoPage/> }/>
+          <Route path='/empleados/informacion-laboral' element={ <EmployeePage/> }/>
+          <Route path='/empleados/programar-vacaciones' element={ <VacationApp/> }/>
+          <Route path='/empleados/programar-fecha' element={ <ProgramarVacacionesPage/> }/>
+          <Route path='/empleados/calendario' element={ <CalendarioGlobalPage/> }/>
+          <Route path='/empleados/actualizar-datos' element={ <ActualizarDatosPage/> }/>
+          <Route path='/empleados/solicitudes' element={ <SolicitudesPage/> }/>
+        </Route>
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" />} />

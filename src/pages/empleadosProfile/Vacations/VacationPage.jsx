@@ -39,15 +39,8 @@ import api from "../../../config/api";
 import { API_URL } from "../../../config/enviroment";
 import dayjs from "dayjs";
 import { StyledButton, PageHeader } from "../../../components/UI/UIComponents";
-
-const estadoStyles = {
-  enviada: { color: "#ff9800", label: "Pendiente", textColor: "#fff" },
-  autorizadas: { color: "#4caf50", label: "Autorizada", textColor: "#fff" },
-  rechazada: { color: "#f44336", label: "Rechazada", textColor: "#fff" },
-  finalizadas: { color: "#2196f3", label: "Finalizada", textColor: "#fff" },
-  cancelada: { color: "#9c27b0", label: "Reprogramada", textColor: "#fff" },
-  reprogramacion: { color: "#9c27b0", label: "Reprogramada", textColor: "#fff" },
-};
+import { getEstado } from "../../../config/statusConfig.js";
+// Eliminado: se usa getEstado de statusConfig.js
 
 const VacationApp = () => {
   const isSessionVerified = useCheckSession();
@@ -221,7 +214,7 @@ const VacationApp = () => {
 
   const renderEstado = (estado) => {
     const estadoKey = estado ? estado.toLowerCase() : "";
-    const { color, label, textColor } = estadoStyles[estadoKey] || { color: "#9e9e9e", label: estado || "Desconocido", textColor: "#fff" };
+    const { color, label, textColor } = getEstado(estadoKey) || { color: "#9e9e9e", label: estado || "Desconocido", textColor: "#fff" };
     return (
       <Chip
         label={label}

@@ -21,3 +21,20 @@ api.interceptors.request.use((config) => {
 });
 
 export default api;
+
+// Interceptor de respuesta: detecta sesión expirada (401/403)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+    if (status === 401 || status === 403) {
+      // Evitar bucle si ya estamos en login
+      if (!window.location.pathname.includes('/') || window.location.pathname !== '/') {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        window.location.href = '/?expired=1';
+      }
+    }
+    return Promise.reject(error);
+  }
+);

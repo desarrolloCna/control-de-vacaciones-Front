@@ -38,6 +38,7 @@ import Sidebar from "../../../components/EmpleadosPage/SideBar/SideBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import Spinner from "../../../components/spinners/spinner";
 import { useCheckSession } from "../../../services/session/checkSession";
+import { getEstado } from "../../../config/statusConfig.js";
 import { useSolicitudes } from "../../../hooks/VacationAppHooks/useSolicitudes";
 import api from "../../../config/api";
 import { formatDateToDisplay } from "../../../services/utils/dates/vacationUtils";
@@ -153,8 +154,8 @@ const SolicitudesPage = () => {
         
         // Estado dinámico para el tooltip con capitalización inicial
         const rawStatus = solicitud.estadoSolicitud || "Desconocido";
-        const estadoMap = {enviada:"Pendiente",autorizadas:"Autorizada",rechazada:"Rechazada",finalizadas:"Finalizada",cancelada:"Reprogramada",reprogramacion:"Reprogramada"};
-        const estado = estadoMap[rawStatus] || rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+        const estadoObj = getEstado(rawStatus) || { label: rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1) };
+        const estado = estadoObj.label;
         
         // Crear un evento para cada día del rango (INCLUSIVE - ambos extremos incluidos)
         let currentDate = fechaInicio;
@@ -233,44 +234,10 @@ const SolicitudesPage = () => {
   }, [solicitudesU]);
 
   // Función para obtener el color del badge según el estado
-  const getEstadoColor = (estado) => {
-    switch (estado) {
-      case "enviada":
-        return "warning";
-      case "autorizadas":
-        return "success";
-      case "rechazada":
-        return "error";
-      case "finalizadas":
-        return "info";
-      case "cancelada":
-        return "secondary";
-      case "reprogramacion":
-        return "secondary";
-      default:
-        return "default";
-    }
-  };
+  const getEstadoColor = (estado) => getEstado(estado).muiColor;
 
   // Función para obtener el texto del estado
-  const getEstadoText = (estado) => {
-    switch (estado) {
-      case "enviada":
-        return "Pendiente";
-      case "autorizadas":
-        return "Autorizada";
-      case "rechazada":
-        return "Rechazada";
-      case "finalizadas":
-        return "Finalizada";
-      case "cancelada":
-        return "Reprogramada";
-      case "reprogramacion":
-        return "Reprogramada";
-      default:
-        return estado;
-    }
-  };
+  const getEstadoText = (estado) => getEstado(estado).label;
 
   const handleVerSolicitud = (solicitud) => {
     setSelectedSolicitud(solicitud);

@@ -9,18 +9,21 @@ import { CssBaseline } from "@mui/material";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./services/context/AuthContext.jsx";
 import { ThemeContextProvider } from "./config/ThemeContext.jsx";
+import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary.jsx";
 
 import './styles/App.css'; 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <ThemeContextProvider>
-      <CssBaseline />
-      <BrowserRouter>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </BrowserRouter>
-    </ThemeContextProvider>
+    <ErrorBoundary>
+      <ThemeContextProvider>
+        <CssBaseline />
+        <BrowserRouter>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </BrowserRouter>
+      </ThemeContextProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );
