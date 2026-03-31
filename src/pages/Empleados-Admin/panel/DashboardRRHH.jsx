@@ -5,7 +5,7 @@ import {
   Paper, LinearProgress, Avatar, Alert
 } from "@mui/material";
 import Navbar from "../../../components/navBar/NavBar";
-import Spinner from "../../../components/spinners/spinner";
+import { PageLoader, ContentLoader } from "../../../components/Loaders/Loaders";
 import api from "../../../config/api";
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
@@ -99,7 +99,7 @@ export default function DashboardRRHH() {
     fetchDashboard();
   }, []);
 
-  if (loading) return <Spinner />;
+  if (loading) return <PageLoader />;
 
   // Pie chart data
   const pieData = dashboardData?.distribucionEstados

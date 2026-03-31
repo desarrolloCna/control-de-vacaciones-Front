@@ -16,10 +16,22 @@ export const useNotificaciones = () => {
   const fetchNotificaciones = async () => {
     setLoadingN(true);
     try {
-      const response = await api.get('/notificaciones');
+      const lastCheck = localStorage.getItem('notif_last_check') || '';
+      const url = lastCheck ? `/notificaciones?desde=${lastCheck}` : '/notificaciones';
+      const response = await api.get(url);
       if (response.data && response.data.notificaciones) {
-        setDbNotificaciones(response.data.notificaciones);
+        if (lastCheck) {
+          // Merge: add new ones, don't replace
+          setDbNotificaciones(prev => {
+            const existingIds = new Set(prev.map(n => n.idNotificacion));
+            const newOnes = response.data.notificaciones.filter(n => !existingIds.has(n.idNotificacion));
+            return [...newOnes, ...prev];
+          });
+        } else {
+          setDbNotificaciones(response.data.notificaciones);
+        }
       }
+      localStorage.setItem('notif_last_check', new Date().toISOString());
     } catch (err) {
       setErrorN(err.response?.data?.error || "Error cargando notificaciones");
     } finally {
@@ -66,7 +78,7 @@ export const useNotificaciones = () => {
   useEffect(() => {
     fetchNotificaciones();
     cargarFestivos();
-    const intervalId = setInterval(fetchNotificaciones, 30000);
+    const intervalId = setInterval(fetchNotificaciones, 60000); // Reducido a 60s
     return () => clearInterval(intervalId);
   }, []);
 
