@@ -23,7 +23,19 @@ class ErrorBoundary extends React.Component {
   };
 
   handleHome = () => {
-    window.location.href = "/";
+    try {
+      const userDataStr = localStorage.getItem('userData');
+      if (userDataStr) {
+        const userData = JSON.parse(userDataStr);
+        if (userData && Number(userData.idRol) === 1) {
+          window.location.href = "/panel";
+          return;
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    window.location.href = "/empleados/home";
   };
 
   render() {

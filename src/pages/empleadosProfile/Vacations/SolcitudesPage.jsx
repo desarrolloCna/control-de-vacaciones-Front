@@ -821,7 +821,7 @@ const SolicitudesPage = () => {
                           }}>
                             <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>Folio</Typography>
                             <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main', m: 0 }}>
-                              {solicitud.correlativo ? solicitud.correlativo.split('-').pop() : solicitud.idSolicitud}
+                              {solicitud.correlativo ? String(solicitud.correlativo).split('-').pop() : solicitud.idSolicitud}
                             </Typography>
                           </Box>
 
