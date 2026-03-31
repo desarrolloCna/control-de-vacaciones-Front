@@ -32,6 +32,26 @@ const FRASES = [
   "Cada día en el CNA es una oportunidad para darle a un niño la familia que merece.",
   "Unidos por una misión: que ningún niño crezca sin el amor de una familia.",
   "Tu dedicación hace posible lo más hermoso: unir corazones en familia.",
+  "El amor no tiene fronteras cuando se trata de formar una familia.",
+  "Un abrazo de familia es el refugio más seguro para un niño que lo espera.",
+  "Trabajamos para que cada niño tenga un nuevo comienzo lleno de esperanza.",
+  "La adopción es un acto de amor incondicional que transforma el mundo.",
+  "Ser parte de esta institución es ser un arquitecto de sueños.",
+  "Creando vínculos que duran toda la vida, forjados en el amor puro y verdadero.",
+  "Cada esfuerzo tuyo avanza el sueño de un pequeño buscando a quién llamar familia.",
+  "No solo completamos procesos, facilitamos futuros brillantes y hogares llenos de luz.",
+  "La familia no siempre nace en un instante, a menudo nace del corazón y la paciencia.",
+  "Tu labor de hoy es la sonrisa permanente de un niño el día de mañana.",
+  "Acompañamos con empatía el viaje más noble: la creación de una nueva familia.",
+  "Un niño amado hoy es la promesa de un mundo mucho mejor mañana.",
+  "Protegemos a la niñez asegurando su derecho a un hogar lleno de amor.",
+  "La recompensa de nuestro esfuerzo se mide en familias unidas y completas.",
+  "Celebramos el amor en su máxima expresión: recibir a un hijo desde el alma.",
+  "El expediente que tienes en tus manos guarda una historia que merece un final feliz.",
+  "La adopción multiplica amor, reescribe el destino y trae esperanza a los más vulnerables.",
+  "Ayudamos a preparar el hogar perfecto para el corazón correcto.",
+  "Cada día renovamos nuestro compromiso de garantizar el derecho supremo del niño a una familia.",
+  "La pieza que falta en el rompecabezas de una familia siempre se halla con dedicación y amor.",
 ];
 
 /* ====== SALUDO DINÁMICO ====== */
@@ -70,6 +90,7 @@ const floatKeyframes = `
 `;
 
 export default function SignIn() {
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -89,6 +110,12 @@ export default function SignIn() {
       // Limpiar URL
       window.history.replaceState({}, document.title, "/");
     }
+  }, []);
+
+  // Reloj en tiempo real
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   // Frase aleatoria (cambia al cargar)
@@ -292,8 +319,8 @@ export default function SignIn() {
 
           {/* Date + Footer */}
           <Box sx={{ position: { md: "absolute" }, bottom: 25, left: { md: 64 }, mt: { xs: 5, md: 0 }, zIndex: 1 }}>
-            <Typography sx={{ color: "rgba(255,255,255,0.5)", fontSize: "0.85rem", mb: 0.5, fontWeight: 500 }}>
-              📅 {formattedDate}
+            <Typography sx={{ color: "rgba(255,255,255,0.5)", fontSize: "0.85rem", mb: 0.5, fontWeight: 500, display: "flex", alignItems: "center", gap: 1 }}>
+              📅 {formattedDate} | 🕒 {currentTime.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
             </Typography>
             <Typography sx={{ color: "rgba(255,255,255,0.3)", fontSize: "0.75rem" }}>
               © {new Date().getFullYear()} CNA — Sistema Institucional
