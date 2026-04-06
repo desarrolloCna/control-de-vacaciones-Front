@@ -21,6 +21,7 @@ import {
   CardContent,
   Tooltip,
   InputAdornment,
+  useTheme,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import InfoIcon from "@mui/icons-material/Info";
@@ -82,6 +83,7 @@ const calendarMessages = {
 };
 
 const SolicitudesPage = () => {
+  const theme = useTheme();
   const isSessionVerified = useCheckSession();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedSolicitud, setSelectedSolicitud] = useState(null);
