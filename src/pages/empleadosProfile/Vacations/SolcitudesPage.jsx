@@ -821,7 +821,7 @@ const SolicitudesPage = () => {
                             bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#f1f5f9',
                             border: '1px solid rgba(0,0,0,0.05)'
                           }}>
-                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>Folio</Typography>
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>Gestión</Typography>
                             <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main', m: 0 }}>
                               {solicitud.correlativo ? String(solicitud.correlativo).split('-').pop() : solicitud.idSolicitud}
                             </Typography>
