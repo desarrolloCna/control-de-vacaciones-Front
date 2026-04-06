@@ -3,6 +3,7 @@ import { Paper, Typography, Box, Avatar, List, ListItem, ListItemAvatar, ListIte
 import CakeIcon from '@mui/icons-material/Cake';
 import axios from 'axios';
 import { API_URL } from '../../../config/enviroment';
+import api from '../../../config/api.js';
 import { pink } from '@mui/material/colors';
 
 const CumpleanerosWidget = () => {
@@ -12,7 +13,7 @@ const CumpleanerosWidget = () => {
   useEffect(() => {
     const fetchCumpleaneros = async () => {
       try {
-        const response = await axios.get(`${API_URL}/cumpleaneros`);
+        const response = await api.get('/cumpleaneros');
         setCumpleaneros(response.data.data || []);
       } catch (error) {
         console.error("Error obteniendo cumpleañeros", error);
