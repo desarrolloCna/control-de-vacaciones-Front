@@ -12,6 +12,7 @@ import FamiliaresForm from './pages/Empleados-Admin/empleado/FamiliaresForm';
 import NivelEducativoForm from './pages/Empleados-Admin/empleado/nivelEducativoFomr';
 import DatosGeneralesForm from './pages/Empleados-Admin/empleado/DatosGeneralesForm';
 import EmpleadoNuevoForm from './pages/Empleados-Admin/empleado/EmpleadoNuevoForm';
+import WizardNuevoEmpleado from './pages/Empleados-Admin/empleado/WizardNuevoEmpleado';
 import { ReporteEmpleado } from './pages/Empleados-Admin/empleadosReporte/reporteEmpleados';
 import { ReporteVacacionesEmpleados } from './pages/Empleados-Admin/Vacaciones-Reports/Reporte-Vacaciones-Empleados';
 import SuspensionesPage from './pages/Empleados-Admin/Suspensiones.Page';
@@ -54,7 +55,7 @@ function App() {
           <Route path='/panel' element={ <Panel />} />
           <Route path='/dashboard-rrhh' element={<DashboardRRHH />} />
           <Route path='/finiquito-rrhh' element={<FiniquitoRRHH />} />
-          <Route path='/ingresar-nuevo-empleado' element={ <DocumentForm/> }/>
+          <Route path='/ingresar-nuevo-empleado' element={ <WizardNuevoEmpleado/> }/>
           <Route path='/ingresar-infoPersonal' element={ <InforPersonalForm/> }/>
           <Route path='/familiares' element={ <FamiliaresForm/> }/>
           <Route path='/nivel-educativo' element={ <NivelEducativoForm/> }/>

@@ -131,8 +131,8 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
     { text: 'Información Profesional', icon: <SchoolIcon />, path: '/empleados/informacion-profesional' },
     { text: 'Datos Generales', icon: <InfoIcon />, path: '/empleados/informacion-General' },
     { text: 'Programar Vacaciones', icon: <VacationIcon />, path: '/empleados/programar-vacaciones' },
-    // Ocultar calendario a Jefes (3) y Empleados (4), pero habilitar para Directores/Subdirectores y Coordinadores
-    ...(Number(idRol) === 1 || Number(idRol) === 2 || Number(idRol) === 5 || (userData?.puesto && (userData.puesto.includes("Director General") || userData.puesto.includes("Subdirector General"))) ? [{ text: 'Calendario Institucional', icon: <CalendarMonthIcon />, path: '/empleados/calendario' }] : []),
+    // Calendario Institucional: SOLO Director General y Subdirector General
+    ...(userData?.puesto && (userData.puesto.includes("Director General") || userData.puesto.includes("Subdirector General")) ? [{ text: 'Calendario Institucional', icon: <CalendarMonthIcon />, path: '/empleados/calendario' }] : []),
   ];
 
   const drawerContent = (

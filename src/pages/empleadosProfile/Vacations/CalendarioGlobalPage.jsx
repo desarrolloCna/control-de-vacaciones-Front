@@ -49,11 +49,10 @@ const CalendarioGlobalPage = () => {
   const [selectedUnidad, setSelectedUnidad] = useState("Todas");
   const userData = getLocalStorageData();
   
+  // Solo Director General y Subdirector General tienen acceso completo al calendario
   const isDirectorOrAdmin = 
-    userData?.idRol === 1 || 
-    userData?.idRol === 2 || 
-    (userData?.idRol === 5 && userData?.puesto && 
-      (userData.puesto.includes("Director General") || userData.puesto.includes("Subdirector General")));
+    userData?.puesto && 
+    (userData.puesto.includes("Director General") || userData.puesto.includes("Subdirector General"));
 
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);

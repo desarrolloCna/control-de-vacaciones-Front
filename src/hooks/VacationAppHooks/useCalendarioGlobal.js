@@ -26,7 +26,7 @@ export const useCalendarioGlobal = () => {
       }
     } catch (err) {
       console.error(err);
-      setError("Error al cargar el calendario global.");
+      setError(err.response?.data?.error || "Error al cargar el calendario global.");
     } finally {
       setLoading(false);
     }
