@@ -52,7 +52,7 @@ const CalendarioGlobalPage = () => {
   // Solo Director General y Subdirector General tienen acceso completo al calendario
   const isDirectorOrAdmin = 
     userData?.puesto && 
-    (userData.puesto.includes("Director General") || userData.puesto.includes("Subdirector General"));
+    (userData.puesto.toUpperCase().includes("DIRECTOR GENERAL") || userData.puesto.toUpperCase().includes("SUBDIRECTOR GENERAL"));
 
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);

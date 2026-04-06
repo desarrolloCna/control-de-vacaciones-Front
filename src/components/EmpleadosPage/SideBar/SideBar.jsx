@@ -132,7 +132,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
     { text: 'Datos Generales', icon: <InfoIcon />, path: '/empleados/informacion-General' },
     { text: 'Programar Vacaciones', icon: <VacationIcon />, path: '/empleados/programar-vacaciones' },
     // Calendario Institucional: SOLO Director General y Subdirector General
-    ...(userData?.puesto && (userData.puesto.includes("Director General") || userData.puesto.includes("Subdirector General")) ? [{ text: 'Calendario Institucional', icon: <CalendarMonthIcon />, path: '/empleados/calendario' }] : []),
+    ...(userData?.puesto && (userData.puesto.toUpperCase().includes("DIRECTOR GENERAL") || userData.puesto.toUpperCase().includes("SUBDIRECTOR GENERAL")) ? [{ text: 'Calendario Institucional', icon: <CalendarMonthIcon />, path: '/empleados/calendario' }] : []),
   ];
 
   const drawerContent = (
