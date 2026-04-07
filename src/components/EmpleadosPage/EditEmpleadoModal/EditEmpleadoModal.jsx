@@ -18,6 +18,7 @@ import {
   InputLabel,
   Select,
   InputAdornment,
+  Paper,
 } from "@mui/material";
 import { actualizarDatosLaborales, actualizarInfoPersonal, actualizarDpi, actualizarOtrosDatos } from "../../../services/EmpleadosServices/ActualizarEmpleado";
 import api from "../../../config/api";
