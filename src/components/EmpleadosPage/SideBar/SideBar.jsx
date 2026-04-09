@@ -155,19 +155,21 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   // Auto-expandir si usuario está en una ruta de perfil
   const isInProfileSection = profileItems.some(item => isActive(item.path));
 
-  // Mapear rol a etiqueta legible (Categorías Institucionales)
-  const getRolLabel = (rol) => {
-    const roles = { 
-      1: "SuperAdmin", 
-      2: "Empleado", 
-      3: "RRHH", 
-      4: "Gestión",   // Para Coordinadores
-      5: "Dirección" // Para Directores/Subdirectores
+  // Configuración de colores por Rol para el Badge de Puesto
+  const getRolColor = (id) => {
+    const defaultColor = '#818cf8'; // Índigo para Empleados
+    const colors = {
+      1: '#f87171', // Rojo (Admin)
+      2: '#818cf8', // Índigo (Empleado)
+      3: '#4ade80', // Verde (RRHH)
+      4: '#fbbf24', // Ámbar (Coordinador)
+      5: '#22d3ee', // Celeste (Dirección)
     };
-    return roles[Number(rol)] || "Colaborador";
+    return colors[Number(id)] || defaultColor;
   };
-  const rolLabel = getRolLabel(idRol);
-  const rolColor = { 1: '#ef4444', 2: '#818cf8', 3: '#4CAF50', 4: '#f59e0b', 5: '#06b6d4' }[Number(idRol)] || '#818cf8';
+
+  const rolColor = getRolColor(idRol);
+
 
   const drawerContent = (
     <>
