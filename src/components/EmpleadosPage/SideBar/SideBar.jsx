@@ -192,25 +192,25 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
           <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2, fontSize: '0.9rem' }}>
             {userData?.primerNombre || 'Usuario'} {userData?.primerApellido?.charAt(0) || ''}{userData?.primerApellido ? '.' : ''}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.7rem', lineHeight: 1.2, display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          
+          {/* Título oficial con el color del chip para evitar duplicidad */}
+          <Box sx={{
+            display: 'inline-block',
+            bgcolor: rolColor + '22', color: rolColor,
+            fontSize: '0.65rem', fontWeight: 700,
+            px: 0.8, py: 0.2, borderRadius: '4px',
+            border: `1px solid ${rolColor}44`,
+            mt: 0.4, mb: 0.4,
+            maxWidth: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+          }}>
             {userData?.puesto || 'Colaborador'}
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 0.3 }}>
-            <Typography variant="caption" sx={{ color: '#818cf8', fontSize: '0.72rem', fontWeight: 500 }}>
-              @{userData?.usuario || 'usuario'}
-            </Typography>
-            <Box sx={{
-              bgcolor: rolColor + '22', color: rolColor,
-              fontSize: '0.6rem', fontWeight: 700,
-              px: 0.8, py: 0.15, borderRadius: '4px',
-              border: `1px solid ${rolColor}44`,
-              lineHeight: 1.4, letterSpacing: '0.3px',
-              whiteSpace: 'nowrap',
-            }}>
-              {rolLabel}
-            </Box>
           </Box>
+
+          <Typography variant="caption" sx={{ color: '#818cf8', fontSize: '0.72rem', fontWeight: 500, display: 'block' }}>
+            @{userData?.usuario || 'usuario'}
+          </Typography>
         </Box>
+
       </AvatarContainer>
 
 
