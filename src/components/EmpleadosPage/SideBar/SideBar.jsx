@@ -155,28 +155,58 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   // Auto-expandir si usuario está en una ruta de perfil
   const isInProfileSection = profileItems.some(item => isActive(item.path));
 
+  // Mapear rol a etiqueta legible
+  const getRolLabel = (rol) => {
+    const roles = { 1: 'SuperAdmin', 2: 'Empleado', 3: 'RRHH', 4: 'Coordinador', 5: 'Director' };
+    return roles[Number(rol)] || 'Colaborador';
+  };
+  const rolLabel = getRolLabel(idRol);
+  const rolColor = { 1: '#ef4444', 2: '#818cf8', 3: '#4CAF50', 4: '#f59e0b', 5: '#06b6d4' }[Number(idRol)] || '#818cf8';
+
   const drawerContent = (
     <>
-      {/* Header compacto: Logo + Avatar en línea */}
+      {/* Header compacto: Avatar + Info */}
       <AvatarContainer>
-        <StyledAvatar 
-          sx={{ bgcolor: '#3f51b5', color: '#fff' }} 
-          onClick={handleAvatarClick}
-        >
-          {userInitial}
-        </StyledAvatar>
-        <Box sx={{ overflow: 'hidden' }}>
+        <Box sx={{ position: 'relative', flexShrink: 0 }}>
+          <StyledAvatar 
+            sx={{ bgcolor: '#3f51b5', color: '#fff' }} 
+            onClick={handleAvatarClick}
+          >
+            {userInitial}
+          </StyledAvatar>
+          {/* Indicador online */}
+          <Box sx={{
+            position: 'absolute', bottom: 2, right: 2,
+            width: 12, height: 12, borderRadius: '50%',
+            bgcolor: '#22c55e', border: '2px solid #0f172a',
+            boxShadow: '0 0 6px rgba(34, 197, 94, 0.6)',
+          }} />
+        </Box>
+        <Box sx={{ overflow: 'hidden', flex: 1 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2, fontSize: '0.9rem' }}>
             {userData?.primerNombre || 'Usuario'} {userData?.primerApellido?.charAt(0) || ''}{userData?.primerApellido ? '.' : ''}
           </Typography>
           <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.7rem', lineHeight: 1.2, display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {userData?.puesto || 'Colaborador'}
           </Typography>
-          <Typography variant="caption" sx={{ color: '#818cf8', fontSize: '0.65rem', fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase' }}>
-            CNA Sistema
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 0.3 }}>
+            <Typography variant="caption" sx={{ color: '#818cf8', fontSize: '0.72rem', fontWeight: 500 }}>
+              @{userData?.usuario || 'usuario'}
+            </Typography>
+            <Box sx={{
+              bgcolor: rolColor + '22', color: rolColor,
+              fontSize: '0.6rem', fontWeight: 700,
+              px: 0.8, py: 0.15, borderRadius: '4px',
+              border: `1px solid ${rolColor}44`,
+              lineHeight: 1.4, letterSpacing: '0.3px',
+              whiteSpace: 'nowrap',
+            }}>
+              {rolLabel}
+            </Box>
+          </Box>
         </Box>
       </AvatarContainer>
+
 
       <List sx={{ 
         pt: 1, 
