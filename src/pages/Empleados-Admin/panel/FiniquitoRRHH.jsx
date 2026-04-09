@@ -170,7 +170,7 @@ export default function FiniquitoRRHH() {
 
     // Analítica para RRHH
     const getAnaliticaData = () => {
-        if (!historial || historial.length === 0) return { monthlyData: [], metrics: {} };
+        if (!historial || historial.length === 0) return { monthlyData: [], metrics: { maxDias: 0, avgPerRequest: 0, peakMonth: "N/A", totalRequests: 0 } };
         const debitos = historial.filter(item => item.tipoRegistro === 2);
         const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
         const monthlyData = months.map(m => ({ name: m, dias: 0 }));
@@ -417,7 +417,7 @@ export default function FiniquitoRRHH() {
                                                             <YAxis axisLine={false} tickLine={false} />
                                                             <RechartsTooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                                                             <Bar dataKey="dias" radius={[4, 4, 0, 0]}>
-                                                                {monthlyData.map((entry, index) => (
+                                                                {monthlyData?.map((entry, index) => (
                                                                     <Cell key={`cell-${index}`} fill={entry.dias > 0 ? '#4F46E5' : '#E2E8F0'} />
                                                                 ))}
                                                             </Bar>

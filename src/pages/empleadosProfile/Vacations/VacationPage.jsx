@@ -153,7 +153,7 @@ const VacationApp = () => {
 
   // Lógica para Analítica Avanzada
   const getAnaliticaData = () => {
-    if (!historial || historial.length === 0) return { monthly: [], metrics: {} };
+    if (!historial || historial.length === 0) return { monthlyData: [], metrics: { maxDias: 0, avgPerRequest: 0, peakMonth: "N/A", totalRequests: 0 } };
 
     const debitos = historial.filter(item => item.tipoRegistro === 2);
     
@@ -1100,7 +1100,7 @@ const VacationApp = () => {
                                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                         />
                                         <Bar dataKey="dias" radius={[4, 4, 0, 0]}>
-                                            {monthlyData.map((entry, index) => (
+                                            {monthlyData?.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.dias > 0 ? '#4F46E5' : '#E2E8F0'} />
                                             ))}
                                         </Bar>
