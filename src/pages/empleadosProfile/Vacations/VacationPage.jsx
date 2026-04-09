@@ -1,9 +1,7 @@
-import React, { useState } from "react";
-import {
   Box, IconButton, Typography, Button, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Alert, Chip, Modal, Select, MenuItem, FormControl,
   InputLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
-  Grid, Divider, Stack
+  Grid, Divider, Stack, Tooltip, LinearProgress
 } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 import CloseIcon from "@mui/icons-material/Close";
@@ -11,6 +9,10 @@ import ErrorIcon from "@mui/icons-material/Error";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import StopCircleIcon from "@mui/icons-material/StopCircle";
 import AssignmentReturnIcon from "@mui/icons-material/AssignmentReturn";
@@ -124,9 +126,13 @@ const VacationApp = () => {
     });
     return Object.keys(summary).map(p => ({
       periodo: p,
+      creditos: summary[p].creditos,
+      debitos: summary[p].debitos,
+      percentage: summary[p].creditos > 0 ? Math.min(100, (summary[p].debitos / summary[p].creditos) * 100) : 0,
       saldo: summary[p].creditos - summary[p].debitos
     })).sort((a, b) => Number(b.periodo) - Number(a.periodo));
   };
+
 
   const handleDownloadFiniquito = async (periodo, event) => {
     if (event) event.stopPropagation();
@@ -903,119 +909,129 @@ const VacationApp = () => {
 
             <Typography
               id="historial-modal-title"
-              variant="h6"
+              variant="h5"
               component="h2"
-              sx={{ textAlign: "center", mb: 2, fontWeight: "bold" }}
+              sx={{ textAlign: "center", mb: 3, fontWeight: 800, color: "#1A237E" }}
             >
-              Historial y Balance de Vacaciones
+              Estado de Cuenta Vacacional
             </Typography>
 
-            {/* Resumen de Balance */}
-            <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid item xs={4}>
-                <Paper sx={{ p: 2, textAlign: "center", bgcolor: "#e8f5e9" }}>
-                  <Box display="flex" alignItems="center" justifyContent="center">
-                    <AddIcon color="success" sx={{ mr: 1 }} />
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                      Total Días Acreditados:
-                    </Typography>
-                  </Box>
-                  <Typography variant="h5" color="success.main" sx={{ mt: 1 }}>
-                    {totalCreditos} días
-                  </Typography>
+            {/* Resumen "Hero" Global */}
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+              <Grid item xs={12} md={4}>
+                <Paper elevation={0} sx={{ p: 3, textAlign: "center", bgcolor: "#E8F5E9", borderRadius: 4, border: "1px solid #C8E6C9" }}>
+                  <Typography variant="overline" sx={{ fontWeight: 700, color: "#2E7D32" }}>Total Acreditado</Typography>
+                  <Typography variant="h4" sx={{ color: "#1B5E20", fontWeight: 800 }}>+{totalCreditos} <span style={{fontSize: '1rem'}}>días</span></Typography>
+                  <Typography variant="caption" color="text.secondary">Toda tu trayectoria</Typography>
                 </Paper>
               </Grid>
-              <Grid item xs={4}>
-                <Paper sx={{ p: 2, textAlign: "center", bgcolor: "#ffebee" }}>
-                  <Box display="flex" alignItems="center" justifyContent="center">
-                    <RemoveIcon color="error" sx={{ mr: 1 }} />
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                      Total Días Debitados:
-                    </Typography>
-                  </Box>
-                  <Typography variant="h5" color="error.main" sx={{ mt: 1 }}>
-                    {totalDebitos} días
-                  </Typography>
+              <Grid item xs={12} md={4}>
+                <Paper elevation={0} sx={{ p: 3, textAlign: "center", bgcolor: "#FFEBEE", borderRadius: 4, border: "1px solid #FFCDD2" }}>
+                  <Typography variant="overline" sx={{ fontWeight: 700, color: "#D32F2F" }}>Total Consumido</Typography>
+                  <Typography variant="h4" sx={{ color: "#B71C1C", fontWeight: 800 }}>-{totalDebitos} <span style={{fontSize: '1rem'}}>días</span></Typography>
+                  <Typography variant="caption" color="text.secondary">Días que has disfrutado</Typography>
                 </Paper>
               </Grid>
-              <Grid item xs={4}>
-                <Paper sx={{
-                  p: 2,
-                  textAlign: "center",
-                  bgcolor: saldoActual >= 0 ? "#e8f5e9" : "#ffebee"
-                }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                    Dias Disponibles:
-                  </Typography>
-                  <Typography
-                    variant="h5"
-                    color={saldoActual >= 0 ? "success.main" : "error.main"}
-                    sx={{ mt: 1 }}
-                  >
-                    {saldoActual} días
-                  </Typography>
+              <Grid item xs={12} md={4}>
+                <Paper elevation={0} sx={{ p: 3, textAlign: "center", bgcolor: "#E3F2FD", borderRadius: 4, border: "1px solid #BBDEFB" }}>
+                  <Typography variant="overline" sx={{ fontWeight: 700, color: "#1976D2" }}>Saldo Disponible</Typography>
+                  <Typography variant="h4" sx={{ color: "#0D47A1", fontWeight: 800 }}>{saldoActual} <span style={{fontSize: '1rem'}}>días</span></Typography>
+                  <Typography variant="caption" color="text.secondary">Vigentes al día de hoy</Typography>
                 </Paper>
               </Grid>
             </Grid>
 
             <Divider sx={{ my: 2 }} />
 
-            {/* SECCIÓN FINIQUITOS POR PERÍODO */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" color="primary.main" fontWeight={700} sx={{ mb: 2 }}>
-                📄 Finiquitos por Período Vacacional
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                {getPeriodosSummary().map((p) => (
-                  <Paper
-                    key={`finiquito-${p.periodo}`}
-                    elevation={2}
-                    sx={{
-                      p: 2,
-                      borderRadius: 2,
-                      border: "2px solid",
-                      borderColor: p.saldo <= 0 ? "#f44336" : "#4caf50",
-                      minWidth: "180px",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      transition: "transform 0.2s",
-                      "&:hover": { transform: "translateY(-2px)" }
-                    }}
-                  >
-                    <Typography variant="subtitle2" color="text.secondary" fontWeight={600}>
-                      Período {p.periodo}
-                    </Typography>
-                    {p.saldo <= 0 ? (
-                      <>
-                        <Chip label="Agotado (0 días)" sx={{ bgcolor: "#f44336", color: "#fff", fontWeight: "bold", my: 1 }} size="small" />
-                        <Button
-                          variant="contained"
-                          size="small"
-                          startIcon={<PictureAsPdfIcon />}
-                          onClick={(e) => handleDownloadFiniquito(p.periodo, e)}
-                          sx={{
-                            bgcolor: "#d32f2f",
-                            textTransform: "none",
-                            mt: 0.5,
-                            px: 2,
-                            borderRadius: 2,
-                            fontWeight: 600,
-                            "&:hover": { bgcolor: "#b71c1c" }
-                          }}
-                        >
-                          Descargar Finiquito
-                        </Button>
-                      </>
-                    ) : (
-                      <Chip label={`Activo (${p.saldo} días)`} sx={{ bgcolor: "#4caf50", color: "#fff", fontWeight: "bold", my: 1 }} size="small" />
-                    )}
-                  </Paper>
-                ))}
-                {getPeriodosSummary().length === 0 && (
-                  <Typography variant="body2" color="text.secondary">No hay historiales registrados.</Typography>
-                )}
+            {/* SECCIÓN BALANCE POR PERÍODO */}
+            <Box sx={{ mb: 4 }}>
+              <Box display="flex" alignItems="center" gap={1} sx={{ mb: 3 }}>
+                <Typography variant="h6" color="#334155" fontWeight={800}>
+                  Balance por Período Vacacional
+                </Typography>
+                <Tooltip title="El sistema consume primero los días de los períodos más antiguos (Método FIFO)">
+                  <IconButton size="small">
+                    <HelpOutlineIcon fontSize="small" color="action" />
+                  </IconButton>
+                </Tooltip>
               </Box>
+              
+              <Grid container spacing={2}>
+                {getPeriodosSummary().map((p) => (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={`finiquito-${p.periodo}`}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 3,
+                        border: "1px solid",
+                        borderColor: p.saldo <= 0 ? "#FEE2E2" : "#E2E8F0",
+                        bgcolor: p.saldo <= 0 ? "#FFF5F5" : "white",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1.5,
+                        transition: "all 0.2s",
+                        "&:hover": { transform: "translateY(-4px)", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)" }
+                      }}
+                    >
+                      <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: "#64748B" }}>Período {p.periodo}</Typography>
+                        <Chip 
+                          label={p.saldo <= 0 ? "Agotado" : "Activo"} 
+                          size="small" 
+                          sx={{ 
+                            height: 20, 
+                            fontSize: "0.65rem", 
+                            fontWeight: 900,
+                            bgcolor: p.saldo <= 0 ? "#EF4444" : "#10B981",
+                            color: "white"
+                          }} 
+                        />
+                      </Box>
+                      
+                      <Box>
+                        <Box display="flex" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                          <Typography variant="caption" fontWeight={600} color="text.secondary">Consumo</Typography>
+                          <Typography variant="caption" fontWeight={700}>{p.debitos} de {p.creditos} días</Typography>
+                        </Box>
+                        <LinearProgress 
+                          variant="determinate" 
+                          value={p.percentage} 
+                          sx={{ 
+                            height: 6, 
+                            borderRadius: 3, 
+                            bgcolor: "#F1F5F9",
+                            '& .MuiLinearProgress-bar': {
+                              bgcolor: p.percentage >= 100 ? "#EF4444" : "#4F46E5",
+                              borderRadius: 3
+                            }
+                          }}
+                        />
+                      </Box>
+
+                      <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Typography variant="body2" sx={{ fontWeight: 800, color: "#1E293B" }}>
+                          Disponible: {p.saldo} días
+                        </Typography>
+                        {p.saldo <= 0 && (
+                          <MuiTooltip title="Descargar Finiquito Legal">
+                            <IconButton 
+                              size="small" 
+                              onClick={(e) => handleDownloadFiniquito(p.periodo, e)}
+                              sx={{ color: "#EF4444", bgcolor: "#FEE2E2", '&:hover': { bgcolor: "#FECACA" } }}
+                            >
+                              <PictureAsPdfIcon fontSize="small" />
+                            </IconButton>
+                          </MuiTooltip>
+                        )}
+                      </Box>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+              {getPeriodosSummary().length === 0 && (
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>No hay historiales registrados.</Typography>
+              )}
             </Box>
 
             <Divider sx={{ mb: 2 }} />
@@ -1114,14 +1130,24 @@ const VacationApp = () => {
                             : "SLVC-" + item.Gestion}
                         </TableCell>
                         <TableCell align="center">
-                          <Chip
-                            label={item.tipoRegistro === 1 ? "Crédito" : "Débito"}
-                            color={item.tipoRegistro === 1 ? "success" : "error"}
-                            sx={{
-                              color: "#fff",
-                              fontWeight: "bold",
-                            }}
-                          />
+                          <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                            {item.tipoRegistro === 1 ? (
+                              <AddCircleIcon sx={{ color: "#10B981", fontSize: "1.1rem" }} />
+                            ) : (
+                              <RemoveCircleIcon sx={{ color: "#EF4444", fontSize: "1.1rem" }} />
+                            )}
+                            <Chip
+                              label={item.tipoRegistro === 1 ? "Crédito" : "Débito"}
+                              variant="outlined"
+                              size="small"
+                              sx={{
+                                color: item.tipoRegistro === 1 ? "#10B981" : "#EF4444",
+                                borderColor: item.tipoRegistro === 1 ? "#10B981" : "#EF4444",
+                                fontWeight: 800,
+                                fontSize: "0.7rem"
+                              }}
+                            />
+                          </Box>
                         </TableCell>
                         <TableCell align="center">{item.periodo}</TableCell>
                         <TableCell align="center">
