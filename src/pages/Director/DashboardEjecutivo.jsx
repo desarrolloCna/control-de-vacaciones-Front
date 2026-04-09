@@ -3,7 +3,7 @@ import {
   Box, Typography, Grid, Card, CardContent, CircularProgress, Alert, Paper, 
   IconButton, Accordion, AccordionSummary, AccordionDetails, Table, 
   TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, 
-  InputAdornment, Chip, Tooltip as MuiTooltip
+  InputAdornment, Chip, Tooltip as MuiTooltip, Autocomplete
 } from "@mui/material";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, Cell, LineChart, Line, AreaChart, Area } from "recharts";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
@@ -196,20 +196,27 @@ export default function DashboardEjecutivo() {
                   <GroupIcon sx={{ color: "#4F46E5" }} />
                   Detalle e Integrantes por Unidad
                 </Typography>
-                <TextField
-                  placeholder="Buscar colaborador o unidad..."
-                  variant="outlined"
+                <Autocomplete
+                  freeSolo
                   size="small"
+                  options={Object.keys(groupedUnits)}
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  sx={{ width: { xs: "100%", sm: 300 }, bgcolor: "white", borderRadius: 2 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: "#64748b" }} />
-                      </InputAdornment>
-                    ),
-                  }}
+                  onInputChange={(event, newValue) => setSearchTerm(newValue)}
+                  sx={{ width: { xs: "100%", sm: 350 }, bgcolor: "white", borderRadius: 2 }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Catálogo de Unidades o Colaborador..."
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchIcon sx={{ color: "#4F46E5" }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  )}
                 />
               </Box>
 
