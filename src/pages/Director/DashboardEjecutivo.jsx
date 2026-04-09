@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Grid, Card, CardContent, CircularProgress, Alert, Paper, IconButton } from "@mui/material";
+import { 
+  Box, Typography, Grid, Card, CardContent, CircularProgress, Alert, Paper, 
+  IconButton, Accordion, AccordionSummary, AccordionDetails, Table, 
+  TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, 
+  InputAdornment, Chip, Tooltip as MuiTooltip
+} from "@mui/material";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, Cell, LineChart, Line, AreaChart, Area } from "recharts";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import AssuredWorkloadIcon from "@mui/icons-material/AssuredWorkload";
 import InsertChartOutlinedIcon from "@mui/icons-material/InsertChartOutlined";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import SearchIcon from "@mui/icons-material/Search";
+import GroupIcon from "@mui/icons-material/Group";
+import DateRangeIcon from "@mui/icons-material/DateRange";
 import Sidebar from "../../components/EmpleadosPage/SideBar/SideBar";
 import { getLocalStorageData } from "../../services/session/getLocalStorageData";
 import { useCheckSession } from "../../services/session/checkSession";
@@ -17,9 +26,20 @@ export default function DashboardEjecutivo() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const isSessionVerified = useCheckSession();
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
+
+  // Agrupar empleados por unidad
+  const groupedUnits = React.useMemo(() => {
+    if (!data?.detalleUnidades) return {};
+    return data.detalleUnidades.reduce((acc, emp) => {
+      if (!acc[emp.unidad]) acc[emp.unidad] = [];
+      acc[emp.unidad].push(emp);
+      return acc;
+    }, {});
+  }, [data]);
 
   useEffect(() => {
     const fetchKPIs = async () => {
@@ -73,7 +93,12 @@ export default function DashboardEjecutivo() {
           <Grid container spacing={3}>
             {/* KPI 1 */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ borderRadius: 4, bgcolor: "linear-gradient(135deg, #4F46E5 0%, #3B82F6 100%)", color: "white", boxShadow: "0 10px 25px -5px rgba(79, 70, 229, 0.4)" }}>
+              <Card sx={{ 
+                borderRadius: 4, 
+                background: "linear-gradient(135deg, #4F46E5 0%, #3B82F6 100%)", 
+                color: "white", 
+                boxShadow: "0 10px 25px -5px rgba(79, 70, 229, 0.4)" 
+              }}>
                 <CardContent sx={{ position: "relative", overflow: "hidden" }}>
                   <Typography variant="overline" sx={{ fontWeight: 700, letterSpacing: 1, opacity: 0.8 }}>Plantilla Activa</Typography>
                   <Typography variant="h3" sx={{ fontWeight: 900, mt: 1 }}>{data.statusHoy.totalEmpleadosActivos}</Typography>
@@ -81,6 +106,7 @@ export default function DashboardEjecutivo() {
                 </CardContent>
               </Card>
             </Grid>
+
 
             {/* KPI 2 */}
             <Grid item xs={12} sm={6} md={3}>
@@ -160,6 +186,98 @@ export default function DashboardEjecutivo() {
                   </ResponsiveContainer>
                 )}
               </Paper>
+            </Grid>
+
+            {/* Explorador de Unidades con Acordeones */}
+            <Grid item xs={12}>
+
+              <Box sx={{ mt: 4, mb: 2, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+                <Typography variant="h5" sx={{ fontWeight: 800, color: "#1e293b", display: "flex", alignItems: "center", gap: 1.5 }}>
+                  <GroupIcon sx={{ color: "#4F46E5" }} />
+                  Detalle e Integrantes por Unidad
+                </Typography>
+                <TextField
+                  placeholder="Buscar colaborador o unidad..."
+                  variant="outlined"
+                  size="small"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  sx={{ width: { xs: "100%", sm: 300 }, bgcolor: "white", borderRadius: 2 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ color: "#64748b" }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+
+              {Object.keys(groupedUnits).map((unidad, idx) => {
+                const empleadosFiltrados = groupedUnits[unidad].filter(emp => 
+                  emp.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  unidad.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+
+                if (empleadosFiltrados.length === 0) return null;
+
+                return (
+                  <Accordion 
+                    key={idx} 
+                    sx={{ 
+                      mb: 1.5, 
+                      borderRadius: "12px !important", 
+                      boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
+                      '&:before': { display: 'none' },
+                      overflow: "hidden",
+                      border: "1px solid rgba(0,0,0,0.03)"
+                    }}
+                  >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "#4F46E5" }} />}>
+                      <Box sx={{ display: "flex", width: "100%", justifyContent: "space-between", pr: 2 }}>
+                        <Typography sx={{ fontWeight: 700, color: "#1e293b" }}>{unidad}</Typography>
+                        <Typography variant="body2" sx={{ color: "#64748b" }}>
+                          {empleadosFiltrados.length} Integrantes
+                        </Typography>
+                      </Box>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ p: 0 }}>
+                      <TableContainer>
+                        <Table size="small">
+                          <TableHead sx={{ bgcolor: "#F8FAFC" }}>
+                            <TableRow>
+                              <TableCell sx={{ fontWeight: 700, py: 1.5 }}>Colaborador</TableCell>
+                              <TableCell sx={{ fontWeight: 700 }}>Puesto</TableCell>
+                              <TableCell sx={{ fontWeight: 700 }} align="center">Ingreso</TableCell>
+                              <TableCell sx={{ fontWeight: 700 }} align="right">Vacaciones Disp.</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {empleadosFiltrados.map((emp) => (
+                              <TableRow key={emp.idEmpleado} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                <TableCell sx={{ fontWeight: 600, color: "#334155" }}>{emp.nombreCompleto}</TableCell>
+                                <TableCell sx={{ color: "#64748b", fontSize: "0.85rem" }}>{emp.puesto}</TableCell>
+                                <TableCell align="center" sx={{ color: "#64748b", fontSize: "0.85rem" }}>{emp.fechaIngreso}</TableCell>
+                                <TableCell align="right">
+                                  <Chip 
+                                    label={`${emp.diasDisponibles} días`} 
+                                    size="small"
+                                    sx={{ 
+                                      fontWeight: 700,
+                                      bgcolor: emp.diasDisponibles > 60 ? "#fee2e2" : emp.diasDisponibles > 30 ? "#fef3c7" : "#f1f5f9",
+                                      color: emp.diasDisponibles > 60 ? "#ef4444" : emp.diasDisponibles > 30 ? "#d97706" : "#475569",
+                                    }} 
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </AccordionDetails>
+                  </Accordion>
+                );
+              })}
             </Grid>
 
           </Grid>
