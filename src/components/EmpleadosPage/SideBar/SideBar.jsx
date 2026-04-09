@@ -157,8 +157,12 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
 
   // Mapear rol a etiqueta legible
   const getRolLabel = (rol) => {
-    const roles = { 1: 'SuperAdmin', 2: 'Empleado', 3: 'RRHH', 4: 'Coordinador', 5: 'Director' };
-    return roles[Number(rol)] || 'Colaborador';
+    if (Number(rol) === 5) {
+      if (userData?.puesto?.toUpperCase().includes("SUBDIRECTOR")) return "Subdirector";
+      return "Director";
+    }
+    const roles = { 1: "SuperAdmin", 2: "Empleado", 3: "RRHH", 4: "Coordinador" };
+    return roles[Number(rol)] || "Colaborador";
   };
   const rolLabel = getRolLabel(idRol);
   const rolColor = { 1: '#ef4444', 2: '#818cf8', 3: '#4CAF50', 4: '#f59e0b', 5: '#06b6d4' }[Number(idRol)] || '#818cf8';
