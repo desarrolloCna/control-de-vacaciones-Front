@@ -155,13 +155,15 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   // Auto-expandir si usuario está en una ruta de perfil
   const isInProfileSection = profileItems.some(item => isActive(item.path));
 
-  // Mapear rol a etiqueta legible
+  // Mapear rol a etiqueta legible (Categorías Institucionales)
   const getRolLabel = (rol) => {
-    if (Number(rol) === 5) {
-      if (userData?.puesto?.toUpperCase().includes("SUBDIRECTOR")) return "Subdirector";
-      return "Director";
-    }
-    const roles = { 1: "SuperAdmin", 2: "Empleado", 3: "RRHH", 4: "Coordinador" };
+    const roles = { 
+      1: "SuperAdmin", 
+      2: "Empleado", 
+      3: "RRHH", 
+      4: "Gestión",   // Para Coordinadores
+      5: "Dirección" // Para Directores/Subdirectores
+    };
     return roles[Number(rol)] || "Colaborador";
   };
   const rolLabel = getRolLabel(idRol);
