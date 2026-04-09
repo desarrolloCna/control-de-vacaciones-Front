@@ -30,7 +30,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 const CustomDrawer = styled(Drawer)(({ theme }) => ({
   '& .MuiDrawer-paper': {
     width: 270,
-    background: 'linear-gradient(180deg, #3d1e08 0%, #6b3a1f 100%)',
+    background: 'linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%)',
     color: '#fff',
     borderRight: 'none',
     boxShadow: '10px 0 30px rgba(0,0,0,0.25)',
@@ -45,12 +45,12 @@ const SidebarListItem = styled(ListItem)(({ theme, active }) => ({
   margin: '2px 10px',
   borderRadius: '10px',
   width: 'calc(100% - 20px)',
-  backgroundColor: active ? 'rgba(255, 213, 128, 0.15)' : 'transparent',
-  borderLeft: active ? `3px solid #f5a623` : '3px solid transparent',
+  backgroundColor: active ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
+  borderLeft: active ? `3px solid #818cf8` : '3px solid transparent',
   transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
   padding: '8px 14px',
   '&:hover': {
-    backgroundColor: active ? 'rgba(255, 213, 128, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: active ? 'rgba(99, 102, 241, 0.18)' : 'rgba(255, 255, 255, 0.05)',
     transform: 'translateX(4px)',
   },
   '& .MuiListItemIcon-root': {
@@ -65,8 +65,8 @@ const AvatarContainer = styled('div')({
   alignItems: 'center',
   padding: '14px 18px',
   gap: '12px',
-  background: 'linear-gradient(180deg, rgba(245, 166, 35, 0.1) 0%, transparent 100%)',
-  borderBottom: '1px solid rgba(255,255,255,0.1)',
+  background: 'linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%)',
+  borderBottom: '1px solid rgba(255,255,255,0.08)',
   position: 'relative'
 });
 
@@ -155,15 +155,15 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   // Auto-expandir si usuario está en una ruta de perfil
   const isInProfileSection = profileItems.some(item => isActive(item.path));
 
-  // Configuración de colores Institucionales (Naranja y Amarillo CNA)
+  // Configuración de colores por Rol (Estandarización UI)
   const getRolColor = (id) => {
-    const defaultColor = '#f5a623'; // Naranja CNA principal
+    const defaultColor = '#818cf8'; 
     const colors = {
-      1: '#d84315', // Naranja Quemado (SuperAdmin)
-      2: '#f5a623', // Naranja CNA (Empleado)
-      3: '#ffb300', // Ámbar Intenso (RRHH)
-      4: '#fbc02d', // Amarillo Oro (Coordinador)
-      5: '#ff8f00', // Naranja Vibrante (Dirección)
+      1: '#ef4444', // Rojo (Admin)
+      2: '#818cf8', // Índigo (Empleado)
+      3: '#4ade80', // Verde (RRHH)
+      4: '#f59e0b', // Ámbar (Coordinador)
+      5: '#06b6d4', // Cyan (Dirección)
     };
     return colors[Number(id)] || defaultColor;
   };
