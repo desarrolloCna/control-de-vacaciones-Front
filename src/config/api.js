@@ -22,12 +22,13 @@ api.interceptors.request.use((config) => {
 
 export default api;
 
-// Interceptor de respuesta: detecta sesión expirada (solo 401 = token inválido/expirado)
+// Interceptor de respuesta: manejo diferenciado de errores HTTP
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
-    // Solo redirigir al login si el token expiró (401), NO por falta de permisos (403)
+
+    // 401 = Token expirado o inválido → redirigir al login
     if (status === 401) {
       const isLoginPage = window.location.pathname === '/' || window.location.pathname === '/login';
       if (!isLoginPage) {
@@ -36,6 +37,17 @@ api.interceptors.response.use(
         window.location.href = '/?expired=1';
       }
     }
+
+    // 403 = Sin permisos → NO redirigir, solo loguear (el componente maneja el error)
+    if (status === 403) {
+      console.warn('[API] Acceso denegado (403):', error.response?.data?.message || 'Sin permisos para esta acción.');
+    }
+
+    // 409 = Conflicto → Operación normal, no es un error fatal
+    if (status === 409) {
+      console.warn('[API] Conflicto (409):', error.response?.data?.message || 'Conflicto en la solicitud.');
+    }
+
     return Promise.reject(error);
   }
 );

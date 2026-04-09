@@ -111,7 +111,7 @@ const CalendarioGlobalPage = () => {
       "Fecha Fin": formatDateToDisplay(ev.fechaFinVacaciones),
       "Fecha Retorno": formatDateToDisplay(ev.fechaRetornoLabores),
     }));
-    exportToExcel(dataToExport, `Reporte_Calendario_${selectedUnidad}`);
+    exportToExcel(dataToExport, `Reporte_Calendario_${selectedUnidad}`, "Calendario", `Calendario Global - Unidad: ${selectedUnidad === "Todas" ? "Todas las Unidades" : selectedUnidad}`);
   };
 
   // Mapeo a formato de Calendar omitiendo multislides y recortando fines de semana
@@ -254,10 +254,17 @@ const CalendarioGlobalPage = () => {
 
               <Button
                 variant="contained"
-                color="success"
                 startIcon={<GetAppIcon />}
                 onClick={handleExportExcel}
-                sx={{ whiteSpace: "nowrap" }}
+                sx={{ 
+                  backgroundColor: "#1A237E", 
+                  color: "#fff", 
+                  whiteSpace: "nowrap",
+                  borderRadius: "20px",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  '&:hover': { backgroundColor: "#0D47A1" }
+                }}
               >
                 Exportar Excel
               </Button>

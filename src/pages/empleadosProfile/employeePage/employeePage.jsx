@@ -38,6 +38,7 @@ import CommentIcon from "@mui/icons-material/Comment";
 import { useNavigate } from "react-router-dom";
 import { getLocalStorageData } from "../../../services/session/getLocalStorageData";
 import { formatDateToDisplay } from "../../../services/utils/dates/vacationUtils";
+import EmpleadoTimeline from "../../../components/Timeline/EmpleadoTimeline";
 
 const EmployeePage = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -285,6 +286,13 @@ const EmployeePage = () => {
               )}
             </Grid>
           </Paper>
+        )}
+
+        {/* --- TIMELINE DE VACACIONES --- */}
+        {!error && isSessionVerified && userData?.idEmpleado && (
+          <Box sx={{ mt: 4 }}>
+            <EmpleadoTimeline idEmpleado={userData.idEmpleado} />
+          </Box>
         )}
       </Box>
     </Box>

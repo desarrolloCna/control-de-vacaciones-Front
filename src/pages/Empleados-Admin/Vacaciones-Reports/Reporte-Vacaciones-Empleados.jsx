@@ -97,7 +97,7 @@ export const ReporteVacacionesEmpleados = () => {
       "Fecha Autorización": formatDate(v.fechaAutorizacion),
     }));
     const estadoLabel = selectedEstado === "Todos" ? "Todos" : selectedEstado;
-    exportToExcel(dataToExport, `Reporte_Vacaciones_${unidad}_${estadoLabel}`, "Vacaciones");
+    exportToExcel(dataToExport, `Reporte_Vacaciones_${unidad}_${estadoLabel}`, "Vacaciones", `Reporte de Vacaciones - Unidad: ${unidad === "Todas" ? "Todas las Unidades" : unidad} | Estado: ${estadoLabel}`);
   };
 
   const columns = [
@@ -251,13 +251,13 @@ export const ReporteVacacionesEmpleados = () => {
             variant="contained"
             startIcon={<GetAppIcon />}
             sx={{ 
-              backgroundColor: "#2e7d32", 
+              backgroundColor: "#1A237E", 
               color: "#fff", 
               mb: 2, 
-              borderRadius: 2,
+              borderRadius: "20px",
               textTransform: "none",
               fontWeight: 600,
-              '&:hover': { backgroundColor: "#1b5e20" }
+              '&:hover': { backgroundColor: "#0D47A1" }
             }}
             onClick={handleExportExcel}
           >

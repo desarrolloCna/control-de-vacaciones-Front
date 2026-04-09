@@ -41,6 +41,8 @@ import BitacoraPage from './pages/Empleados-Admin/Bitacora/BitacoraPage.jsx';
 import GestionUsuariosRRHH from './pages/Empleados-Admin/usuarios/GestionUsuariosRRHH.jsx';
 import AjusteSaldosPage from './pages/Empleados-Admin/AjusteSaldos/AjusteSaldosPage.jsx';
 import ExcepcionLimitePage from './pages/Empleados-Admin/ActivarVacaciones/ExcepcionLimitePage.jsx';
+import KioscoPage from './pages/Kiosco/KioscoPage.jsx';
+import DashboardEjecutivo from './pages/Director/DashboardEjecutivo.jsx';
 
 function App() {
   return (
@@ -49,6 +51,7 @@ function App() {
       <Routes>
         {/* Rutas públicas */}
         <Route path='/' element={<SignIn />} />
+        <Route path='/kiosco' element={<KioscoPage />} />
 
         {/* Rutas Administrativas (ADMIN y RRHH) */}
         <Route element={<ProtectedRoute allowedRoles={[1, 3]} />}>
@@ -75,6 +78,11 @@ function App() {
           <Route path='/bitacora' element={ <BitacoraPage/> }/>
           <Route path='/crear-usuarios-rrhh' element={ <GestionUsuariosRRHH/> }/>
           <Route path='/ajustar-saldos' element={ <AjusteSaldosPage/> }/>
+        </Route>
+
+        {/* Dashboard Ejecutivo */}
+        <Route element={<ProtectedRoute allowedRoles={[1, 3, 5]} />}>
+          <Route path='/dashboard-ejecutivo' element={ <DashboardEjecutivo/> }/>
         </Route>
 
         {/* Rutas del módulo de empleados */}

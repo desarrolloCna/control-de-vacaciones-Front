@@ -352,7 +352,7 @@ const SolicitudesPage = () => {
       "Días Solicitados": solicitud.cantidadDiasSolicitados
     }));
 
-    exportToExcel(dataToExport, 'Reporte_Solicitudes_Vacaciones');
+    exportToExcel(dataToExport, 'Reporte_Solicitudes_Vacaciones', 'Solicitudes', 'Reporte de Solicitudes de Vacaciones');
   };
 
   const handleExportDataToPdf = () => {
@@ -1062,6 +1062,23 @@ const SolicitudesPage = () => {
                     </Box>
                   </Grid>
 
+                  {/* Detalle de períodos FIFO calculados desde el backend */}
+                  <Grid item xs={12}>
+                    <Box sx={{ 
+                      backgroundColor: '#e8eaf6', 
+                      borderRadius: '8px', 
+                      p: 2,
+                      borderLeft: '4px solid #3f51b5'
+                    }}>
+                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                        Afectación proyectada por período (Años más antiguos primero)
+                      </Typography>
+                      <Typography variant="body1" fontWeight="600" color="#283593">
+                        {selectedSolicitud.desglosePeriodos || "Cargando desglose o sin datos previos..."}
+                      </Typography>
+                    </Box>
+                  </Grid>
+
                   <Grid item xs={12}>
                     <Box sx={{ 
                       backgroundColor: '#f8f9fa', 
@@ -1152,17 +1169,17 @@ const SolicitudesPage = () => {
                   <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
                     <Button
                       variant="contained"
-                      color="success"
                       onClick={() => handleDownloadPDF(selectedSolicitud.idSolicitud, selectedSolicitud.idEmpleado)}
                       startIcon={<DescriptionIcon />}
                       sx={{
-                        borderRadius: '24px',
+                        borderRadius: '20px',
                         textTransform: 'none',
                         fontWeight: '600',
                         px: 4,
                         py: 1.2,
-                        backgroundColor: '#2e7d32',
-                        '&:hover': { backgroundColor: '#1b5e20' }
+                        backgroundColor: '#b71c1c',
+                        color: "#fff",
+                        '&:hover': { backgroundColor: '#c62828' }
                       }}
                     >
                       Descargar Informe Oficial

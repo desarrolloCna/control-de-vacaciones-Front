@@ -86,7 +86,7 @@ export const ReporteEmpleado = () => {
       "Tipo Contrato": emp.tipoContrato || "",
       "Fecha Ingreso": emp.fechaIngresoLabores || "",
     }));
-    exportToExcel(dataToExport, `Informe_Empleados_${selectedUnidad}`, "Empleados");
+    exportToExcel(dataToExport, `Informe_Empleados_${selectedUnidad}`, "Empleados", `Informe de Empleados - Unidad: ${selectedUnidad === "Todas" ? "Todas las Unidades" : selectedUnidad}`);
   };
 
   const headerStyle = {
@@ -228,13 +228,13 @@ export const ReporteEmpleado = () => {
             variant="contained"
             startIcon={<GetAppIcon />}
             sx={{ 
-              backgroundColor: "#2e7d32", 
+              backgroundColor: "#1A237E", 
               color: "#fff", 
               mb: 2,
-              borderRadius: 2,
+              borderRadius: "20px",
               textTransform: "none",
               fontWeight: 600,
-              '&:hover': { backgroundColor: "#1b5e20" }
+              '&:hover': { backgroundColor: "#0D47A1" }
             }}
             onClick={handleExportExcel}
           >

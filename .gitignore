@@ -23,3 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Generated docs (not source code)
+*.docx
+generar-manual.mjs
+generar-memorando.mjs
+MANUAL_DE_USUARIO.md

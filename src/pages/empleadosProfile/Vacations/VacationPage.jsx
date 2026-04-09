@@ -253,7 +253,7 @@ const VacationApp = () => {
       Descripción: item.tipoRegistro === 1 ? "Acreditación anual de días" : "Solicitud de vacaciones"
     }));
 
-    exportToExcel(dataToExport, `Historial_Vacaciones_${userData?.primerNombre || 'Empleado'}`);
+    exportToExcel(dataToExport, `Historial_Vacaciones_${userData?.primerNombre || 'Empleado'}`, "Historial", `Historial de Vacaciones - Empleado: ${userData?.Nombres || userData?.primerNombre || 'No especificado'}`);
   };
 
   const handleExportDataToPdf = () => {
@@ -1040,21 +1040,35 @@ const VacationApp = () => {
             </FormControl>
 
               <Button
-                variant="outlined"
-                color="success"
+                variant="contained"
                 startIcon={<GetAppIcon />}
                 onClick={handleExportDataToExcel}
-                sx={{ height: 56, fontWeight: 'bold' }}
+                sx={{ 
+                  backgroundColor: "#1A237E", 
+                  color: "#fff", 
+                  height: 56, 
+                  fontWeight: 600,
+                  borderRadius: "20px",
+                  textTransform: "none",
+                  '&:hover': { backgroundColor: "#0D47A1" }
+                }}
               >
                 Exportar Historial
               </Button>
 
               <Button
-                variant="outlined"
-                color="secondary"
+                variant="contained"
                 startIcon={<DescriptionIcon />}
                 onClick={handleExportDataToPdf}
-                sx={{ height: 56, fontWeight: 'bold' }}
+                sx={{ 
+                  backgroundColor: "#b71c1c", 
+                  color: "#fff", 
+                  height: 56, 
+                  fontWeight: 600,
+                  borderRadius: "20px",
+                  textTransform: "none",
+                  '&:hover': { backgroundColor: "#c62828" }
+                }}
               >
                 Constancia PDF
               </Button>

@@ -9,8 +9,9 @@ import SchoolIcon from '@mui/icons-material/School';
 import InfoIcon from '@mui/icons-material/Info';
 import VacationIcon from '@mui/icons-material/BeachAccess';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
+import TvIcon from '@mui/icons-material/Tv';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { getLocalStorageData } from '../../../services/session/getLocalStorageData.js';
 import useLogout from '../../../services/session/logout.js';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -133,6 +134,10 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
     { text: 'Programar Vacaciones', icon: <VacationIcon />, path: '/empleados/programar-vacaciones' },
     // Calendario Institucional: SOLO Director General y Subdirector General
     ...(userData?.puesto && (userData.puesto.toUpperCase().includes("DIRECTOR GENERAL") || userData.puesto.toUpperCase().includes("SUBDIRECTOR GENERAL")) ? [{ text: 'Calendario Institucional', icon: <CalendarMonthIcon />, path: '/empleados/calendario' }] : []),
+    // Dashboard Estratégico Ejecutivo: RRHH (1, 3) y Ejecutivos (5)
+    ...([1, 3, 5].includes(Number(idRol)) || (userData?.puesto && (userData.puesto.toUpperCase().includes("DIRECTOR GENERAL") || userData.puesto.toUpperCase().includes("SUBDIRECTOR GENERAL"))) ? [{ text: 'Dashboard Estratégico', icon: <TrendingUpIcon />, path: '/dashboard-ejecutivo' }] : []),
+    // Pantalla Kiosco: RRHH (Rol 1, 3) y Ejecutivos (Rol 5 o Director)
+    ...([1, 3, 5].includes(Number(idRol)) || (userData?.puesto && (userData.puesto.toUpperCase().includes("DIRECTOR GENERAL") || userData.puesto.toUpperCase().includes("SUBDIRECTOR GENERAL"))) ? [{ text: 'Lanzar Kiosco 📺', icon: <TvIcon />, path: '/kiosco' }] : []),
   ];
 
   const drawerContent = (
@@ -194,7 +199,11 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
             button 
             key={item.text}
             onClick={() => {
-              navigate(item.path);
+              if (item.path === '/kiosco') {
+                window.open(item.path, '_blank');
+              } else {
+                navigate(item.path);
+              }
               if(mobileOpen && handleDrawerToggle) handleDrawerToggle(); 
             }}
             active={isActive(item.path) ? 1 : 0}
