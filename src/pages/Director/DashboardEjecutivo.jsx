@@ -199,7 +199,7 @@ export default function DashboardEjecutivo() {
                 <Autocomplete
                   freeSolo
                   size="small"
-                  options={Object.keys(groupedUnits)}
+                  options={Object.keys(groupedUnits).filter(u => u && !u.match(/^\d{2}\/\d{2}\/\d{4}$/) && u !== 'null')}
                   value={searchTerm}
                   onInputChange={(event, newValue) => setSearchTerm(newValue)}
                   sx={{ width: { xs: "100%", sm: 350 }, bgcolor: "white", borderRadius: 2 }}
