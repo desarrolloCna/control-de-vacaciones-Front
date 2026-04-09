@@ -155,20 +155,21 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   // Auto-expandir si usuario está en una ruta de perfil
   const isInProfileSection = profileItems.some(item => isActive(item.path));
 
-  // Configuración de colores por Rol para el Badge de Puesto
+  // Configuración de colores Institucionales (Naranja y Amarillo CNA)
   const getRolColor = (id) => {
-    const defaultColor = '#818cf8'; // Índigo para Empleados
+    const defaultColor = '#f5a623'; // Naranja CNA principal
     const colors = {
-      1: '#f87171', // Rojo (Admin)
-      2: '#818cf8', // Índigo (Empleado)
-      3: '#4ade80', // Verde (RRHH)
-      4: '#fbbf24', // Ámbar (Coordinador)
-      5: '#22d3ee', // Celeste (Dirección)
+      1: '#d84315', // Naranja Quemado (SuperAdmin)
+      2: '#f5a623', // Naranja CNA (Empleado)
+      3: '#ffb300', // Ámbar Intenso (RRHH)
+      4: '#fbc02d', // Amarillo Oro (Coordinador)
+      5: '#ff8f00', // Naranja Vibrante (Dirección)
     };
     return colors[Number(id)] || defaultColor;
   };
 
   const rolColor = getRolColor(idRol);
+
 
 
   const drawerContent = (
