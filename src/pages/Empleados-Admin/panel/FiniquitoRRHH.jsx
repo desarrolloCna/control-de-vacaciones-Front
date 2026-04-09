@@ -1,8 +1,5 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { 
-    Box, Container, Card, CardContent, TextField, Typography, Button, 
-    List, ListItem, ListItemAvatar, Avatar, ListItemText, CircularProgress,
-    Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton, Alert, Chip
+    Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton, Alert, Chip,
+    LinearProgress, Tooltip as MuiTooltip
 } from "@mui/material";
 import Navbar from "../../../components/navBar/NavBar";
 import PrintIcon from '@mui/icons-material/Print';
@@ -12,6 +9,10 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import BackButton from "../../../components/BackButton/BackButton";
 import { useCheckSession } from "../../../services/session/checkSession";
 import api from "../../../config/api";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
+
 
 export default function FiniquitoRRHH() {
     useCheckSession();
@@ -107,17 +108,39 @@ export default function FiniquitoRRHH() {
     // Calcular resumen por período
     const getPeriodosSummary = () => {
         const summary = {};
+        // Primero agrupar créditos y débitos globales para los KPIs
+        let totalCreditos = 0;
+        let totalDebitos = 0;
+
         historial.forEach(item => {
             const p = item.periodo;
             if (!summary[p]) { summary[p] = { creditos: 0, debitos: 0 }; }
-            summary[p].creditos += Number(item.totalDiasAcreditados) || 0;
+            
+            if (item.tipoRegistro === 1) {
+                const cred = Number(item.totalDiasAcreditados) || 0;
+                summary[p].creditos += cred;
+                totalCreditos += cred;
+            } else if (item.tipoRegistro === 2) {
+                const deb = Number(item.diasSolicitados) || 0;
+                summary[p].debitos += deb;
+                totalDebitos += deb;
+            }
         });
-        // Ahora recorrer todos los registros de historial (no solo tipo 1)
-        return Object.keys(summary).map(p => ({
+
+        const periodos = Object.keys(summary).map(p => ({
             periodo: p,
+            creditos: summary[p].creditos,
+            debitos: summary[p].debitos,
+            percentage: summary[p].creditos > 0 ? Math.min(100, (summary[p].debitos / summary[p].creditos) * 100) : 0,
             saldo: summary[p].creditos - summary[p].debitos
         })).sort((a, b) => Number(b.periodo) - Number(a.periodo));
+
+        return { periodos, totalCreditos, totalDebitos };
     };
+
+    const { periodos, totalCreditos, totalDebitos } = getPeriodosSummary();
+    const saldoActual = totalCreditos - totalDebitos;
+
 
     return (
         <Box sx={{ minHeight: "100vh", bgcolor: "#f5f5f5" }}>
@@ -201,84 +224,111 @@ export default function FiniquitoRRHH() {
                                 <CloseIcon />
                             </IconButton>
                         </Box>
-                    </DialogTitle>
-                    <DialogContent dividers sx={{ bgcolor: '#f8fafc', p: 3 }}>
+                    </DialogT                    <DialogContent dividers sx={{ bgcolor: '#f8fafc', p: 4 }}>
                         {loadingHistorial ? (
                             <Box display="flex" justifyContent="center" p={4}><CircularProgress /></Box>
                         ) : historial.length === 0 ? (
                             <Alert severity="info" sx={{ mb: 2 }}>Este empleado no tiene registros de periodos de vacaciones.</Alert>
                         ) : (
                             <Box>
-                                <Alert severity="info" sx={{ mb: 3 }}>
-                                    <Typography variant="body2">
-                                        Total acumulado actual:{' '}
-                                        <Box component="span" fontWeight="bold" fontSize="1.1rem">
-                                            {historial.reduce((acc, p) => acc + (p.diasDisponiblesTotales || 0), 0)} días pendientes
-                                        </Box>
+                                {/* Resumen Global (Estado de Cuenta) */}
+                                <Grid container spacing={2} sx={{ mb: 4 }}>
+                                    <Grid item xs={12} md={4}>
+                                        <Paper elevation={0} sx={{ p: 2, textAlign: "center", bgcolor: "#E8F5E9", borderRadius: 3, border: "1px solid #C8E6C9" }}>
+                                            <Typography variant="overline" sx={{ fontWeight: 700, color: "#2E7D32" }}>Acreditado</Typography>
+                                            <Typography variant="h5" sx={{ color: "#1B5E20", fontWeight: 800 }}>+{totalCreditos} días</Typography>
+                                        </Paper>
+                                    </Grid>
+                                    <Grid item xs={12} md={4}>
+                                        <Paper elevation={0} sx={{ p: 2, textAlign: "center", bgcolor: "#FFEBEE", borderRadius: 3, border: "1px solid #FFCDD2" }}>
+                                            <Typography variant="overline" sx={{ fontWeight: 700, color: "#D32F2F" }}>Consumido</Typography>
+                                            <Typography variant="h5" sx={{ color: "#B71C1C", fontWeight: 800 }}>-{totalDebitos} días</Typography>
+                                        </Paper>
+                                    </Grid>
+                                    <Grid item xs={12} md={4}>
+                                        <Paper elevation={0} sx={{ p: 2, textAlign: "center", bgcolor: "#E3F2FD", borderRadius: 3, border: "1px solid #BBDEFB" }}>
+                                            <Typography variant="overline" sx={{ fontWeight: 700, color: "#1976D2" }}>Saldo Actual</Typography>
+                                            <Typography variant="h5" sx={{ color: "#0D47A1", fontWeight: 800 }}>{saldoActual} días</Typography>
+                                        </Paper>
+                                    </Grid>
+                                </Grid>
+
+                                <Box display="flex" alignItems="center" gap={1} sx={{ mb: 2 }}>
+                                    <Typography variant="subtitle1" fontWeight={800} color="#334155">
+                                        Balance Detallado por Período
                                     </Typography>
-                                </Alert>
+                                    <MuiTooltip title="Cálculo basado en ingresos y solicitudes autorizadas">
+                                        <IconButton size="small"><HelpOutlineIcon fontSize="small" /></IconButton>
+                                    </MuiTooltip>
+                                </Box>
+
                                 <Grid container spacing={2}>
-                                    {historial.map((periodo) => {
-                                        const saldo = periodo.diasDisponiblesTotales || 0;
-                                        const agotado = saldo <= 0;
+                                    {periodos.map((p) => {
+                                        const agotado = p.saldo <= 0;
                                         return (
-                                            <Grid item xs={12} key={periodo.idHistorial}>
-                                                <Card elevation={0} sx={{ borderRadius: 3, border: "2px solid", borderColor: agotado ? '#ef5350' : '#4F46E5' }}>
-                                                    <CardContent sx={{ p: 3 }}>
-                                                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                                                            <Typography variant="h6" fontWeight="800" sx={{ color: "#1A237E", display: 'flex', alignItems: 'center' }}>
-                                                                <CalendarTodayIcon sx={{ mr: 1 }} /> Período: {periodo.periodo}
+                                            <Grid item xs={12} sm={6} key={`p-${p.periodo}`}>
+                                                <Card elevation={0} sx={{ 
+                                                    borderRadius: 3, 
+                                                    border: "1px solid", 
+                                                    borderColor: agotado ? '#FEE2E2' : '#E2E8F0',
+                                                    bgcolor: agotado ? '#FFF5F5' : 'white'
+                                                }}>
+                                                    <CardContent sx={{ p: 2.5 }}>
+                                                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+                                                            <Typography variant="subtitle1" fontWeight="800" sx={{ color: "#1E293B" }}>
+                                                                Período {p.periodo}
                                                             </Typography>
                                                             <Chip 
-                                                                label={agotado ? `Agotado (${saldo} días)` : `Activo (${saldo} días)`}
-                                                                color={agotado ? "error" : "success"}
+                                                                label={agotado ? "Agotado" : "Activo"}
                                                                 size="small"
-                                                                sx={{ fontWeight: 'bold' }}
+                                                                sx={{ 
+                                                                    fontWeight: 'bold',
+                                                                    bgcolor: agotado ? "#EF4444" : "#10B981",
+                                                                    color: "white"
+                                                                }}
                                                             />
                                                         </Box>
-                                                        <Grid container spacing={2}>
-                                                            <Grid item xs={4}>
-                                                                <Box sx={{ p: 2, textAlign: 'center', bgcolor: '#f0f4f8', borderRadius: 2 }}>
-                                                                    <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>ACREDITADOS</Typography>
-                                                                    <Typography variant="h5" sx={{ fontWeight: 800, color: "success.main" }}>{periodo.totalDiasAcreditados}</Typography>
-                                                                </Box>
-                                                            </Grid>
-                                                            <Grid item xs={4}>
-                                                                <Box sx={{ p: 2, textAlign: 'center', bgcolor: '#f0f4f8', borderRadius: 2 }}>
-                                                                    <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>DEBITADOS</Typography>
-                                                                    <Typography variant="h5" sx={{ fontWeight: 800, color: "error.main" }}>{periodo.totalDiasDebitados || 0}</Typography>
-                                                                </Box>
-                                                            </Grid>
-                                                            <Grid item xs={4}>
-                                                                <Box sx={{ p: 2, textAlign: 'center', bgcolor: '#1A237E', borderRadius: 2, color: '#fff' }}>
-                                                                    <Typography variant="caption" sx={{ fontWeight: 'bold', opacity: 0.8 }}>DISPONIBLES</Typography>
-                                                                    <Typography variant="h5" sx={{ fontWeight: 800 }}>{saldo}</Typography>
-                                                                </Box>
-                                                            </Grid>
-                                                        </Grid>
+                                                        
+                                                        <Box sx={{ mb: 2 }}>
+                                                            <Box display="flex" justifyContent="space-between" mb={0.5}>
+                                                                <Typography variant="caption" color="text.secondary">Consumo del período</Typography>
+                                                                <Typography variant="caption" fontWeight={700}>{p.debitos} de {p.creditos} días</Typography>
+                                                            </Box>
+                                                            <LinearProgress 
+                                                                variant="determinate" 
+                                                                value={p.percentage} 
+                                                                sx={{ 
+                                                                    height: 6, 
+                                                                    borderRadius: 3, 
+                                                                    bgcolor: "#F1F5F9",
+                                                                    '& .MuiLinearProgress-bar': {
+                                                                        bgcolor: p.percentage >= 100 ? "#EF4444" : "#4F46E5",
+                                                                        borderRadius: 3
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </Box>
 
-                                                        {/* Botón de descargar finiquito: solo si el período está agotado */}
-                                                        <Box sx={{ mt: 2, textAlign: 'center' }}>
-                                                            {agotado ? (
+                                                        <Box display="flex" justifyContent="space-between" alignItems="center">
+                                                            <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                                                                Disponible: {p.saldo} días
+                                                            </Typography>
+                                                            {agotado && (
                                                                 <Button
                                                                     variant="contained"
                                                                     size="small"
                                                                     startIcon={<PrintIcon />}
-                                                                    onClick={() => handleDownloadFiniquito(periodo.periodo)}
+                                                                    onClick={() => handleDownloadFiniquito(p.periodo)}
                                                                     sx={{ 
                                                                         borderRadius: 2, 
                                                                         textTransform: 'none', 
-                                                                        fontWeight: 'bold',
-                                                                        bgcolor: '#4F46E5',
-                                                                        '&:hover': { bgcolor: '#3730A3' }
+                                                                        fontSize: '0.75rem',
+                                                                        bgcolor: '#EF4444',
+                                                                        '&:hover': { bgcolor: '#DC2626' }
                                                                     }}
                                                                 >
-                                                                    Descargar Finiquito - Período {periodo.periodo}
+                                                                    PDF
                                                                 </Button>
-                                                            ) : (
-                                                                <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                                                                    Finiquito no disponible — el período aún tiene días pendientes
-                                                                </Typography>
                                                             )}
                                                         </Box>
                                                     </CardContent>
@@ -290,6 +340,7 @@ export default function FiniquitoRRHH() {
                             </Box>
                         )}
                     </DialogContent>
+  </DialogContent>
                     <DialogActions sx={{ p: 2 }}>
                         <Button onClick={handleCloseModal} color="inherit">
                             Cerrar Ventana
