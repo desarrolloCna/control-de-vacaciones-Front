@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, styled, Avatar, Button, Popover, Typography, Box, Badge, IconButton, useTheme, Tooltip } from '@mui/material';
+import React, { useContext, useState } from 'react';
+import { Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, styled, Avatar, Button, Popover, Typography, Box, Badge, IconButton, useTheme, Tooltip, Collapse } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ContactsIcon from '@mui/icons-material/Contacts';
@@ -12,6 +12,9 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
 import TvIcon from '@mui/icons-material/Tv';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import PersonIcon from '@mui/icons-material/Person';
 import { getLocalStorageData } from '../../../services/session/getLocalStorageData.js';
 import useLogout from '../../../services/session/logout.js';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -39,16 +42,16 @@ const CustomDrawer = styled(Drawer)(({ theme }) => ({
 }));
 
 const SidebarListItem = styled(ListItem)(({ theme, active }) => ({
-  margin: '4px 12px',
-  borderRadius: '12px',
-  width: 'calc(100% - 24px)',
+  margin: '2px 10px',
+  borderRadius: '10px',
+  width: 'calc(100% - 20px)',
   backgroundColor: active ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
-  borderLeft: active ? `4px solid #818cf8` : '4px solid transparent',
+  borderLeft: active ? `3px solid #818cf8` : '3px solid transparent',
   transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-  padding: '12px 18px',
+  padding: '8px 14px',
   '&:hover': {
     backgroundColor: active ? 'rgba(99, 102, 241, 0.18)' : 'rgba(255, 255, 255, 0.05)',
-    transform: 'translateX(6px)',
+    transform: 'translateX(4px)',
   },
   '& .MuiListItemIcon-root': {
     transition: 'all 0.25s',
@@ -58,9 +61,10 @@ const SidebarListItem = styled(ListItem)(({ theme, active }) => ({
 
 const AvatarContainer = styled('div')({
   display: 'flex',
-  flexDirection: 'column',
+  flexDirection: 'row',
   alignItems: 'center',
-  padding: '32px 16px',
+  padding: '14px 18px',
+  gap: '12px',
   background: 'linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%)',
   borderBottom: '1px solid rgba(255,255,255,0.08)',
   position: 'relative'
@@ -68,17 +72,18 @@ const AvatarContainer = styled('div')({
 
 const StyledAvatar = styled(Avatar)(({ theme }) => ({
   cursor: 'pointer',
-  width: 76,
-  height: 76,
-  border: '3px solid rgba(129, 140, 248, 0.8)',
-  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
-  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+  width: 48,
+  height: 48,
+  border: '2px solid rgba(129, 140, 248, 0.8)',
+  boxShadow: '0 6px 16px rgba(0, 0, 0, 0.3)',
+  transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
   backgroundColor: '#4f46e5',
   fontWeight: 'bold',
-  fontSize: '1.8rem',
+  fontSize: '1.2rem',
+  flexShrink: 0,
   '&:hover': {
-    transform: 'scale(1.1) rotate(5deg)',
-    boxShadow: '0 15px 30px rgba(99, 102, 241, 0.4)',
+    transform: 'scale(1.08)',
+    boxShadow: '0 8px 20px rgba(99, 102, 241, 0.4)',
     borderColor: '#818cf8',
   }
 }));
@@ -88,6 +93,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   const location = useLocation();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [anchorElNotif, setAnchorElNotif] = React.useState(null);
+  const [perfilOpen, setPerfilOpen] = useState(false);
   const userData = getLocalStorageData();
   const userInitial = userData?.primerNombre?.charAt(0)?.toUpperCase() || 'U';
   const { handleLogout } = useLogout();
@@ -124,78 +130,66 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
 
   const isActive = (path) => location.pathname === path;
 
-  const menuItems = [
-    { text: 'Home', icon: <HomeIcon />, path: '/empleados/home' },
-    { text: 'Actualización de Datos', icon: <AppRegistrationIcon />, path: '/empleados/actualizar-datos' },
-    { text: 'Información Personal', icon: <ContactsIcon />, path: '/empleados/infoPersonal' },
-    { text: 'Familiares', icon: <PeopleIcon />, path: '/empleados/family' },
-    { text: 'Datos Laborales', icon: <WorkIcon />, path: '/empleados/informacion-laboral' },
-    { text: 'Información Profesional', icon: <SchoolIcon />, path: '/empleados/informacion-profesional' },
-    { text: 'Datos Generales', icon: <InfoIcon />, path: '/empleados/informacion-General' },
+  // Ítems principales — siempre visibles
+  const mainItems = [
+    { text: 'Inicio', icon: <HomeIcon />, path: '/empleados/home' },
     { text: 'Programar Vacaciones', icon: <VacationIcon />, path: '/empleados/programar-vacaciones' },
     // Calendario Institucional: SOLO Director General y Subdirector General
     ...(userData?.puesto && (userData.puesto.toUpperCase().includes("DIRECTOR GENERAL") || userData.puesto.toUpperCase().includes("SUBDIRECTOR GENERAL")) ? [{ text: 'Calendario Institucional', icon: <CalendarMonthIcon />, path: '/empleados/calendario' }] : []),
     // Dashboard Estratégico Ejecutivo: RRHH (1, 3) y Ejecutivos (5)
     ...([1, 3, 5].includes(Number(idRol)) || (userData?.puesto && (userData.puesto.toUpperCase().includes("DIRECTOR GENERAL") || userData.puesto.toUpperCase().includes("SUBDIRECTOR GENERAL"))) ? [{ text: 'Dashboard Estratégico', icon: <TrendingUpIcon />, path: '/dashboard-ejecutivo' }] : []),
     // Pantalla Kiosco: RRHH (Rol 1, 3) y Ejecutivos (Rol 5 o Director)
-    ...([1, 3, 5].includes(Number(idRol)) || (userData?.puesto && (userData.puesto.toUpperCase().includes("DIRECTOR GENERAL") || userData.puesto.toUpperCase().includes("SUBDIRECTOR GENERAL"))) ? [{ text: 'Lanzar Kiosco 📺', icon: <TvIcon />, path: '/kiosco' }] : []),
+    ...([1, 3, 5].includes(Number(idRol)) || (userData?.puesto && (userData.puesto.toUpperCase().includes("DIRECTOR GENERAL") || userData.puesto.toUpperCase().includes("SUBDIRECTOR GENERAL"))) ? [{ text: 'Pantalla Kiosco 📺', icon: <TvIcon />, path: '/kiosco' }] : []),
   ];
+
+  // Ítems de perfil — colapsables bajo "Mi Perfil"
+  const profileItems = [
+    { text: 'Actualización de Datos', icon: <AppRegistrationIcon />, path: '/empleados/actualizar-datos' },
+    { text: 'Información Personal', icon: <ContactsIcon />, path: '/empleados/infoPersonal' },
+    { text: 'Familiares', icon: <PeopleIcon />, path: '/empleados/family' },
+    { text: 'Datos Laborales', icon: <WorkIcon />, path: '/empleados/informacion-laboral' },
+    { text: 'Info. Profesional', icon: <SchoolIcon />, path: '/empleados/informacion-profesional' },
+    { text: 'Datos Generales', icon: <InfoIcon />, path: '/empleados/informacion-General' },
+  ];
+
+  // Auto-expandir si usuario está en una ruta de perfil
+  const isInProfileSection = profileItems.some(item => isActive(item.path));
 
   const drawerContent = (
     <>
-      <Box sx={{ p: 4, textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <Typography 
-          variant="h5" 
-          sx={{ 
-            fontWeight: 900, 
-            color: '#818cf8', 
-            lineHeight: 1,
-            letterSpacing: '-0.5px',
-            textShadow: '0 2px 10px rgba(129, 140, 248, 0.3)'
-          }}
-        >
-          CNA Sistema
-        </Typography>
-        <Typography 
-          variant="caption" 
-          sx={{ 
-            color: 'rgba(255,255,255,0.4)', 
-            textTransform: 'uppercase', 
-            letterSpacing: 2,
-            fontWeight: 700,
-            fontSize: '0.65rem',
-            mt: 0.5,
-            display: 'block'
-          }}
-        >
-          Portal de Vacaciones
-        </Typography>
-      </Box>
+      {/* Header compacto: Logo + Avatar en línea */}
       <AvatarContainer>
         <StyledAvatar 
-          sx={{ bgcolor: '#3f51b5', color: '#fff', mb: 1.5 }} 
+          sx={{ bgcolor: '#3f51b5', color: '#fff' }} 
           onClick={handleAvatarClick}
         >
           {userInitial}
         </StyledAvatar>
-        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-          {userData?.primerNombre || 'Usuario'}
-        </Typography>
-        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-          {userData?.puesto || 'Colaborador'}
-        </Typography>
+        <Box sx={{ overflow: 'hidden' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2, fontSize: '0.9rem' }}>
+            {userData?.primerNombre || 'Usuario'} {userData?.primerApellido?.charAt(0) || ''}{userData?.primerApellido ? '.' : ''}
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.7rem', lineHeight: 1.2, display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {userData?.puesto || 'Colaborador'}
+          </Typography>
+          <Typography variant="caption" sx={{ color: '#818cf8', fontSize: '0.65rem', fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase' }}>
+            CNA Sistema
+          </Typography>
+        </Box>
       </AvatarContainer>
+
       <List sx={{ 
-        pt: 2, 
-        pb: 2,
+        pt: 1, 
+        pb: 1,
         flexGrow: 1, 
         overflowY: 'auto', 
-        minHeight: 0, // Fix critical de scroll en flexbox (evita que la vista desborde la pantalla)
-        '&::-webkit-scrollbar': { width: '5px' }, 
-        '&::-webkit-scrollbar-thumb': { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '5px' },
+        minHeight: 0,
+        '&::-webkit-scrollbar': { width: '4px' }, 
+        '&::-webkit-scrollbar-thumb': { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '4px' },
         '&::-webkit-scrollbar-thumb:hover': { backgroundColor: 'rgba(255,255,255,0.4)' }
       }}>
-        {menuItems.map((item) => (
+        {/* ===== NAVEGACIÓN PRINCIPAL ===== */}
+        {mainItems.map((item) => (
           <SidebarListItem 
             button 
             key={item.text}
@@ -209,21 +203,22 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
             }}
             active={isActive(item.path) ? 1 : 0}
           >
-            <ListItemIcon sx={{ minWidth: 40, color: isActive(item.path) ? 'secondary.light' : 'rgba(255,255,255,0.7)' }}>
+            <ListItemIcon sx={{ minWidth: 36, color: isActive(item.path) ? 'secondary.light' : 'rgba(255,255,255,0.7)' }}>
               {item.icon}
             </ListItemIcon>
             <ListItemText 
               primary={item.text} 
               primaryTypographyProps={{ 
-                fontSize: '0.9rem', 
+                fontSize: '0.85rem', 
                 fontWeight: isActive(item.path) ? 700 : 500,
                 color: isActive(item.path) ? '#ffffff' : 'rgba(255,255,255,0.75)',
-                letterSpacing: '0.3px'
+                letterSpacing: '0.2px'
               }} 
             />
           </SidebarListItem>
         ))}
 
+        {/* Solicitudes (Coordinador / Director) */}
         { (Number(idRol) === 5 || (userData?.puesto && (userData.puesto.includes("Director General") || userData.puesto.includes("Subdirector General")))) && (
           <SidebarListItem 
             button 
@@ -233,7 +228,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
             }}
             active={isActive('/empleados/solicitudes') ? 1 : 0}
           >
-            <ListItemIcon sx={{ minWidth: 40 }}>
+            <ListItemIcon sx={{ minWidth: 36 }}>
               <Badge badgeContent={notificationCount} color="error">
                 <CheckCircleIcon sx={{ color: isActive('/empleados/solicitudes') ? 'secondary.light' : 'rgba(255,255,255,0.7)' }} />
               </Badge>
@@ -241,14 +236,66 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
             <ListItemText 
               primary="Solicitudes" 
               primaryTypographyProps={{ 
-                fontSize: '0.9rem', 
+                fontSize: '0.85rem', 
                 fontWeight: isActive('/empleados/solicitudes') ? 700 : 500,
                 color: isActive('/empleados/solicitudes') ? '#ffffff' : 'rgba(255,255,255,0.75)',
-                letterSpacing: '0.3px'
+                letterSpacing: '0.2px'
               }} 
             />
           </SidebarListItem>
         )}
+
+        {/* ===== DIVIDER ===== */}
+        <Divider sx={{ my: 1, mx: 2, borderColor: 'rgba(255,255,255,0.08)' }} />
+
+        {/* ===== MI PERFIL (colapsable) ===== */}
+        <SidebarListItem 
+          button 
+          onClick={() => setPerfilOpen(!perfilOpen)}
+          sx={{ mb: 0 }}
+        >
+          <ListItemIcon sx={{ minWidth: 36, color: isInProfileSection ? '#818cf8' : 'rgba(255,255,255,0.7)' }}>
+            <PersonIcon />
+          </ListItemIcon>
+          <ListItemText 
+            primary="Mi Perfil" 
+            primaryTypographyProps={{ 
+              fontSize: '0.85rem', 
+              fontWeight: (perfilOpen || isInProfileSection) ? 700 : 500,
+              color: (perfilOpen || isInProfileSection) ? '#ffffff' : 'rgba(255,255,255,0.75)',
+              letterSpacing: '0.2px'
+            }} 
+          />
+          {(perfilOpen || isInProfileSection) ? <ExpandLess sx={{ color: 'rgba(255,255,255,0.5)', fontSize: 20 }} /> : <ExpandMore sx={{ color: 'rgba(255,255,255,0.5)', fontSize: 20 }} />}
+        </SidebarListItem>
+        <Collapse in={perfilOpen || isInProfileSection} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {profileItems.map((item) => (
+              <SidebarListItem 
+                button 
+                key={item.text}
+                onClick={() => {
+                  navigate(item.path);
+                  if(mobileOpen && handleDrawerToggle) handleDrawerToggle(); 
+                }}
+                active={isActive(item.path) ? 1 : 0}
+                sx={{ pl: 4 }}
+              >
+                <ListItemIcon sx={{ minWidth: 32, color: isActive(item.path) ? 'secondary.light' : 'rgba(255,255,255,0.5)' }}>
+                  {React.cloneElement(item.icon, { sx: { fontSize: 18 } })}
+                </ListItemIcon>
+                <ListItemText 
+                  primary={item.text} 
+                  primaryTypographyProps={{ 
+                    fontSize: '0.8rem', 
+                    fontWeight: isActive(item.path) ? 600 : 400,
+                    color: isActive(item.path) ? '#ffffff' : 'rgba(255,255,255,0.6)',
+                  }} 
+                />
+              </SidebarListItem>
+            ))}
+          </List>
+        </Collapse>
       </List>
       <Box sx={{ 
         p: 2.5, 
