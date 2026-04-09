@@ -1,3 +1,7 @@
+import React, { useState, useMemo, useEffect } from "react";
+import { 
+    Box, Container, Card, CardContent, TextField, Typography, Button, 
+    List, ListItem, ListItemAvatar, Avatar, ListItemText, CircularProgress,
     Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton, Alert, Chip,
     LinearProgress, Tooltip as MuiTooltip
 } from "@mui/material";
@@ -224,7 +228,8 @@ export default function FiniquitoRRHH() {
                                 <CloseIcon />
                             </IconButton>
                         </Box>
-                    </DialogT                    <DialogContent dividers sx={{ bgcolor: '#f8fafc', p: 4 }}>
+                    </DialogTitle>
+                    <DialogContent dividers sx={{ bgcolor: '#f8fafc', p: 4 }}>
                         {loadingHistorial ? (
                             <Box display="flex" justifyContent="center" p={4}><CircularProgress /></Box>
                         ) : historial.length === 0 ? (
@@ -340,7 +345,6 @@ export default function FiniquitoRRHH() {
                             </Box>
                         )}
                     </DialogContent>
-  </DialogContent>
                     <DialogActions sx={{ p: 2 }}>
                         <Button onClick={handleCloseModal} color="inherit">
                             Cerrar Ventana
