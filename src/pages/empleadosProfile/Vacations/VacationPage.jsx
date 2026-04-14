@@ -445,10 +445,9 @@ const VacationApp = () => {
           sx={{ mb: 4 }}
         >
           <Button
-            variant="contained"
-            color="primary"
+            variant={canRequestVacation() ? "contained" : "outlined"}
+            color={canRequestVacation() ? "primary" : "inherit"}
             onClick={handleProgramar}
-            disabled={!canRequestVacation()}
             startIcon={<EventAvailableIcon />}
             sx={{
               textTransform: 'none',
@@ -456,8 +455,14 @@ const VacationApp = () => {
               borderRadius: 2,
               px: 3,
               py: 1,
-              boxShadow: 2,
-              '&:hover': { boxShadow: 4 }
+              boxShadow: canRequestVacation() ? 2 : 0,
+              bgcolor: canRequestVacation() ? undefined : 'rgba(0,0,0,0.05)',
+              color: canRequestVacation() ? undefined : 'text.disabled',
+              borderColor: canRequestVacation() ? undefined : 'transparent',
+              '&:hover': { 
+                  boxShadow: canRequestVacation() ? 4 : 0,
+                  bgcolor: canRequestVacation() ? undefined : 'rgba(0,0,0,0.08)'
+              }
             }}
           >
             {canRequestVacation() ? 'Programar Vacaciones' : 'Sin días disponibles'}
@@ -1279,20 +1284,22 @@ const VacationApp = () => {
           <DialogTitle id="alert-dialog-title" sx={{ color: "#d32f2f" }}>
             <Box display="flex" alignItems="center">
               <ErrorIcon color="error" sx={{ mr: 1 }} />
-              Límite de días alcanzado
+              Días de vacaciones no disponibles
             </Box>
           </DialogTitle>
           <DialogContent>
-            <Typography variant="body1" id="alert-dialog-description">
-              Has alcanzado el límite máximo de días de vacaciones para este período o no cuentas con días disponibles.
-              No puedes solicitar días.
+            <Typography variant="body1" id="alert-dialog-description" sx={{ fontWeight: '500' }}>
+              No cumple con los requisitos del <strong>Artículo 70</strong> del Reglamento del Consejo Nacional de Adopciones.
             </Typography>
-            <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
-              Si necesitas ajustar tus vacaciones, por favor contacta al departamento de RRHH.
+            <Typography variant="body2" sx={{ mt: 2 }}>
+              Los empleados que no hayan computado el año continuo de labores o que hayan agotado su saldo, no podrán ser programados en el Plan de Vacaciones.
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic', p: 1.5, bgcolor: '#fff3e0', borderLeft: '4px solid #ff9800', borderRadius: 1 }}>
+              * Si se trata de un caso especial aprobado por la autoridad competente, comuníquese con Recursos Humanos para habilitar un permiso especial en el sistema.
             </Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseAlertDialog} color="primary" autoFocus>
+            <Button onClick={handleCloseAlertDialog} color="primary" variant="contained" sx={{ m: 1 }}>
               Entendido
             </Button>
           </DialogActions>
