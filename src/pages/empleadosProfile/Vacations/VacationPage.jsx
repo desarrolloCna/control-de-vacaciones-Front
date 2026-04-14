@@ -418,21 +418,35 @@ const VacationApp = () => {
           </Grid>
 
           <Grid item xs={12} sm={4} md={3}>
-            <Paper elevation={2} sx={{ p: 2.5, textAlign: 'center', bgcolor: totaldiasDisponibles === 0 ? '#fffbee' : '#e8f5e9', borderRadius: 2, borderLeft: `4px solid ${totaldiasDisponibles > 0 ? '#4caf50' : '#f44336'}`, transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 } }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-                Días Disponibles
-              </Typography>
-              <Typography
-                variant="h4"
-                sx={{
-                  color: totaldiasDisponibles > 0 ? '#2e7d32' : '#c62828',
-                  fontWeight: 700,
-                  mt: 1
-                }}
-              >
-                {totaldiasDisponibles}
-              </Typography>
-            </Paper>
+            <Tooltip
+              title={
+                totaldiasDisponibles === 0
+                  ? "Su saldo consolidado es 0. Usted cuenta con días proporcionales en curso que aún no han sido liberados y que solo pueden solicitarse mediante un permiso especial en RRHH (Art. 70)."
+                  : ""
+              }
+              arrow
+              placement="top"
+              disableHoverListener={totaldiasDisponibles > 0}
+            >
+              <Paper elevation={2} sx={{ p: 2.5, textAlign: 'center', bgcolor: totaldiasDisponibles === 0 ? '#fffbee' : '#e8f5e9', borderRadius: 2, borderLeft: `4px solid ${totaldiasDisponibles > 0 ? '#4caf50' : '#f44336'}`, transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 }, cursor: totaldiasDisponibles === 0 ? 'help' : 'default' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.secondary', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  Días Disponibles
+                  {totaldiasDisponibles === 0 && (
+                    <InfoIcon sx={{ ml: 0.5, fontSize: 18, color: '#f57c00' }} />
+                  )}
+                </Typography>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    color: totaldiasDisponibles > 0 ? '#2e7d32' : '#c62828',
+                    fontWeight: 700,
+                    mt: 1
+                  }}
+                >
+                  {totaldiasDisponibles}
+                </Typography>
+              </Paper>
+            </Tooltip>
           </Grid>
         </Grid>
 
