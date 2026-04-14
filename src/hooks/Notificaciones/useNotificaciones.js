@@ -106,8 +106,11 @@ export const useNotificaciones = () => {
       }
     }
 
-    if (solicitudesU && solicitudesU.length > 0) {
-      const autorizadas = solicitudesU.filter(s => s.estadoSolicitud === "autorizadas");
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const myIdEmpleado = userData?.idUsuario || userData?.idEmpleado || userData?.idInfoPersonal;
+
+    if (solicitudesU && solicitudesU.length > 0 && myIdEmpleado) {
+      const autorizadas = solicitudesU.filter(s => s.estadoSolicitud === "autorizadas" && s.idEmpleado === myIdEmpleado);
       autorizadas.forEach(sol => {
         const fechaInicio = dayjs(sol.fechaInicioVacaciones).startOf('day');
         const diffDays = fechaInicio.diff(hoyDate, 'day');
@@ -126,7 +129,6 @@ export const useNotificaciones = () => {
       });
     }
 
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     if (userData?.fechaIngreso) {
       const fechaIngreso = dayjs(userData.fechaIngreso);
       if (fechaIngreso.month() === hoyDate.month() && fechaIngreso.date() === hoyDate.date()) {
