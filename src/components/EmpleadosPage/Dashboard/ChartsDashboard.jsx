@@ -88,11 +88,11 @@ const ChartsDashboard = () => {
                   data={pieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={50}
+                  outerRadius={70}
                   paddingAngle={5}
                   dataKey="value"
-                  label={({ name, value }) => `${name} (${value})`}
+                  label={false}
                   labelLine={false}
                 >
                   {pieData.map((entry, index) => (
@@ -103,7 +103,13 @@ const ChartsDashboard = () => {
                   contentStyle={{ backgroundColor: theme.palette.background.paper, color: textColor }} 
                   itemStyle={{ color: textColor }}
                 />
-                <Legend />
+                <Legend 
+                  formatter={(value, entry) => (
+                    <span style={{ color: theme.palette.text.primary }}>
+                      {value}: {entry.payload.value}
+                    </span>
+                  )}
+                />
               </PieChart>
             </ResponsiveContainer>
           </Box>
