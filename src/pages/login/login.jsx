@@ -96,7 +96,7 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
+  const darkMode = false;
   const { authenticate, loading, error } = useContext(AuthContext);
   useRedirectLogin();
   const { alertVisible } = useErrorAlertTemp(error);
@@ -358,19 +358,7 @@ export default function SignIn() {
                     fontWeight: 600,
                   }}
                 />
-                <Tooltip title={darkMode ? "Modo claro" : "Modo oscuro"} arrow>
-                  <IconButton
-                    onClick={() => setDarkMode(!darkMode)}
-                    size="small"
-                    sx={{
-                      color: darkMode ? "#ffd580" : "#999",
-                      transition: "all 0.3s ease",
-                      "&:hover": { bgcolor: darkMode ? "rgba(255,255,255,0.1)" : "#f0f0f0" },
-                    }}
-                  >
-                    {darkMode ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
-                  </IconButton>
-                </Tooltip>
+
               </Box>
 
               {/* Title */}
