@@ -136,8 +136,8 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
     { text: 'Programar Vacaciones', icon: <VacationIcon />, path: '/empleados/programar-vacaciones' },
     // Calendario Institucional: SOLO Director General y Subdirector General
     ...(userData?.puesto && (userData.puesto.toUpperCase().includes("DIRECTOR GENERAL") || userData.puesto.toUpperCase().includes("SUBDIRECTOR GENERAL")) ? [{ text: 'Calendario Institucional', icon: <CalendarMonthIcon />, path: '/empleados/calendario' }] : []),
-    // Dashboard Estratégico Ejecutivo: RRHH (1, 3) y Ejecutivos (5)
-    ...([1, 3, 5].includes(Number(idRol)) || (userData?.puesto && (userData.puesto.toUpperCase().includes("DIRECTOR GENERAL") || userData.puesto.toUpperCase().includes("SUBDIRECTOR GENERAL"))) ? [{ text: 'Dashboard Estratégico', icon: <TrendingUpIcon />, path: '/dashboard-ejecutivo' }] : []),
+    // Dashboard Estratégico Ejecutivo: Solo Director y Subdirector
+    ...(userData?.puesto && (userData.puesto.toUpperCase().includes("DIRECTOR GENERAL") || userData.puesto.toUpperCase().includes("SUBDIRECTOR GENERAL")) ? [{ text: 'Dashboard Estratégico', icon: <TrendingUpIcon />, path: '/dashboard-ejecutivo' }] : []),
     // Pantalla Kiosco: RRHH (Rol 1, 3) y Ejecutivos (Rol 5 o Director)
     ...([1, 3, 5].includes(Number(idRol)) || (userData?.puesto && (userData.puesto.toUpperCase().includes("DIRECTOR GENERAL") || userData.puesto.toUpperCase().includes("SUBDIRECTOR GENERAL"))) ? [{ text: 'Pantalla Kiosco 📺', icon: <TvIcon />, path: '/kiosco' }] : []),
   ];
