@@ -142,7 +142,9 @@ const ProgramarVacacionesPage = () => {
       "Secretaría General",
       "Unidad de Auditoría Interna",
       "Unidad de Asesoría Jurídica",
-      "Unidad de Comunicación Social"
+      "Unidad de Comunicación Social",
+      "Coordinación de Equipo Multidisciplinario",
+      "Unidad de Registro"
     ];
     if (unidadesReportanADireccion.includes(unidad)) {
       if (isJefe) {
@@ -156,11 +158,9 @@ const ProgramarVacacionesPage = () => {
     // 3. Nivel de Unidades (Reportan a Subdirección General)
     const unidadesReportanASubdireccion = [
       "Unidad de Tecnologías de la Información y Comunicación",
-      "Coordinación de Equipo Multidisciplinario",
       "Unidad de Recursos Humanos",
       "Unidad de Administración Financiera",
-      "Coordinación de Planificación",
-      "Unidad de Registro"
+      "Coordinación de Planificación"
     ];
     if (unidadesReportanASubdireccion.includes(unidad)) {
       if (isJefe) {
