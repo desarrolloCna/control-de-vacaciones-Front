@@ -114,6 +114,15 @@ const ProgramarVacacionesPage = () => {
     fetchExcepcion();
   }, [idEmpleado]);
 
+  useEffect(() => {
+    if (coordinadoresList && coordinadoresList.length > 0 && unidad && !selectedCoordinador) {
+       const matchingCoordinador = coordinadoresList.find(c => c.coordinadorUnidad === unidad);
+       if (matchingCoordinador) {
+           setSelectedCoordinador(matchingCoordinador.idCoordinador);
+       }
+    }
+  }, [coordinadoresList, unidad]);
+
   const handleStartDateChange = (e) => {
     const selectedDate = e.target.value;
     if (!esDiaLaboral(selectedDate)) {
@@ -458,6 +467,9 @@ const ProgramarVacacionesPage = () => {
                     </MenuItem>
                   ))}
                 </Select>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, ml: 1, display: 'block' }}>
+                  Si no se encuentra tu jefe, selecciona al jefe inmediato superior de la lista.
+                </Typography>
               </FormControl>
             </Grid>
 

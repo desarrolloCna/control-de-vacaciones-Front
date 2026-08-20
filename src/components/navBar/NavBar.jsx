@@ -217,19 +217,7 @@ function Navbar() {
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", ml: 2, gap: 2 }}>
-          
-          <Tooltip title={theme.palette.mode === 'dark' ? "Modo Claro" : "Modo Oscuro"}>
-            <IconButton 
-              color="inherit" 
-              onClick={colorMode.toggleColorMode}
-              sx={{ 
-                bgcolor: "rgba(255,255,255,0.1)", 
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } 
-              }}
-            >
-              {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-            </IconButton>
-          </Tooltip>
+
 
           <Tooltip title="Notificaciones">
             <IconButton 

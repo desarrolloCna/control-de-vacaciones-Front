@@ -334,7 +334,7 @@ const HomePage = () => {
               </Box>
             </Paper>
 
-            <Box sx={{ maxHeight: 350, overflow: 'hidden' }}>
+            <Box sx={{ height: 400 }}>
               <CumpleanerosWidget />
             </Box>
           </Grid>

@@ -363,20 +363,6 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
         </Tooltip>
         
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Tooltip title={themeContext.palette.mode === 'dark' ? "Modo Claro" : "Modo Oscuro"}>
-            <IconButton 
-              onClick={colorMode.toggleColorMode} 
-              color="inherit"
-              sx={{ 
-                bgcolor: "rgba(255, 255, 255, 0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.12)', transform: 'translateY(-2px)' },
-                transition: 'all 0.3s'
-              }}
-            >
-              {themeContext.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-            </IconButton>
-          </Tooltip>
         </Box>
       </Box>
     </>
