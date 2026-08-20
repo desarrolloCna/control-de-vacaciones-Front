@@ -52,10 +52,10 @@ const CumpleanerosWidget = () => {
       {loading ? (
         <Box display="flex" justifyContent="center" p={3}><CircularProgress size={30} /></Box>
       ) : cumpleaneros.length > 0 ? (
-        <List sx={{ width: '100%', bgcolor: 'background.paper', p: 0 }}>
+        <List sx={{ width: '100%', bgcolor: 'background.paper', p: 0, overflowY: 'auto', maxHeight: '300px', flex: 1, pr: 1, '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: pink[200], borderRadius: '10px' } }}>
           {cumpleaneros.map((cumple, i) => {
-            const date = new Date(cumple.fechaNacimiento);
-            const diaV = date.getDate() + 1; // Ajuste por UTC
+            // Extraer el día directamente del string (YYYY-MM-DD) para evitar problemas de zona horaria
+            const diaV = parseInt(cumple.fechaNacimiento.split('-')[2].substring(0, 2), 10);
             return (
               <React.Fragment key={i}>
                 <ListItem alignItems="flex-start" sx={{ px: 0, py: 1 }}>
