@@ -47,6 +47,7 @@ import { consultarExcepcionLimiteService } from "../../../services/vacacionesesp
 import NotificationSnackbar from "../../../components/UI/NotificationSnackbar";
 import ConfirmationModal from "../../../components/UI/ConfirmationModal";
 import { useDatosLaborales } from "../../../hooks/EmpleadosHooks/useDatosLaboales.js";
+import { useJerarquiaUnidades } from "../../../hooks/UnidadesHooks/useJerarquiaUnidades.js";
 
 const ProgramarVacacionesPage = () => {
   const isSessionVerified = useCheckSession();
@@ -75,6 +76,7 @@ const ProgramarVacacionesPage = () => {
   const { solicitud, diasValidos, errorS, loadingS, sinDias, hasGestion, diasDebitados, diasDisponiblesT, diasSolicitablesT } = useSolicitudById();
   const { coordinadoresList, errorCoordinadoresList, loadingCoordinadoresList } = useGetCoordinadoresList();
   const { datosLaborales, loading: loadingDL } = useDatosLaborales();
+  const { jerarquia, loadingJerarquia } = useJerarquiaUnidades();
 
   const { isLoading, errorDF } = useDiasFestivos();
   const minStartDate = dayjs().add(1, "day").format("YYYY-MM-DD");
@@ -129,69 +131,27 @@ const ProgramarVacacionesPage = () => {
                    puestoUser.toLowerCase().includes("jefe") || 
                    puestoUser.toLowerCase().includes("secretario");
 
-    // 1. Director General
+    // 1. Caso especial: Director General
     if (puestoUser === "Director General") {
       return coordinadoresList.filter(c => 
         c.coordinadorUnidad === "Subdirección General" || c.coordinadorUnidad === "Unidad de Recursos Humanos"
       );
     }
 
-    // 2. Nivel de Subdirección y Asesoría Directa (Reportan a Dirección General)
-    const unidadesReportanADireccion = [
-      "Subdirección General",
-      "Secretaría General",
-      "Unidad de Auditoría Interna",
-      "Unidad de Asesoría Jurídica",
-      "Unidad de Comunicación Social",
-      "Coordinación de Equipo Multidisciplinario",
-      "Unidad de Registro"
-    ];
-    if (unidadesReportanADireccion.includes(unidad)) {
-      if (isJefe) {
-        return coordinadoresList.filter(c => c.coordinadorUnidad === "Dirección General");
-      } else {
-        const match = coordinadoresList.filter(c => c.coordinadorUnidad === unidad);
-        return match.length > 0 ? match : coordinadoresList;
-      }
+    // 2. Jerarquía dinámica de base de datos
+    if (isJefe) {
+      // Buscar a quién reporta esta unidad
+      const node = jerarquia.find(j => j.unidad === unidad);
+      const unidadPadre = node ? node.reportaA : unidad; // Si no tiene superior, se reporta a sí mismo (fall-safe)
+      
+      const match = coordinadoresList.filter(c => c.coordinadorUnidad === unidadPadre);
+      return match.length > 0 ? match : coordinadoresList;
+    } else {
+      // Los empleados regulares reportan al coordinador de su propia unidad
+      const match = coordinadoresList.filter(c => c.coordinadorUnidad === unidad);
+      return match.length > 0 ? match : coordinadoresList;
     }
-
-    // 3. Nivel de Unidades (Reportan a Subdirección General)
-    const unidadesReportanASubdireccion = [
-      "Unidad de Tecnologías de la Información y Comunicación",
-      "Unidad de Recursos Humanos",
-      "Unidad de Administración Financiera",
-      "Coordinación de Planificación"
-    ];
-    if (unidadesReportanASubdireccion.includes(unidad)) {
-      if (isJefe) {
-        return coordinadoresList.filter(c => c.coordinadorUnidad === "Subdirección General");
-      } else {
-        const match = coordinadoresList.filter(c => c.coordinadorUnidad === unidad);
-        return match.length > 0 ? match : coordinadoresList;
-      }
-    }
-
-    // 4. Nivel de Subcoordinaciones (Reportan a Equipo Multidisciplinario)
-    const unidadesReportanAEquipoMulti = [
-      "Subcoordinación de Atención al Niño",
-      "Subcoordinación de Atención y Apoyo a la Familia Adoptiva y el Niño Adoptado",
-      "Subcoordinación de Atención y Apoyo a la Familia Biológica",
-      "Subcoordinación de Autorización y Control de Hogares de Protección y Organismos Internacionales"
-    ];
-    if (unidadesReportanAEquipoMulti.includes(unidad)) {
-      if (puestoUser.toLowerCase().includes("subcoordinador") || isJefe) {
-        return coordinadoresList.filter(c => c.coordinadorUnidad === "Coordinación de Equipo Multidisciplinario");
-      } else {
-        const match = coordinadoresList.filter(c => c.coordinadorUnidad === unidad);
-        return match.length > 0 ? match : coordinadoresList;
-      }
-    }
-
-    // 5. Excepción General (Cualquier otra unidad, como Presupuesto, Contabilidad, etc.)
-    // Asumimos que si no es ninguna de las anteriores, lo aprueba el coordinador de su unidad.
-    const match = coordinadoresList.filter(c => c.coordinadorUnidad === unidad);
-    return match.length > 0 ? match : coordinadoresList;
-  }, [coordinadoresList, showAllCoordinators, unidad, datosLaborales]);
+  }, [coordinadoresList, showAllCoordinators, unidad, datosLaborales, jerarquia]);
 
   useEffect(() => {
     if (filteredCoordinadores && filteredCoordinadores.length > 0 && !selectedCoordinador) {
