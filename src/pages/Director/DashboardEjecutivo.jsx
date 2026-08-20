@@ -261,9 +261,21 @@ export default function DashboardEjecutivo() {
                           </TableHead>
                           <TableBody>
                             {empleadosFiltrados.map((emp) => (
-                              <TableRow key={emp.idEmpleado} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                <TableCell sx={{ fontWeight: 600, color: "#334155" }}>{emp.nombreCompleto}</TableCell>
-                                <TableCell sx={{ color: "#64748b", fontSize: "0.85rem" }}>{emp.puesto}</TableCell>
+                              <TableRow 
+                                key={emp.idEmpleado} 
+                                hover 
+                                sx={{ 
+                                  '&:last-child td, &:last-child th': { border: 0 },
+                                  bgcolor: emp.esAprobador === 1 ? 'rgba(79, 70, 229, 0.05)' : 'inherit'
+                                }}
+                              >
+                                <TableCell sx={{ fontWeight: emp.esAprobador === 1 ? 800 : 600, color: emp.esAprobador === 1 ? "#4F46E5" : "#334155" }}>
+                                  {emp.nombreCompleto}
+                                  {emp.esAprobador === 1 && (
+                                    <Chip label="Jefatura" size="small" sx={{ ml: 1, height: 20, fontSize: '0.65rem', bgcolor: '#4F46E5', color: 'white', fontWeight: 700 }} />
+                                  )}
+                                </TableCell>
+                                <TableCell sx={{ color: emp.esAprobador === 1 ? "#4F46E5" : "#64748b", fontSize: "0.85rem", fontWeight: emp.esAprobador === 1 ? 600 : 400 }}>{emp.puesto}</TableCell>
                                 <TableCell align="center" sx={{ color: "#64748b", fontSize: "0.85rem" }}>{emp.fechaIngreso}</TableCell>
                                 <TableCell align="right">
                                   <Chip 

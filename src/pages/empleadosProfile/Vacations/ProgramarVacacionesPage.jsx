@@ -123,7 +123,7 @@ const ProgramarVacacionesPage = () => {
     if (!coordinadoresList) return [];
     if (showAllCoordinators) return coordinadoresList;
 
-    const puestoUser = datosLaborales?.puesto?.trim() || "";
+    const puestoUser = (datosLaborales?.puesto || "").trim();
     const isJefe = puestoUser.toLowerCase().includes("director") || 
                    puestoUser.toLowerCase().includes("coordinador") || 
                    puestoUser.toLowerCase().includes("jefe") || 
