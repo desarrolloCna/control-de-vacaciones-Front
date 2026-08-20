@@ -24,6 +24,9 @@ const CumpleanerosWidget = () => {
     fetchCumpleaneros();
   }, []);
 
+  const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  const currentMonth = monthNames[new Date().getMonth()];
+
   return (
     <Paper
       elevation={0}
@@ -45,14 +48,14 @@ const CumpleanerosWidget = () => {
           <CakeIcon sx={{ fontSize: 28, color: pink[600] }} />
         </Box>
         <Typography variant="h6" sx={{ fontWeight: 700, color: "text.primary" }}>
-          Cumpleañeros del Mes
+          Cumpleañeros de {currentMonth}
         </Typography>
       </Box>
 
       {loading ? (
         <Box display="flex" justifyContent="center" p={3}><CircularProgress size={30} /></Box>
       ) : cumpleaneros.length > 0 ? (
-        <List sx={{ width: '100%', bgcolor: 'background.paper', p: 0, overflowY: 'auto', maxHeight: '300px', flex: 1, pr: 1, '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: pink[200], borderRadius: '10px' } }}>
+        <List sx={{ width: '100%', bgcolor: 'background.paper', p: 0, overflowY: 'auto', flex: 1, pr: 1, '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: pink[200], borderRadius: '10px' } }}>
           {cumpleaneros.map((cumple, i) => {
             // Extraer el día directamente del string (YYYY-MM-DD) para evitar problemas de zona horaria
             const diaV = parseInt(cumple.fechaNacimiento.split('-')[2].substring(0, 2), 10);
