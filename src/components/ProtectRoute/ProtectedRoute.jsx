@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { getLocalStorageData } from "../../services/session/getLocalStorageData";
 
-const ProtectedRoute = ({ allowedRoles }) => {
+const ProtectedRoute = ({ allowedRoles, allowedPuestos }) => {
   const userData = getLocalStorageData();
 
   if (!userData) {
@@ -10,9 +10,17 @@ const ProtectedRoute = ({ allowedRoles }) => {
     return <Navigate to="/" />;
   }
 
-  if (!allowedRoles.includes(userData.idRol)) {
-    // Si el usuario no tiene el rol permitido, redirigir a "acceso denegado"
+  if (allowedRoles && !allowedRoles.includes(userData.idRol)) {
+    // Si el usuario no tiene el rol permitido
     return <Navigate to="/access-denied" />;
+  }
+
+  if (allowedPuestos) {
+    const userPuesto = (userData.puesto || "").toUpperCase();
+    const hasAllowedPuesto = allowedPuestos.some(puesto => userPuesto.includes(puesto.toUpperCase()));
+    if (!hasAllowedPuesto) {
+      return <Navigate to="/access-denied" />;
+    }
   }
 
   // Renderizar los componentes hijos si pasa las validaciones

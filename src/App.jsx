@@ -61,7 +61,6 @@ function App() {
         <Routes>
           {/* Rutas públicas */}
           <Route path='/' element={<SignIn />} />
-          <Route path='/kiosco' element={<KioscoPage />} />
 
           {/* Rutas Administrativas (ADMIN y RRHH) */}
           <Route element={<ProtectedRoute allowedRoles={[1, 3]} />}>
@@ -90,9 +89,14 @@ function App() {
             <Route path='/ajustar-saldos' element={ <AjusteSaldosPage/> }/>
           </Route>
 
-          {/* Dashboard Ejecutivo */}
-          <Route element={<ProtectedRoute allowedRoles={[1, 3, 5]} />}>
+          {/* Dashboard Ejecutivo (Solo Director General y Subdirector General) */}
+          <Route element={<ProtectedRoute allowedRoles={[1, 3, 5]} allowedPuestos={["DIRECTOR GENERAL", "SUBDIRECTOR GENERAL"]} />}>
             <Route path='/dashboard-ejecutivo' element={ <DashboardEjecutivo/> }/>
+          </Route>
+
+          {/* Pantalla Kiosco (Solo Director, Subdirector y RRHH) */}
+          <Route element={<ProtectedRoute allowedRoles={[1, 3, 5]} allowedPuestos={["DIRECTOR GENERAL", "SUBDIRECTOR GENERAL", "COORDINADOR DE RECURSOS HUMANOS"]} />}>
+            <Route path='/kiosco' element={<KioscoPage />} />
           </Route>
 
           {/* Rutas del módulo de empleados */}
