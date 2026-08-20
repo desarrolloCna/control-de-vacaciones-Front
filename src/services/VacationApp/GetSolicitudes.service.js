@@ -1,9 +1,9 @@
 import api from "../../config/api.js";
 import endpoints from "../../config/endpoints.js";
 
-export const getSolicitudes = async (idCoordinador) => {
+export const getSolicitudes = async (idCoordinador, idRol) => {
   try {
-      const response = await api.get(`${endpoints.GET_SOLICITUDES_VACACIONES}?idCoordinador=${idCoordinador}`);
+      const response = await api.get(`${endpoints.GET_SOLICITUDES_VACACIONES}?idCoordinador=${idCoordinador}&idRol=${idRol}`);
       return response.data.solicitudes;
   } catch (error) {
       // Manejar el error, pero no registrar en la consola

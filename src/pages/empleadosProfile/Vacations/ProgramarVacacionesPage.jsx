@@ -46,6 +46,7 @@ import { useGetCoordinadoresList } from "../../../hooks/Coordinadores/useGetCoor
 import { consultarExcepcionLimiteService } from "../../../services/vacacionesespeciales/Vacacionesesepeciales.service.js";
 import NotificationSnackbar from "../../../components/UI/NotificationSnackbar";
 import ConfirmationModal from "../../../components/UI/ConfirmationModal";
+import { useDatosLaborales } from "../../../hooks/EmpleadosHooks/useDatosLaboales.js";
 
 const ProgramarVacacionesPage = () => {
   const isSessionVerified = useCheckSession();
@@ -73,6 +74,7 @@ const ProgramarVacacionesPage = () => {
 
   const { solicitud, diasValidos, errorS, loadingS, sinDias, hasGestion, diasDebitados, diasDisponiblesT, diasSolicitablesT } = useSolicitudById();
   const { coordinadoresList, errorCoordinadoresList, loadingCoordinadoresList } = useGetCoordinadoresList();
+  const { datosLaborales, loading: loadingDL } = useDatosLaborales();
 
   const { isLoading, errorDF } = useDiasFestivos();
   const minStartDate = dayjs().add(1, "day").format("YYYY-MM-DD");
@@ -117,14 +119,42 @@ const ProgramarVacacionesPage = () => {
     fetchExcepcion();
   }, [idEmpleado]);
 
+  const filteredCoordinadores = React.useMemo(() => {
+    if (!coordinadoresList) return [];
+    if (showAllCoordinators) return coordinadoresList;
+
+    const puestoUser = datosLaborales?.puesto?.trim() || "";
+    
+    // Regla 1: Director General
+    if (puestoUser === "Director General") {
+      return coordinadoresList.filter(c => 
+        c.coordinadorUnidad === "Subdirección General" || c.coordinadorUnidad === "Unidad de Recursos Humanos"
+      );
+    }
+    // Regla 2: Subdirector o Secretario General
+    else if (puestoUser === "Subdirector General" || puestoUser === "Subdirector" || puestoUser === "Secretario General") {
+      return coordinadoresList.filter(c => 
+        c.coordinadorUnidad === "Dirección General"
+      );
+    }
+    // Regla 3: Empleados Regulares (por unidad)
+    else {
+      const match = coordinadoresList.filter(c => c.coordinadorUnidad === unidad);
+      return match.length > 0 ? match : coordinadoresList;
+    }
+  }, [coordinadoresList, showAllCoordinators, unidad, datosLaborales]);
+
   useEffect(() => {
-    if (coordinadoresList && coordinadoresList.length > 0 && unidad && !selectedCoordinador) {
-       const matchingCoordinador = coordinadoresList.find(c => c.coordinadorUnidad === unidad);
-       if (matchingCoordinador) {
-           setSelectedCoordinador(matchingCoordinador.idCoordinador);
+    if (filteredCoordinadores && filteredCoordinadores.length > 0 && !selectedCoordinador) {
+       // Autoseleccionar si solo hay 1 o 2 opciones (ej. para Director o empleados normales)
+       if (filteredCoordinadores.length === 1) {
+           setSelectedCoordinador(filteredCoordinadores[0].idCoordinador);
+       } else {
+           const match = filteredCoordinadores.find(c => c.coordinadorUnidad === unidad);
+           if (match) setSelectedCoordinador(match.idCoordinador);
        }
     }
-  }, [coordinadoresList, unidad]);
+  }, [filteredCoordinadores, unidad]);
 
   const handleStartDateChange = (e) => {
     const selectedDate = e.target.value;
@@ -461,7 +491,7 @@ const ProgramarVacacionesPage = () => {
                     </InputAdornment>
                   }
                 >
-                  {coordinadoresList?.filter(c => showAllCoordinators || c.coordinadorUnidad === unidad).map((coordinador) => (
+                  {filteredCoordinadores.map((coordinador) => (
                     <MenuItem 
                       key={coordinador.idCoordinador} 
                       value={coordinador.idCoordinador}
