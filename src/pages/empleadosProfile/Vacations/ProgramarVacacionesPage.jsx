@@ -466,7 +466,7 @@ const ProgramarVacacionesPage = () => {
                       key={coordinador.idCoordinador} 
                       value={coordinador.idCoordinador}
                     >
-                      {coordinador.nombreCoordinador}
+                      {coordinador.nombreCoordinador} - {coordinador.puestoCoordinador}
                     </MenuItem>
                   ))}
                 </Select>
