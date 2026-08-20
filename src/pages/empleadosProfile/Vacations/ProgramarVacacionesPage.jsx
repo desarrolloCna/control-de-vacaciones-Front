@@ -58,6 +58,7 @@ const ProgramarVacacionesPage = () => {
   const [idInfoPersonal, setIdInfoPersonal] = useState("");
   const [diasHabilitado, setDiasHabilitado] = useState(false);
   const [hasExcepcionLimite, setHasExcepcionLimite] = useState(false);
+  const [showAllCoordinators, setShowAllCoordinators] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
@@ -458,7 +459,7 @@ const ProgramarVacacionesPage = () => {
                     </InputAdornment>
                   }
                 >
-                  {coordinadoresList?.map((coordinador) => (
+                  {coordinadoresList?.filter(c => showAllCoordinators || c.coordinadorUnidad === unidad).map((coordinador) => (
                     <MenuItem 
                       key={coordinador.idCoordinador} 
                       value={coordinador.idCoordinador}
@@ -467,9 +468,22 @@ const ProgramarVacacionesPage = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, ml: 1, display: 'block' }}>
-                  Si no se encuentra tu jefe, selecciona al jefe inmediato superior de la lista.
-                </Typography>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={showAllCoordinators}
+                      onChange={(e) => setShowAllCoordinators(e.target.checked)}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Typography variant="caption" color="text.secondary">
+                      Si tu jefe no se encuentra o está de vacaciones, marca esta casilla para ver a todos los jefes disponibles (como suplente).
+                    </Typography>
+                  }
+                  sx={{ mt: 0.5, ml: 0 }}
+                />
               </FormControl>
             </Grid>
 
