@@ -28,7 +28,7 @@ export const ReporteEmpleado = () => {
   const getData = async () => {
     try {
       const response = await api.get(`/employeesList`);
-      const data = response.data.responseData.emplloyeesList;
+      const data = response.data?.responseData?.emplloyeesList || [];
       setAllEmpleados(data);
       setEmpleados(data);
     } catch (error) {

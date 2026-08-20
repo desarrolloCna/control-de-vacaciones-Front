@@ -529,20 +529,21 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
                   }}
                 >
                   <ListItemText
+                    disableTypography
                     primary={
-                      <Typography variant="subtitle2" fontWeight={notif.leida === 0 ? 800 : 500} color={notif.leida === 0 ? 'text.primary' : 'text.secondary'}>
+                      <Typography component="div" variant="subtitle2" fontWeight={notif.leida === 0 ? 800 : 500} color={notif.leida === 0 ? 'text.primary' : 'text.secondary'}>
                         {notif.titulo}
                       </Typography>
                     }
                     secondary={
-                      <React.Fragment>
-                        <Typography variant="body2" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                      <Box component="div" sx={{ mt: 0.5 }}>
+                        <Typography component="div" variant="body2" color="text.secondary" sx={{ display: 'block' }}>
                           {notif.mensaje}
                         </Typography>
-                        <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 1 }}>
+                        <Typography component="div" variant="caption" color="text.disabled" sx={{ display: 'block', mt: 1 }}>
                           {new Date(notif.fechaCreacion).toLocaleString()}
                         </Typography>
-                      </React.Fragment>
+                      </Box>
                     }
                   />
                   {notif.leida === 0 && (

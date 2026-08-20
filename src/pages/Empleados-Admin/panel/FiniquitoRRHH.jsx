@@ -246,7 +246,7 @@ export default function FiniquitoRRHH() {
                                             <ListItemText
                                                 sx={{ ml: 2 }}
                                                 primary={
-                                                    <Typography variant="h6" fontWeight="800" color="#1A237E">
+                                                    <Typography component="span" variant="h6" fontWeight="800" color="#1A237E">
                                                         {empleado.Nombres}
                                                     </Typography>
                                                 }

@@ -1,3 +1,7 @@
+/**
+ * @author Julio Curruchiche (JC)
+ * @description Diseño y Arquitectura Estructural. Respetar autoría fundacional.
+ */
 import React, { Suspense, lazy } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import SignIn from './pages/login/login.jsx';

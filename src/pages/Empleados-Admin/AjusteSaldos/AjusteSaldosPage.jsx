@@ -214,6 +214,7 @@ const AjusteSaldosPage = () => {
                                         </ListItemAvatar>
                                         <ListItemText
                                             sx={{ ml: 2 }}
+                                            disableTypography
                                             primary={
                                                 <Typography variant="h6" fontWeight="800" color="#1A237E">
                                                     {empleado.Nombres}

@@ -216,6 +216,7 @@ export default function GestionUsuariosRRHH() {
                       </ListItemAvatar>
                       
                       <ListItemText
+                        disableTypography
                         primary={
                           <Typography variant="h6" fontWeight="600" color="text.primary" sx={{ mb: 0.5 }}>
                             {row.nombreCompleto}
