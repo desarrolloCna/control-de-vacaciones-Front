@@ -84,8 +84,7 @@ export default function FiniquitoRRHH() {
         try {
             const response = await api.get(`/getHistorial?idEmpleado=${empleado.idEmpleado}`);
             if (response.data && response.data.historial) {
-                const periods = response.data.historial.filter(h => h.tipoRegistro === 1);
-                setHistorial(periods);
+                setHistorial(response.data.historial);
             }
         } catch (error) {
             console.error("Error obteniendo historial:", error);
@@ -135,32 +134,29 @@ export default function FiniquitoRRHH() {
     // Calcular resumen por período
     const getPeriodosSummary = () => {
         const summary = {};
-        // Primero agrupar créditos y débitos globales para los KPIs
         let totalCreditos = 0;
         let totalDebitos = 0;
 
+        // Utilizamos los valores acumulados (totalDiasAcreditados y totalDiasDebitados) que ya vienen de la vista SQL
         historial.forEach(item => {
             const p = item.periodo;
             if (!summary[p]) { summary[p] = { creditos: 0, debitos: 0 }; }
             
-            if (item.tipoRegistro === 1) {
-                const cred = Number(item.totalDiasAcreditados) || 0;
-                summary[p].creditos += cred;
-                totalCreditos += cred;
-            } else if (item.tipoRegistro === 2) {
-                const deb = Number(item.diasSolicitados) || 0;
-                summary[p].debitos += deb;
-                totalDebitos += deb;
-            }
+            summary[p].creditos = Math.max(summary[p].creditos, Number(item.totalDiasAcreditados) || 0);
+            summary[p].debitos = Math.max(summary[p].debitos, Number(item.totalDiasDebitados) || 0);
         });
 
-        const periodos = Object.keys(summary).map(p => ({
-            periodo: p,
-            creditos: summary[p].creditos,
-            debitos: summary[p].debitos,
-            percentage: summary[p].creditos > 0 ? Math.min(100, (summary[p].debitos / summary[p].creditos) * 100) : 0,
-            saldo: summary[p].creditos - summary[p].debitos
-        })).sort((a, b) => Number(b.periodo) - Number(a.periodo));
+        const periodos = Object.keys(summary).map(p => {
+            totalCreditos += summary[p].creditos;
+            totalDebitos += summary[p].debitos;
+            return {
+                periodo: p,
+                creditos: summary[p].creditos,
+                debitos: summary[p].debitos,
+                percentage: summary[p].creditos > 0 ? Math.min(100, (summary[p].debitos / summary[p].creditos) * 100) : 0,
+                saldo: summary[p].creditos - summary[p].debitos
+            };
+        }).sort((a, b) => Number(b.periodo) - Number(a.periodo));
 
         return { periodos, totalCreditos, totalDebitos };
     };
