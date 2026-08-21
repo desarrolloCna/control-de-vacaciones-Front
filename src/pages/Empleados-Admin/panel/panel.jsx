@@ -14,6 +14,7 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import PlaylistAddCheckIcon from "@mui/icons-material/PlaylistAddCheck";
 import TuneIcon from "@mui/icons-material/Tune";
 import GavelIcon from "@mui/icons-material/Gavel";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import { getLocalStorageData } from "../../../services/session/getLocalStorageData.js";
 import { useCheckSession } from "../../../services/session/checkSession.js";
 import Spinner from "../../../components/spinners/spinner";
@@ -197,6 +198,17 @@ export default function ControlPanel() {
                 icon={<TuneIcon sx={{ color: "#fff" }} />}
                 gradientBg="linear-gradient(135deg, #4338CA 0%, #6366F1 100%)"
                 to="/ajustar-saldos"
+              />
+            </Grid>
+          )}
+          {hasAccess("/crear-usuarios-rrhh") && (
+            <Grid item xs={12} sm={6} md={4}>
+              <PanelCard
+                primaryText="Sucesión de Puesto"
+                secondaryText="Relevar jefaturas y coordinaciones"
+                icon={<SwapHorizIcon sx={{ color: "#fff" }} />}
+                gradientBg="linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)"
+                to="/sucesion"
               />
             </Grid>
           )}

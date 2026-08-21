@@ -31,10 +31,12 @@ export default function DashboardEjecutivo() {
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
-  // Agrupar empleados por unidad
   const groupedUnits = React.useMemo(() => {
     if (!data?.detalleUnidades) return {};
     return data.detalleUnidades.reduce((acc, emp) => {
+      // Filtrar administradores explícitamente en el frontend
+      if (emp.nombreCompleto.toUpperCase().includes("ADMINISTRADOR")) return acc;
+      
       if (!acc[emp.unidad]) acc[emp.unidad] = [];
       acc[emp.unidad].push(emp);
       return acc;
@@ -266,16 +268,16 @@ export default function DashboardEjecutivo() {
                                 hover 
                                 sx={{ 
                                   '&:last-child td, &:last-child th': { border: 0 },
-                                  bgcolor: emp.esAprobador === 1 ? 'rgba(79, 70, 229, 0.05)' : 'inherit'
+                                  bgcolor: emp.esAprobador === 1 ? '#ecfdf5' : 'inherit' // Verde esmeralda muy suave para resaltar al jefe
                                 }}
                               >
-                                <TableCell sx={{ fontWeight: emp.esAprobador === 1 ? 800 : 600, color: emp.esAprobador === 1 ? "#4F46E5" : "#334155" }}>
+                                <TableCell sx={{ fontWeight: emp.esAprobador === 1 ? 800 : 500, color: emp.esAprobador === 1 ? "#059669" : "#334155" }}>
                                   {emp.nombreCompleto}
                                   {emp.esAprobador === 1 && (
-                                    <Chip label="Jefatura" size="small" sx={{ ml: 1, height: 20, fontSize: '0.65rem', bgcolor: '#4F46E5', color: 'white', fontWeight: 700 }} />
+                                    <Chip label="Jefatura" size="small" sx={{ ml: 1, height: 20, fontSize: '0.65rem', bgcolor: '#059669', color: 'white', fontWeight: 700 }} />
                                   )}
                                 </TableCell>
-                                <TableCell sx={{ color: emp.esAprobador === 1 ? "#4F46E5" : "#64748b", fontSize: "0.85rem", fontWeight: emp.esAprobador === 1 ? 600 : 400 }}>{emp.puesto}</TableCell>
+                                <TableCell sx={{ color: emp.esAprobador === 1 ? "#059669" : "#64748b", fontSize: "0.85rem", fontWeight: emp.esAprobador === 1 ? 600 : 400 }}>{emp.puesto}</TableCell>
                                 <TableCell align="center" sx={{ color: "#64748b", fontSize: "0.85rem" }}>{emp.fechaIngreso}</TableCell>
                                 <TableCell align="right">
                                   <Chip 

@@ -51,6 +51,7 @@ import GestionUsuariosRRHH from './pages/Empleados-Admin/usuarios/GestionUsuario
 import AjusteSaldosPage from './pages/Empleados-Admin/AjusteSaldos/AjusteSaldosPage.jsx';
 import ExcepcionLimitePage from './pages/Empleados-Admin/ActivarVacaciones/ExcepcionLimitePage.jsx';
 import KioscoPage from './pages/Kiosco/KioscoPage.jsx';
+import SucesionPage from './pages/Empleados-Admin/Sucesion/Sucesion.Page.jsx';
 
 
 function App() {
@@ -87,6 +88,7 @@ function App() {
             <Route path='/bitacora' element={ <BitacoraPage/> }/>
             <Route path='/crear-usuarios-rrhh' element={ <GestionUsuariosRRHH/> }/>
             <Route path='/ajustar-saldos' element={ <AjusteSaldosPage/> }/>
+            <Route path='/sucesion' element={ <SucesionPage/> }/>
           </Route>
 
           {/* Dashboard Ejecutivo (Solo Director General y Subdirector General) */}
