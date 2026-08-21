@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_URL } from "../../../config/enviroment";
+import { API_URL } from "../../config/enviroment";
 
 export const getJerarquiaUnidadesService = async (token) => {
     try {
