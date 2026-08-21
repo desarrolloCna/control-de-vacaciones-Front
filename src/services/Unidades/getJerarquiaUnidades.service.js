@@ -1,9 +1,9 @@
 import axios from "axios";
-import { enviroments } from "../../../config/enviroments";
+import { API_URL } from "../../../config/enviroment";
 
 export const getJerarquiaUnidadesService = async (token) => {
     try {
-        const url = `${enviroments.apiurl}/unidades/jerarquia`;
+        const url = `${API_URL}/unidades/jerarquia`;
         const response = await axios.get(url, {
             headers: {
                 Authorization: `Bearer ${token}`
