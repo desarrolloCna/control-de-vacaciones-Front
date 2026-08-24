@@ -3,7 +3,8 @@ import {
     Box, Container, Card, CardContent, TextField, Typography, Button, 
     List, ListItem, ListItemAvatar, Avatar, ListItemText, CircularProgress,
     Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton, Alert, Chip,
-    LinearProgress, Tooltip as MuiTooltip, Paper, Tabs, Tab, Stack
+    LinearProgress, Tooltip as MuiTooltip, Paper, Tabs, Tab, Stack,
+    FormControl, InputLabel, Select, MenuItem
 } from "@mui/material";
 import Navbar from "../../../components/navBar/NavBar";
 import PrintIcon from '@mui/icons-material/Print';
@@ -34,6 +35,8 @@ export default function FiniquitoRRHH() {
     const [empleados, setEmpleados] = useState([]);
     const [loading, setLoading] = useState(true);
     const [terminoBusqueda, setTerminoBusqueda] = useState('');
+    const [unidades, setUnidades] = useState([]);
+    const [selectedUnidad, setSelectedUnidad] = useState("Todas");
     
     // Modal states
     const [modalOpen, setModalOpen] = useState(false);
@@ -64,16 +67,37 @@ export default function FiniquitoRRHH() {
                 setLoading(false);
             }
         };
+
+        const fetchUnidades = async () => {
+            try {
+                const response = await api.get('/unidades');
+                const data = response.data.departamentos.filter((u) => u.estado === "A");
+                setUnidades(data);
+            } catch (error) {
+                console.error("Error al obtener las unidades", error);
+            }
+        };
+
         fetchEmpleados();
+        fetchUnidades();
     }, []);
 
     const empleadosFiltrados = useMemo(() => {
-        if (!terminoBusqueda.trim()) return empleados;
-        const terminoLower = terminoBusqueda.toLowerCase().trim();
-        return empleados?.filter(empleado => 
-            empleado.Nombres?.toLowerCase().includes(terminoLower)
-        );
-    }, [empleados, terminoBusqueda]);
+        let filtered = empleados;
+        
+        if (selectedUnidad !== "Todas") {
+            filtered = filtered?.filter(emp => emp.unidad === selectedUnidad);
+        }
+        
+        if (terminoBusqueda.trim()) {
+            const terminoLower = terminoBusqueda.toLowerCase().trim();
+            filtered = filtered?.filter(empleado => 
+                empleado.Nombres?.toLowerCase().includes(terminoLower)
+            );
+        }
+        
+        return filtered;
+    }, [empleados, terminoBusqueda, selectedUnidad]);
 
     const handleOpenModal = async (empleado) => {
         setSelectedEmpleado(empleado);
@@ -210,14 +234,31 @@ export default function FiniquitoRRHH() {
 
                 <Card sx={{ borderRadius: 3, boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}>
                     <CardContent sx={{ p: 4 }}>
-                        <TextField
-                            fullWidth
-                            variant="outlined"
-                            placeholder="Buscar empleado por nombre..."
-                            value={terminoBusqueda}
-                            onChange={(e) => setTerminoBusqueda(e.target.value)}
-                            sx={{ mb: 4 }}
-                        />
+                        <Box sx={{ display: 'flex', gap: 2, mb: 4, flexDirection: { xs: 'column', sm: 'row' } }}>
+                            <TextField
+                                fullWidth
+                                variant="outlined"
+                                placeholder="Buscar empleado por nombre..."
+                                value={terminoBusqueda}
+                                onChange={(e) => setTerminoBusqueda(e.target.value)}
+                            />
+                            <FormControl sx={{ minWidth: { xs: '100%', sm: 300 } }}>
+                                <InputLabel id="unidad-filter-label">Filtrar por Unidad</InputLabel>
+                                <Select
+                                    labelId="unidad-filter-label"
+                                    value={selectedUnidad}
+                                    label="Filtrar por Unidad"
+                                    onChange={(e) => setSelectedUnidad(e.target.value)}
+                                >
+                                    <MenuItem value="Todas"><strong>📋 Todas las Unidades</strong></MenuItem>
+                                    {unidades.map((u) => (
+                                        <MenuItem key={u.idUnidad} value={u.nombreUnidad}>
+                                            {u.nombreUnidad}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Box>
 
                         {loading ? (
                             <Box display="flex" justifyContent="center" p={4}>

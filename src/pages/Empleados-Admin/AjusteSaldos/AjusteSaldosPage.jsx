@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from "react";
 import { 
     Box, Container, Alert, AlertTitle, Card, CardContent, TextField, Typography, Button, 
     List, ListItem, ListItemAvatar, Avatar, ListItemText, CircularProgress,
-    Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton, Tooltip, Divider
+    Dialog, DialogTitle, DialogContent, DialogActions, Grid, IconButton, Tooltip, Divider,
+    FormControl, InputLabel, Select, MenuItem
 } from "@mui/material";
 import Navbar from "../../../components/navBar/NavBar";
 import EditIcon from '@mui/icons-material/Edit';
@@ -19,6 +20,8 @@ const AjusteSaldosPage = () => {
     const userData = getLocalStorageData();
     const [empleadosU, setEmpleadosU] = useState([]);
     const [loadingEmpleados, setLoadingEmpleados] = useState(true);
+    const [unidades, setUnidades] = useState([]);
+    const [selectedUnidad, setSelectedUnidad] = useState("Todas");
     
     useEffect(() => {
         const fetchEmpleados = async () => {
@@ -31,7 +34,19 @@ const AjusteSaldosPage = () => {
                 setLoadingEmpleados(false);
             }
         };
+
+        const fetchUnidades = async () => {
+            try {
+                const response = await api.get('/unidades');
+                const data = response.data.departamentos.filter((u) => u.estado === "A");
+                setUnidades(data);
+            } catch (error) {
+                console.error("Error al obtener las unidades", error);
+            }
+        };
+
         fetchEmpleados();
+        fetchUnidades();
     }, []);
     
     const [terminoBusqueda, setTerminoBusqueda] = useState('');
@@ -58,12 +73,21 @@ const AjusteSaldosPage = () => {
     }, [mensaje]);
 
     const empleadosFiltrados = useMemo(() => {
-        if (!terminoBusqueda.trim()) return empleadosU;
-        const terminoLower = terminoBusqueda.toLowerCase().trim();
-        return empleadosU?.filter(empleado => 
-            empleado.Nombres?.toLowerCase().includes(terminoLower)
-        );
-    }, [empleadosU, terminoBusqueda]);
+        let filtered = empleadosU;
+        
+        if (selectedUnidad !== "Todas") {
+            filtered = filtered?.filter(emp => emp.unidad === selectedUnidad);
+        }
+        
+        if (terminoBusqueda.trim()) {
+            const terminoLower = terminoBusqueda.toLowerCase().trim();
+            filtered = filtered?.filter(empleado => 
+                empleado.Nombres?.toLowerCase().includes(terminoLower)
+            );
+        }
+        
+        return filtered;
+    }, [empleadosU, terminoBusqueda, selectedUnidad]);
 
     const handleOpenModal = async (empleado) => {
         setSelectedEmpleado(empleado);
@@ -166,14 +190,31 @@ const AjusteSaldosPage = () => {
 
             <Card sx={{ borderRadius: 3, boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}>
                 <CardContent sx={{ p: 4 }}>
-                    <TextField
-                        fullWidth
-                        variant="outlined"
-                        placeholder="Buscar empleado por nombre..."
-                        value={terminoBusqueda}
-                        onChange={(e) => setTerminoBusqueda(e.target.value)}
-                        sx={{ mb: 4 }}
-                    />
+                    <Box sx={{ display: 'flex', gap: 2, mb: 4, flexDirection: { xs: 'column', sm: 'row' } }}>
+                        <TextField
+                            fullWidth
+                            variant="outlined"
+                            placeholder="Buscar empleado por nombre..."
+                            value={terminoBusqueda}
+                            onChange={(e) => setTerminoBusqueda(e.target.value)}
+                        />
+                        <FormControl sx={{ minWidth: { xs: '100%', sm: 300 } }}>
+                            <InputLabel id="unidad-filter-label">Filtrar por Unidad</InputLabel>
+                            <Select
+                                labelId="unidad-filter-label"
+                                value={selectedUnidad}
+                                label="Filtrar por Unidad"
+                                onChange={(e) => setSelectedUnidad(e.target.value)}
+                            >
+                                <MenuItem value="Todas"><strong>📋 Todas las Unidades</strong></MenuItem>
+                                {unidades.map((u) => (
+                                    <MenuItem key={u.idUnidad} value={u.nombreUnidad}>
+                                        {u.nombreUnidad}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Box>
 
                     {loadingEmpleados ? (
                         <Box display="flex" justifyContent="center" p={4}>
