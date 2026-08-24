@@ -106,7 +106,6 @@ const VacationApp = () => {
     return totaldiasDisponibles > 0;
   };
 
-  // Calcular resumen de días del historial
   const calcularResumenDias = () => {
     let totalCreditos = 0;
     let totalDebitos = 0;
@@ -120,8 +119,7 @@ const VacationApp = () => {
       historialFiltrado.forEach(item => {
         if (item.tipoRegistro === 1) { // Crédito
           totalCreditos += Number(item.totalDiasAcreditados) || 0;
-        } else { // Débito
-          totalDebitos += Number(item.diasSolicitados) || 0;
+          totalDebitos += Number(item.totalDiasDebitados) || 0;
         }
       });
       saldoActual = Number(totalCreditos) - Number(totalDebitos);
@@ -139,9 +137,11 @@ const VacationApp = () => {
     historial.forEach(item => {
       const p = item.periodo;
       if (!summary[p]) { summary[p] = { creditos: 0, debitos: 0 }; }
-      if (item.tipoRegistro === 1) summary[p].creditos += Number(item.totalDiasAcreditados) || 0;
-      else summary[p].debitos += Number(item.diasSolicitados) || 0;
+      
+      summary[p].creditos = Math.max(summary[p].creditos, Number(item.totalDiasAcreditados) || 0);
+      summary[p].debitos = Math.max(summary[p].debitos, Number(item.totalDiasDebitados) || 0);
     });
+
     return Object.keys(summary).map(p => ({
       periodo: p,
       creditos: summary[p].creditos,
@@ -308,7 +308,7 @@ const VacationApp = () => {
       Tipo: item.tipoRegistro === 1 ? "Crédito" : "Débito",
       Periodo: item.periodo,
       "Dias Acreditados": item.tipoRegistro === 1 ? item.totalDiasAcreditados : 0,
-      "Dias Debitados": item.tipoRegistro === 2 ? item.diasSolicitados : 0,
+      "Dias Debitados": item.tipoRegistro === 2 ? item.diasSolicitados : (item.totalDiasDebitados != null ? item.totalDiasDebitados : 0),
       "Dias Disponibles": item.diasDisponiblesTotales,
       Fecha: item.fechaAcreditacion ? formatDateToDisplay(item.fechaAcreditacion) : item.fechaDebito ? formatDateToDisplay(item.fechaDebito) : "-",
       Descripción: item.tipoRegistro === 1 ? "Acreditación anual de días" : "Solicitud de vacaciones"
@@ -323,7 +323,7 @@ const VacationApp = () => {
       Tipo: item.tipoRegistro === 1 ? "Crédito" : "Débito",
       Periodo: item.periodo,
       "Dias Acreditados": item.tipoRegistro === 1 ? item.totalDiasAcreditados : 0,
-      "Dias Debitados": item.tipoRegistro === 2 ? item.diasSolicitados : 0,
+      "Dias Debitados": item.tipoRegistro === 2 ? item.diasSolicitados : (item.totalDiasDebitados != null ? item.totalDiasDebitados : 0),
       "Dias Disponibles": item.diasDisponiblesTotales,
       Fecha: item.fechaAcreditacion ? formatDateToDisplay(item.fechaAcreditacion) : item.fechaDebito ? formatDateToDisplay(item.fechaDebito) : "-",
       Descripción: item.tipoRegistro === 1 ? "Acreditación anual de días" : "Solicitud de vacaciones"
@@ -1248,7 +1248,7 @@ const VacationApp = () => {
                             color={"error.main"}
                             fontWeight="bold"
                           >
-                            {item.tipoRegistro === 2 ? item.diasSolicitados : "-"}
+                            {item.tipoRegistro === 2 ? item.diasSolicitados : (item.totalDiasDebitados != null ? item.totalDiasDebitados : "-")}
                           </Typography>
                         </TableCell>
                         <TableCell align="center">
