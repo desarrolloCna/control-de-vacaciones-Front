@@ -310,7 +310,7 @@ const VacationApp = () => {
       "Dias Acreditados": item.tipoRegistro === 1 ? item.totalDiasAcreditados : 0,
       "Dias Debitados": item.tipoRegistro === 2 ? item.diasSolicitados : (item.totalDiasDebitados != null ? item.totalDiasDebitados : 0),
       "Dias Disponibles": item.diasDisponiblesTotales,
-      Fecha: item.fechaAcreditacion ? formatDateToDisplay(item.fechaAcreditacion) : (item.tipoRegistro === 1 && userData?.fechaIngreso) ? formatDateToDisplay(dayjs(userData.fechaIngreso).year(item.periodo)) : item.fechaDebito ? formatDateToDisplay(item.fechaDebito) : "-",
+      Fecha: item.tipoRegistro === 1 && userData?.fechaIngreso ? formatDateToDisplay(dayjs(userData.fechaIngreso).year(item.periodo)) : item.fechaDebito ? formatDateToDisplay(item.fechaDebito) : "-",
       Descripción: item.tipoRegistro === 1 ? "Acreditación anual de días" : "Solicitud de vacaciones"
     }));
 
@@ -325,7 +325,7 @@ const VacationApp = () => {
       "Dias Acreditados": item.tipoRegistro === 1 ? item.totalDiasAcreditados : 0,
       "Dias Debitados": item.tipoRegistro === 2 ? item.diasSolicitados : (item.totalDiasDebitados != null ? item.totalDiasDebitados : 0),
       "Dias Disponibles": item.diasDisponiblesTotales,
-      Fecha: item.fechaAcreditacion ? formatDateToDisplay(item.fechaAcreditacion) : (item.tipoRegistro === 1 && userData?.fechaIngreso) ? formatDateToDisplay(dayjs(userData.fechaIngreso).year(item.periodo)) : item.fechaDebito ? formatDateToDisplay(item.fechaDebito) : "-",
+      Fecha: item.tipoRegistro === 1 && userData?.fechaIngreso ? formatDateToDisplay(dayjs(userData.fechaIngreso).year(item.periodo)) : item.fechaDebito ? formatDateToDisplay(item.fechaDebito) : "-",
       Descripción: item.tipoRegistro === 1 ? "Acreditación anual de días" : "Solicitud de vacaciones"
     }));
 
@@ -1260,13 +1260,11 @@ const VacationApp = () => {
                           </Typography>
                         </TableCell>
                         <TableCell align="center">
-                          {item.fechaAcreditacion
-                            ? formatDateToDisplay(item.fechaAcreditacion)
-                            : (item.tipoRegistro === 1 && userData?.fechaIngreso)
-                              ? formatDateToDisplay(dayjs(userData.fechaIngreso).year(item.periodo))
-                              : item.fechaDebito
-                                ? formatDateToDisplay(item.fechaDebito)
-                                : "-"}
+                          {item.tipoRegistro === 1 && userData?.fechaIngreso
+                            ? formatDateToDisplay(dayjs(userData.fechaIngreso).year(item.periodo))
+                            : item.fechaDebito
+                              ? formatDateToDisplay(item.fechaDebito)
+                              : "-"}
                         </TableCell>
                         <TableCell align="center">
                           {item.tipoRegistro === 1
