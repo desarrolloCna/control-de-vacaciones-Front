@@ -21,6 +21,7 @@ export const ReporteEmpleado = () => {
   const [allEmpleados, setAllEmpleados] = useState([]);
   const [unidades, setUnidades] = useState([]);
   const [selectedUnidad, setSelectedUnidad] = useState("Todas");
+  const [selectedRenglon, setSelectedRenglon] = useState("Todos");
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [openEdit, setOpenEdit] = useState(false);
   const [fetchingEmp, setFetchingEmp] = useState(false);
@@ -67,12 +68,15 @@ export const ReporteEmpleado = () => {
   };
 
   useEffect(() => {
-    if (selectedUnidad === "Todas") {
-      setEmpleados(allEmpleados);
-    } else {
-      setEmpleados(allEmpleados.filter(emp => emp.unidad === selectedUnidad));
+    let filtered = allEmpleados;
+    if (selectedUnidad !== "Todas") {
+      filtered = filtered.filter(emp => emp.unidad === selectedUnidad);
     }
-  }, [selectedUnidad, allEmpleados]);
+    if (selectedRenglon !== "Todos") {
+      filtered = filtered.filter(emp => emp.renglon === selectedRenglon);
+    }
+    setEmpleados(filtered);
+  }, [selectedUnidad, selectedRenglon, allEmpleados]);
 
   const handleExportExcel = () => {
     if (empleados.length === 0) return;
@@ -94,9 +98,20 @@ export const ReporteEmpleado = () => {
   const handleExportResumenAnual = async () => {
     try {
       const response = await api.get(`/employeesList/resumen-anual-011-022`);
-      const data = response.data?.resumen || [];
+      let data = response.data?.resumen || [];
+      
+      // Filtrar por la unidad seleccionada en pantalla
+      if (selectedUnidad !== "Todas") {
+        data = data.filter(emp => emp.unidad === selectedUnidad);
+      }
+
+      // Filtrar por el renglón seleccionado en pantalla
+      if (selectedRenglon !== "Todos") {
+        data = data.filter(emp => emp.renglon === selectedRenglon);
+      }
+
       if (data.length === 0) {
-        alert("No hay datos de vacaciones para los renglones 011 y 022.");
+        alert("No hay datos de vacaciones para los filtros seleccionados.");
         return;
       }
       exportResumenAnual(data);
@@ -209,22 +224,41 @@ export const ReporteEmpleado = () => {
       selectedRows: { text: "fila(s) seleccionada(s)", delete: "Eliminar", deleteAria: "Eliminar filas seleccionadas" }
     },
     customToolbar: () => (
-      <FormControl sx={{ minWidth: 220, mr: 2 }} size="small">
-        <InputLabel id="unidad-emp-label">Filtrar por Unidad</InputLabel>
-        <Select
-          labelId="unidad-emp-label"
-          value={selectedUnidad}
-          label="Filtrar por Unidad"
-          onChange={(e) => setSelectedUnidad(e.target.value)}
-        >
-          <MenuItem value="Todas"><strong>📋 Todas las Unidades</strong></MenuItem>
-          {unidades.map((u) => (
-            <MenuItem key={u.idUnidad} value={u.nombreUnidad}>
-              {u.nombreUnidad}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <Box sx={{ display: 'flex', gap: 2 }}>
+        <FormControl sx={{ minWidth: 200 }} size="small">
+          <InputLabel id="renglon-emp-label">Filtrar por Renglón</InputLabel>
+          <Select
+            labelId="renglon-emp-label"
+            value={selectedRenglon}
+            label="Filtrar por Renglón"
+            onChange={(e) => setSelectedRenglon(e.target.value)}
+          >
+            <MenuItem value="Todos"><strong>📋 Todos los Renglones</strong></MenuItem>
+            <MenuItem value="011">011</MenuItem>
+            <MenuItem value="021">021</MenuItem>
+            <MenuItem value="022">022</MenuItem>
+            <MenuItem value="029">029</MenuItem>
+            <MenuItem value="031">031</MenuItem>
+            <MenuItem value="Sub-018">Sub-018</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl sx={{ minWidth: 220 }} size="small">
+          <InputLabel id="unidad-emp-label">Filtrar por Unidad</InputLabel>
+          <Select
+            labelId="unidad-emp-label"
+            value={selectedUnidad}
+            label="Filtrar por Unidad"
+            onChange={(e) => setSelectedUnidad(e.target.value)}
+          >
+            <MenuItem value="Todas"><strong>📋 Todas las Unidades</strong></MenuItem>
+            {unidades.map((u) => (
+              <MenuItem key={u.idUnidad} value={u.nombreUnidad}>
+                {u.nombreUnidad}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
     )
   };
 
