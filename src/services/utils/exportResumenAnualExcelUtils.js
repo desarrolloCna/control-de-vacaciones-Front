@@ -7,10 +7,14 @@ export const exportResumenAnual = async (data) => {
     return;
   }
 
-  // Identificar todos los períodos únicos en los datos
+  // Identificar todos los períodos únicos en los datos, a partir de 2022
   const allPeriods = new Set();
   data.forEach(emp => {
-    Object.keys(emp.periodos || {}).forEach(p => allPeriods.add(p));
+    Object.keys(emp.periodos || {}).forEach(p => {
+      if (parseInt(p) >= 2022) {
+        allPeriods.add(p);
+      }
+    });
   });
   
   // Ordenar periodos ascendentemente
@@ -24,8 +28,8 @@ export const exportResumenAnual = async (data) => {
     views: [{ state: 'frozen', ySplit: 3, xSplit: 3 }] // Congelar las primeras 3 filas y las primeras 3 columnas
   });
 
-  // Determinar la última columna (A, B, C, D = 4 columnas fijas + periodos + 1 columna total)
-  const totalColumns = 4 + sortedPeriods.length + 1;
+  // Determinar la última columna (A, B, C, D, E = 5 columnas fijas + periodos + 1 columna total)
+  const totalColumns = 5 + sortedPeriods.length + 1;
   const getLastColumnLetter = (colIndex) => {
     let temp, letter = '';
     while (colIndex > 0) {
@@ -50,7 +54,7 @@ export const exportResumenAnual = async (data) => {
   };
 
   // Fila 3: Encabezados de tabla
-  const headers = ['No.', 'NOMBRE', 'PUESTO', 'FECHA DE INGRESO'];
+  const headers = ['No.', 'NOMBRE', 'PUESTO', 'RENGLÓN', 'FECHA DE INGRESO'];
   sortedPeriods.forEach(p => headers.push(`AÑO ${p}`));
   headers.push('TOTAL');
 
@@ -78,10 +82,11 @@ export const exportResumenAnual = async (data) => {
   worksheet.getColumn(1).width = 5;  // No.
   worksheet.getColumn(2).width = 40; // Nombre
   worksheet.getColumn(3).width = 35; // Puesto
-  worksheet.getColumn(4).width = 15; // Fecha Ingreso
+  worksheet.getColumn(4).width = 10; // Renglón
+  worksheet.getColumn(5).width = 15; // Fecha Ingreso
   // Columnas de años
   for (let i = 0; i < sortedPeriods.length; i++) {
-    worksheet.getColumn(5 + i).width = 12;
+    worksheet.getColumn(6 + i).width = 12;
   }
   worksheet.getColumn(totalColumns).width = 10; // Total
 
@@ -122,17 +127,22 @@ export const exportResumenAnual = async (data) => {
         globalIndex++,
         emp.nombre,
         emp.puesto,
+        emp.renglon || '-',
         emp.fechaIngreso
       ];
 
-      // Años
+      // Años y recálculo del total solo para años mostrados
+      let totalFiltrado = 0;
       sortedPeriods.forEach(p => {
         const dias = emp.periodos[p];
         rowData.push(dias !== undefined ? dias : '-');
+        if (dias !== undefined) {
+          totalFiltrado += dias;
+        }
       });
 
       // Total
-      rowData.push(emp.total);
+      rowData.push(totalFiltrado);
 
       const row = worksheet.getRow(currentRowNum);
       row.values = rowData;
@@ -142,7 +152,7 @@ export const exportResumenAnual = async (data) => {
         cell.border = {
           top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' }
         };
-        // Centrar las columnas a partir de la 4 (fecha, años, total)
+        // Centrar las columnas a partir de la 4 (renglon, fecha, años, total)
         if (colNumber === 1 || colNumber >= 4) {
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
         } else {
