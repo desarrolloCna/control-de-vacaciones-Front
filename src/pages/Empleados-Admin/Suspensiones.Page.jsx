@@ -13,6 +13,7 @@ import {
   TextField,
   Pagination,
   Box,
+  Container,
   Tabs,
   Tab,
   Chip,
@@ -200,14 +201,14 @@ const SuspensionesPage = () => {
   }
 
   return (
-    <Box className="fade-in">
-      <PageHeader 
-        title="Gestión de Personal" 
-        subtitle="Administración de suspensiones temporales y bajas institucionales" 
-      />
-      
-      <Box sx={{ p: 3 }}>
-        <div className="container">
+    <Box className="fade-in" sx={{ bgcolor: '#f4f6f8', minHeight: '100vh', pb: 4 }}>
+      <Box sx={{ p: { xs: 2, md: 4 }, flex: 1 }}>
+        <Container maxWidth="lg">
+          <PageHeader 
+            title="Gestión de Personal" 
+            subtitle="Administración de suspensiones temporales y bajas institucionales" 
+          />
+          <Box sx={{ bgcolor: 'white', p: 3, borderRadius: 4, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
 
           {/* Tabs */}
           <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
@@ -356,7 +357,8 @@ const SuspensionesPage = () => {
               className="d-flex justify-content-center mt-3"
             />
           </div>
-        </div>
+          </Box>
+        </Container>
       </Box>
 
       {/* Notificación de éxito */}

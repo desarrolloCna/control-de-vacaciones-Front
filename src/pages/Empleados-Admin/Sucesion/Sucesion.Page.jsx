@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography, Container, Card, CardContent, Button, Autocomplete, TextField, CircularProgress, Alert } from '@mui/material';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import Navbar from '../../../components/navBar/NavBar';
+import { PageHeader } from "../../../components/UI/UIComponents";
 import api from '../../../config/api';
 
 export default function SucesionPage() {
@@ -86,12 +87,10 @@ export default function SucesionPage() {
         <Box sx={{ minHeight: "100vh", bgcolor: "#f8fafc" }}>
             <Navbar />
             <Container maxWidth="md" sx={{ py: 4 }}>
-                <Typography variant="h4" fontWeight={800} sx={{ mb: 1, color: "#1e293b" }}>
-                    Sucesión / Relevo de Jefatura
-                </Typography>
-                <Typography variant="body1" sx={{ color: "#64748b", mb: 4 }}>
-                    Transfiera el rol de coordinador y todas las solicitudes de vacaciones pendientes al empleado entrante.
-                </Typography>
+                <PageHeader 
+                    title="Sucesión / Relevo de Jefatura"
+                    subtitle="Transfiera el rol de coordinador y todas las solicitudes de vacaciones pendientes al empleado entrante."
+                />
 
                 <Card sx={{ p: 2, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
                     <CardContent>

@@ -100,8 +100,25 @@ const AjusteSaldosPage = () => {
         try {
             const response = await api.get(`/getHistorial?idEmpleado=${empleado.idEmpleado}`);
             if (response.data && response.data.historial) {
-                // Filtramos por tipoRegistro = 1 para mostrar solo los periodos de acreditacion base
-                const periods = response.data.historial.filter(h => h.tipoRegistro === 1);
+                // Obtenemos los totales más recientes por periodo
+                const latestByPeriodo = {};
+                response.data.historial.forEach(h => {
+                    latestByPeriodo[h.periodo] = h;
+                });
+                
+                // Mapeamos los periodos base (tipoRegistro = 1) con los totales actualizados
+                const periods = [];
+                response.data.historial.forEach(h => {
+                    if (h.tipoRegistro === 1) {
+                        const latest = latestByPeriodo[h.periodo];
+                        periods.push({
+                            ...h,
+                            totalDiasAcreditados: latest.totalDiasAcreditados,
+                            totalDiasDebitados: latest.totalDiasDebitados,
+                            diasDisponiblesTotales: latest.diasDisponiblesTotales
+                        });
+                    }
+                });
                 setHistorial(periods);
             }
         } catch (error) {

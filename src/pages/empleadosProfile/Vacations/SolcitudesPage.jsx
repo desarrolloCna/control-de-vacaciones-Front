@@ -240,6 +240,20 @@ const SolicitudesPage = () => {
   // Función para obtener el texto del estado
   const getEstadoText = (estado) => getEstado(estado).label;
 
+  // Verifica si el empleado tiene solicitudes pendientes más antiguas (menor idSolicitud)
+  const tieneSolicitudMasAntigua = (currentSolicitud) => {
+    if (!currentSolicitud || !solicitudesU) return false;
+    
+    // Consideramos pendientes aquellas que esperan acción del coordinador o rrhh
+    const estadosPendientes = ["enviada", "aceptada", "aceptadas", "reprogramada", "reprogramadas"];
+    
+    return solicitudesU.some(sol => 
+      sol.idEmpleado === currentSolicitud.idEmpleado &&
+      sol.idSolicitud < currentSolicitud.idSolicitud && 
+      estadosPendientes.includes((sol.estadoSolicitud || "").toLowerCase())
+    );
+  };
+
   const handleVerSolicitud = (solicitud) => {
     setSelectedSolicitud(solicitud);
     setModalOpen(true);
@@ -1191,16 +1205,22 @@ const SolicitudesPage = () => {
                   <Box
                     sx={{
                       display: "flex",
-                      justifyContent: "center",
-                      gap: 2,
+                      flexDirection: "column",
+                      alignItems: "center",
                       mt: 4,
                     }}
                   >
-                    <Button
-                      variant="contained"
-                      onClick={handleAutorizar}
-                      disabled={selectedSolicitud.estadoSolicitud !== "enviada" && selectedSolicitud.estadoSolicitud !== "rechazada"}
-                      sx={{
+                    {tieneSolicitudMasAntigua(selectedSolicitud) && (
+                      <Alert severity="warning" sx={{ mb: 3, width: '100%', borderRadius: '12px' }}>
+                        No puedes autorizar esta solicitud porque el empleado tiene otras gestiones previas pendientes de procesar.
+                      </Alert>
+                    )}
+                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2, width: '100%' }}>
+                      <Button
+                        variant="contained"
+                        onClick={handleAutorizar}
+                        disabled={(selectedSolicitud.estadoSolicitud !== "enviada" && selectedSolicitud.estadoSolicitud !== "rechazada") || tieneSolicitudMasAntigua(selectedSolicitud)}
+                        sx={{
                         backgroundColor: "#34A853",
                         '&:hover': { backgroundColor: "#2e8b47" },
                         borderRadius: '24px',
@@ -1230,6 +1250,7 @@ const SolicitudesPage = () => {
                     >
                       Rechazar Solicitud
                     </Button>
+                  </Box>
                   </Box>
                 )}
               </>

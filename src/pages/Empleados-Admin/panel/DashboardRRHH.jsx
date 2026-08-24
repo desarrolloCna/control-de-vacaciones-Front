@@ -8,6 +8,7 @@ import {
 import Navbar from "../../../components/navBar/NavBar";
 import { PageLoader, ContentLoader } from "../../../components/Loaders/Loaders";
 import api from "../../../config/api";
+import { PageHeader } from "../../../components/UI/UIComponents";
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
   Tooltip as RechartsTooltip, Legend,
@@ -236,97 +237,91 @@ export default function DashboardRRHH() {
       <Navbar />
       <Container maxWidth="xl" sx={{ py: 4 }}>
         {/* Header */}
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <BackButton />
-            <Box sx={{ ml: 2 }}>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: "#1a1a2e", letterSpacing: "-0.5px" }}>
-                Dashboard de Recursos Humanos
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Panorama general del sistema de vacaciones del CNA
-              </Typography>
-            </Box>
-          </Box>
-          <Box>
-            <Button
-              variant="outlined"
-              startIcon={<TvIcon />}
-              onClick={() => window.open("/kiosco", "_blank")}
-              sx={{
-                mr: 2,
-                color: "#4F46E5",
-                borderColor: "#4F46E5",
-                fontWeight: 700,
-                borderRadius: 2,
-                '&:hover': { bgcolor: "rgba(79, 70, 229, 0.08)", borderColor: "#4338CA" }
-              }}
-            >
-              Pantalla Kiosco
-            </Button>
-            
-            <FormControl sx={{ minWidth: 220, mr: 2 }} size="small">
-              <InputLabel id="filtro-unidad-label">Filtrar Unidad</InputLabel>
-              <Select
-                labelId="filtro-unidad-label"
-                value={selectedUnidad}
-                label="Filtrar Unidad"
-                onChange={(e) => setSelectedUnidad(e.target.value)}
-                sx={{ bgcolor: 'white', borderRadius: 2 }}
-              >
-                <MenuItem value="Todas"><strong>📋 Todas las Unidades</strong></MenuItem>
-                {unidades.map(u => (
-                  <MenuItem key={u.idUnidad} value={u.nombreUnidad}>{u.nombreUnidad}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+        <PageHeader 
+          title="Dashboard de Recursos Humanos"
+          subtitle="Panorama general del sistema de vacaciones del CNA"
+          actionElement={
+            <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<TvIcon />}
+                  onClick={() => window.open("/kiosco", "_blank")}
+                  sx={{
+                    color: "#4F46E5",
+                    borderColor: "#4F46E5",
+                    fontWeight: 700,
+                    borderRadius: "10px",
+                    textTransform: "none",
+                    px: 3,
+                    "&:hover": { bgcolor: "#4F46E5", color: "white" },
+                  }}
+                >
+                  Abrir Kiosco
+                </Button>
+                
+                <FormControl sx={{ minWidth: 220 }} size="small">
+                  <InputLabel id="filtro-unidad-label">Filtrar Unidad</InputLabel>
+                  <Select
+                    labelId="filtro-unidad-label"
+                    value={selectedUnidad}
+                    label="Filtrar Unidad"
+                    onChange={(e) => setSelectedUnidad(e.target.value)}
+                    sx={{ bgcolor: 'white', borderRadius: 2 }}
+                  >
+                    <MenuItem value="Todas"><strong>📋 Todas las Unidades</strong></MenuItem>
+                    {unidades.map(u => (
+                      <MenuItem key={u.idUnidad} value={u.nombreUnidad}>{u.nombreUnidad}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
-            <Button 
-              variant="contained" 
-              startIcon={downloadingPdf ? <CircularProgress size={20} color="inherit" /> : <DownloadIcon />}
-              onClick={handleDownloadClick}
-              disabled={downloadingPdf}
-              sx={{ 
-                bgcolor: "#1A237E", 
-                color: "white", 
-                fontWeight: 700,
-                borderRadius: "20px",
-                textTransform: "none",
-                '&:hover': { bgcolor: "#0D47A1" }
-              }}
-            >
-              {downloadingPdf ? "Generando..." : "Exportar"}
-            </Button>
-            <Menu
-              anchorEl={anchorEl}
-              open={downloadMenuOpen}
-              onClose={handleDownloadClose}
-              PaperProps={{
-                elevation: 3,
-                sx: { mt: 1, borderRadius: 2, minWidth: 200 }
-              }}
-            >
-              <MenuItem onClick={handleDownloadPDF}>
-                <ListItemIcon>
-                  <PictureAsPdfIcon fontSize="small" sx={{ color: '#EF4444' }} />
-                </ListItemIcon>
-                <ListItemText primary="Reporte Ejecutivo (PDF)" />
-              </MenuItem>
-              <MenuItem onClick={() => handleDownloadExcel('saldos')}>
-                <ListItemIcon>
-                  <TableViewIcon fontSize="small" sx={{ color: '#10B981' }} />
-                </ListItemIcon>
-                <ListItemText primary="Saldos de Empleados (Excel)" />
-              </MenuItem>
-              <MenuItem onClick={() => handleDownloadExcel('solicitudes')}>
-                <ListItemIcon>
-                  <TableViewIcon fontSize="small" sx={{ color: '#10B981' }} />
-                </ListItemIcon>
-                <ListItemText primary="Solicitudes del Mes (Excel)" />
-              </MenuItem>
-            </Menu>
-          </Box>
-        </Box>
+                <Button 
+                  variant="contained" 
+                  startIcon={downloadingPdf ? <CircularProgress size={20} color="inherit" /> : <DownloadIcon />}
+                  onClick={handleDownloadClick}
+                  disabled={downloadingPdf}
+                  sx={{ 
+                    bgcolor: "#1A237E", 
+                    color: "white", 
+                    fontWeight: 700,
+                    borderRadius: "20px",
+                    textTransform: "none",
+                    '&:hover': { bgcolor: "#0D47A1" }
+                  }}
+                >
+                  {downloadingPdf ? "Generando..." : "Exportar"}
+                </Button>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={downloadMenuOpen}
+                  onClose={handleDownloadClose}
+                  PaperProps={{
+                    elevation: 3,
+                    sx: { mt: 1, borderRadius: 2, minWidth: 200 }
+                  }}
+                >
+                  <MenuItem onClick={handleDownloadPDF}>
+                    <ListItemIcon>
+                      <PictureAsPdfIcon fontSize="small" sx={{ color: '#EF4444' }} />
+                    </ListItemIcon>
+                    <ListItemText primary="Reporte Ejecutivo (PDF)" />
+                  </MenuItem>
+                  <MenuItem onClick={() => handleDownloadExcel('saldos')}>
+                    <ListItemIcon>
+                      <TableViewIcon fontSize="small" sx={{ color: '#10B981' }} />
+                    </ListItemIcon>
+                    <ListItemText primary="Saldos de Empleados (Excel)" />
+                  </MenuItem>
+                  <MenuItem onClick={() => handleDownloadExcel('solicitudes')}>
+                    <ListItemIcon>
+                      <TableViewIcon fontSize="small" sx={{ color: '#10B981' }} />
+                    </ListItemIcon>
+                    <ListItemText primary="Solicitudes del Mes (Excel)" />
+                  </MenuItem>
+                </Menu>
+            </Box>
+          }
+        />
 
         {error ? (
           <Alert severity="error" sx={{ mt: 3, borderRadius: 3 }}>{error}</Alert>

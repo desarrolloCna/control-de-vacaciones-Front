@@ -116,11 +116,17 @@ const VacationApp = () => {
       : historial;
 
     if (historialFiltrado && historialFiltrado.length > 0) {
+      const summary = {};
       historialFiltrado.forEach(item => {
-        if (item.tipoRegistro === 1) { // Crédito
-          totalCreditos += Number(item.totalDiasAcreditados) || 0;
-          totalDebitos += Number(item.totalDiasDebitados) || 0;
-        }
+        const p = item.periodo;
+        if (!summary[p]) { summary[p] = { creditos: 0, debitos: 0 }; }
+        summary[p].creditos = Math.max(summary[p].creditos, Number(item.totalDiasAcreditados) || 0);
+        summary[p].debitos = Math.max(summary[p].debitos, Number(item.totalDiasDebitados) || 0);
+      });
+
+      Object.values(summary).forEach(s => {
+        totalCreditos += s.creditos;
+        totalDebitos += s.debitos;
       });
       saldoActual = Number(totalCreditos) - Number(totalDebitos);
     }

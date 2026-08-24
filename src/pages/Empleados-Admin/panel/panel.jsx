@@ -20,6 +20,7 @@ import { useCheckSession } from "../../../services/session/checkSession.js";
 import Spinner from "../../../components/spinners/spinner";
 import PanelCard from "../../../components/card/cardPanel.jsx";
 import Navbar from "../../../components/navBar/NavBar";
+import { PageHeader } from "../../../components/UI/UIComponents";
 
 export default function ControlPanel() {
   const isSessionVerified = useCheckSession();
@@ -48,14 +49,11 @@ export default function ControlPanel() {
     <Box sx={{ minHeight: "100vh", bgcolor: "#f0f2f5" }}>
       <Navbar />
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5, color: "#1a1a2e", letterSpacing: "-0.5px" }}>
-            Panel de Control
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Seleccione un módulo para gestionar el sistema de vacaciones del CNA
-          </Typography>
-        </Box>
+        <PageHeader 
+          title="Panel de Control"
+          subtitle="Seleccione un módulo para gestionar el sistema de vacaciones del CNA"
+          showBack={false}
+        />
 
         <Grid container spacing={3}>
           {hasAccess("/dashboard-rrhh") && (

@@ -9,11 +9,13 @@ import {
 } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import DeleteIcon from "@mui/icons-material/Delete";
+import LockResetIcon from "@mui/icons-material/LockReset";
 import { useNavigate } from "react-router-dom";
 import { useCheckSession } from "../../../services/session/checkSession.js";
 import Spinner from "../../../components/spinners/spinner.jsx";
 import api from "../../../config/api.js";
 import { PageHeader } from "../../../components/UI/UIComponents";
+import Swal from 'sweetalert2';
 
 export default function GestionUsuariosRRHH() {
   const isSessionVerified = useCheckSession();
@@ -118,10 +120,39 @@ export default function GestionUsuariosRRHH() {
         });
         setSuccess(`Acceso creado para ${selectedEmp.nombreCompleto}`);
       }
-      setOpenModal(false);
       fetchUsuarios();
+      setOpenModal(false);
     } catch (err) {
       setError(err.response?.data?.error || "Error al guardar el usuario.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (idUsuario, nombreCompleto) => {
+    const result = await Swal.fire({
+      title: '¿Resetear contraseña?',
+      text: `Se restablecerá la contraseña de ${nombreCompleto} a "CNA.2024*"`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#f59e0b',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, resetear',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setLoading(true);
+        const res = await api.put(`/admin/usuarios/${idUsuario}/reset-password`);
+        setSuccess(res.data.message || 'Contraseña reseteada con éxito');
+        Swal.fire('¡Contraseña Reseteada!', 'La nueva contraseña es CNA.2024*', 'success');
+      } catch (err) {
+        setError(err.response?.data?.error || 'Error al resetear contraseña');
+        Swal.fire('Error', 'No se pudo resetear la contraseña', 'error');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -320,6 +351,11 @@ export default function GestionUsuariosRRHH() {
                             >
                               Editar Permisos
                             </Button>
+                            <Tooltip title="Resetear Contraseña">
+                              <IconButton color="warning" onClick={() => handleResetPassword(row.idUsuario, row.nombreCompleto)}>
+                                <LockResetIcon />
+                              </IconButton>
+                            </Tooltip>
                             <Tooltip title="Eliminar Acceso">
                               <IconButton color="error" onClick={() => handleDeleteUser(row.idUsuario, row.nombreCompleto)}>
                                 <DeleteIcon />

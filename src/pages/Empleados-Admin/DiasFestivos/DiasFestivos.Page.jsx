@@ -169,19 +169,7 @@ export default function DiasFestivosPage() {
       <PageHeader 
         title="Días Festivos" 
         subtitle={`Gestión de feriados institucionales — Año ${selectedYear}`} 
-      />
-      
-      <Box sx={{ p: 3 }}>
-        <Container maxWidth="lg">
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
-          <Box>
-            <Typography variant="h4" fontWeight="bold" color="primary.main" gutterBottom>
-              Historial de Días Festivos
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Listado de feriados configurados separados por año de gestión.
-            </Typography>
-          </Box>
+        actionElement={
           <Button 
             variant="contained" 
             startIcon={<AddIcon />}
@@ -190,8 +178,11 @@ export default function DiasFestivosPage() {
           >
             Nuevo Feriado
           </Button>
-        </Box>
-
+        }
+      />
+      
+      <Box sx={{ p: 3 }}>
+        <Container maxWidth="lg">
         <Box mb={3} display="flex" gap={2} alignItems="center">
           <FormControl sx={{ minWidth: 200, bgcolor: 'background.paper', borderRadius: 1 }} size="small">
             <InputLabel>Filtrar por Año</InputLabel>
@@ -212,12 +203,12 @@ export default function DiasFestivosPage() {
         <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: '12px', width: '100%', overflowX: 'auto', mb: 4 }}>
           <Table>
             <TableHead>
-              <TableRow sx={{ background: "linear-gradient(90deg, #1A237E 0%, #1565C0 100%)" }}>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Nombre Festividad</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }} align="center">¿Medio Día?</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }} align="center">Estado</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }} align="center">Acciones</TableCell>
+              <TableRow>
+                <TableCell sx={{ bgcolor: '#1A237E', color: '#fff', fontWeight: 'bold' }}>Fecha</TableCell>
+                <TableCell sx={{ bgcolor: '#1A237E', color: '#fff', fontWeight: 'bold' }}>Nombre Festividad</TableCell>
+                <TableCell sx={{ bgcolor: '#1A237E', color: '#fff', fontWeight: 'bold' }} align="center">¿Medio Día?</TableCell>
+                <TableCell sx={{ bgcolor: '#1A237E', color: '#fff', fontWeight: 'bold' }} align="center">Estado</TableCell>
+                <TableCell sx={{ bgcolor: '#1A237E', color: '#fff', fontWeight: 'bold' }} align="center">Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

@@ -6,6 +6,9 @@ import {
     LinearProgress, Tooltip as MuiTooltip, Paper, Tabs, Tab, Stack,
     FormControl, InputLabel, Select, MenuItem
 } from "@mui/material";
+import { PageLoader } from "../../../components/Loaders/Loaders";
+import { PageHeader } from "../../../components/UI/UIComponents";
+import Swal from 'sweetalert2';
 import Navbar from "../../../components/navBar/NavBar";
 import PrintIcon from '@mui/icons-material/Print';
 import SearchIcon from '@mui/icons-material/Search';
@@ -222,15 +225,10 @@ export default function FiniquitoRRHH() {
         <Box sx={{ minHeight: "100vh", bgcolor: "#f5f5f5" }}>
             <Navbar />
             <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <BackButton />
-                    <Typography variant="h4" sx={{ fontWeight: "bold", ml: 2, color: "#1a1a2e" }}>
-                        Generación de Finiquitos (PDF)
-                    </Typography>
-                </Box>
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                    Busque al empleado, revise su historial completo y genere la constancia oficial de finiquito por período.
-                </Typography>
+                <PageHeader 
+                    title="Generación de Finiquitos (PDF)"
+                    subtitle="Busque al empleado, revise su historial completo y genere la constancia oficial de finiquito por período."
+                />
 
                 <Card sx={{ borderRadius: 3, boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}>
                     <CardContent sx={{ p: 4 }}>

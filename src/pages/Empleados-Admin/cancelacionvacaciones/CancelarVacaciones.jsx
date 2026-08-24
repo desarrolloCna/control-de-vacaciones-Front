@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useGetSolicitudesAutorizadas } from "../../../hooks/SolicitudesAtuorizadas/useGetSolicituesAutorizadas";
 import "./CancelacionVacaciones.styles.css";
 import Navbar from "../../../components/navBar/NavBar";
+import { PageHeader } from "../../../components/UI/UIComponents";
+import Swal from 'sweetalert2';
 import BackButton from "../../../components/BackButton/BackButton";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
@@ -72,11 +74,10 @@ const CancelacionVacaciones = () => {
         <>
             <Navbar />
             <div className="cancelacion-container">
-                <BackButton />
-                <div className="cancelacion-header">
-                    <h1>Cancelación de Vacaciones</h1>
-                    <p className="subtitle">Gestiona las solicitudes de vacaciones autorizadas</p>
-                </div>
+                <PageHeader 
+                    title="Cancelación de Vacaciones"
+                    subtitle="Gestiona las solicitudes de vacaciones autorizadas"
+                />
 
                 {/* Barra de búsqueda */}
                 {solicitudes.length > 0 && (

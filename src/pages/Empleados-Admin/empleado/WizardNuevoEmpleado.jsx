@@ -24,7 +24,7 @@ import WorkIcon from "@mui/icons-material/Work";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import Navbar from "../../../components/navBar/NavBar";
-import BackButton from "../../../components/BackButton/BackButton";
+import { PageHeader } from "../../../components/UI/UIComponents";
 import { useCheckSession } from "../../../services/session/checkSession";
 import Spinner from "../../../components/spinners/spinner";
 import { useNavigate } from "react-router-dom";
@@ -211,34 +211,19 @@ export default function WizardNuevoEmpleado() {
       <Navbar />
       <Box sx={{ backgroundColor: "background.default", minHeight: "100vh", pb: 5 }}>
         <Container maxWidth="lg" sx={{ mt: 3 }}>
-          <BackButton />
+          <PageHeader 
+            title="Registro de Nuevo Empleado"
+            subtitle="Complete los 6 pasos para registrar un nuevo colaborador en el sistema"
+          />
           <Paper
             elevation={0}
             sx={{
               p: { xs: 3, md: 5 },
               borderRadius: 4,
-              mt: 2,
               border: "1px solid",
               borderColor: "divider",
             }}
           >
-            {/* Header */}
-            <Typography
-              variant="h4"
-              align="center"
-              sx={{
-                fontWeight: 800,
-                mb: 1,
-                background: "linear-gradient(90deg, #1A237E, #0D47A1)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              Registro de Nuevo Empleado
-            </Typography>
-            <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 4 }}>
-              Complete los 6 pasos para registrar un nuevo colaborador en el sistema
-            </Typography>
 
             {/* Alerta de Reset */}
             {showResetWarning && (

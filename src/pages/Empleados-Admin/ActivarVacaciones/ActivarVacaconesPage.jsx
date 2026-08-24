@@ -251,16 +251,16 @@ const ActivarVacacionesPage = () => {
         <Box className="fade-in" sx={{ bgcolor: '#f4f6f8', minHeight: '100vh', pb: 4 }}>
             <PageHeader 
                 title="Activación Especial de Vacaciones"
-                subtitle="Gestión para empleados con menos de un año de antigüedad"
+                subtitle="Gestión para empleados de nuevo ingreso o sin saldo de años anteriores"
             />
 
             <Container maxWidth="md" sx={{ mt: 3 }}>
                 {/* Banner informativo */}
                 <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
                     <AlertTitle>Proceso Especial de RRHH</AlertTitle>
-                    Los empleados con menos de un año de antigüedad requieren autorización especial 
-                    para solicitar vacaciones. Esta herramienta permite activar temporalmente 
-                    esta funcionalidad mediante gestión autorizada del departamento de Recursos Humanos.
+                    Los empleados con menos de un año de antigüedad o aquellos que ya agotaron sus días de años anteriores, 
+                    requieren autorización especial para solicitar días de su periodo actual. Esta herramienta permite activar 
+                    temporalmente esta funcionalidad mediante gestión autorizada de Recursos Humanos.
                 </Alert>
 
                 {/* Barra de búsqueda y Controles Superiores */}
@@ -324,6 +324,31 @@ const ActivarVacacionesPage = () => {
                         </Grid>
                     </CardContent>
                 </Card>
+                {/* Acciones principales y Mensajes */}
+                <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, position: 'sticky', top: 20, zIndex: 10 }}>
+                    {empleadosFiltrados?.length > 0 && (
+                        <Button 
+                            variant="contained" 
+                            color="primary"
+                            size="large"
+                            onClick={procesarActivacion}
+                            disabled={procesando || empleadosSeleccionados.size === 0}
+                            sx={{ px: 5, py: 1.5, borderRadius: 2, textTransform: 'none', fontSize: '1.1rem', boxShadow: '0 4px 14px 0 rgb(99 102 241 / 39%)' }}
+                        >
+                            {procesando ? (
+                                <CircularProgress size={26} color="inherit" />
+                            ) : (
+                                `Autorizar vacaciones (${empleadosSeleccionados.size})`
+                            )}
+                        </Button>
+                    )}
+                    
+                    {mensaje.texto && (
+                        <Alert severity={mensaje.tipo} sx={{ width: '100%', borderRadius: 2, boxShadow: 2 }}>
+                            {mensaje.texto}
+                        </Alert>
+                    )}
+                </Box>
 
                 {/* Lista de empleados */}
                 <Card sx={{ borderRadius: 2, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
@@ -433,31 +458,7 @@ const ActivarVacacionesPage = () => {
                     </List>
                 </Card>
 
-                {/* Acciones principales y Mensajes */}
-                <Box sx={{ mt: 4, mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                    {empleadosFiltrados?.length > 0 && (
-                        <Button 
-                            variant="contained" 
-                            color="primary"
-                            size="large"
-                            onClick={procesarActivacion}
-                            disabled={procesando || empleadosSeleccionados.size === 0}
-                            sx={{ px: 5, py: 1.5, borderRadius: 2, textTransform: 'none', fontSize: '1.1rem', boxShadow: '0 4px 14px 0 rgb(99 102 241 / 39%)' }}
-                        >
-                            {procesando ? (
-                                <CircularProgress size={26} color="inherit" />
-                            ) : (
-                                `Autorizar vacaciones (${empleadosSeleccionados.size})`
-                            )}
-                        </Button>
-                    )}
-                    
-                    {mensaje.texto && (
-                        <Alert severity={mensaje.tipo} sx={{ width: '100%', borderRadius: 2 }}>
-                            {mensaje.texto}
-                        </Alert>
-                    )}
-                </Box>
+
 
             </Container>
         </Box>

@@ -21,6 +21,7 @@ const ExcepcionLimitePage = () => {
     const [loadingEmpleados, setLoadingEmpleados] = useState(true);
     const [empleadosSeleccionados, setEmpleadosSeleccionados] = useState(new Set());
     const [descripciones, setDescripciones] = useState({});
+    const [diasAutorizadosInput, setDiasAutorizadosInput] = useState({});
     const [procesando, setProcesando] = useState(false);
     const [mensaje, setMensaje] = useState({ tipo: '', texto: '' });
     const [terminoBusqueda, setTerminoBusqueda] = useState('');
@@ -127,10 +128,17 @@ const ExcepcionLimitePage = () => {
     };
 
     // Función para actualizar la descripción de un empleado
-    const actualizarDescripcion = (idEmpleado, descripcion) => {
+    const actualizarDescripcion = (idEmpleado, texto) => {
         setDescripciones(prev => ({
             ...prev,
-            [idEmpleado]: descripcion
+            [idEmpleado]: texto
+        }));
+    };
+
+    const actualizarDiasAutorizados = (idEmpleado, dias) => {
+        setDiasAutorizadosInput(prev => ({
+            ...prev,
+            [idEmpleado]: dias
         }));
     };
 
@@ -174,7 +182,8 @@ const ExcepcionLimitePage = () => {
             fechaInicioValidez: hoy.format('YYYY-MM-DD'),
             fechaFinValidez: manana.format('YYYY-MM-DD'),
             fechaIngresoGestion: hoy.format('YYYY-MM-DD HH:mm:ss'),
-            descripcion: descripciones[empleado.idEmpleado] || '' // Agregar descripción al payload
+            descripcion: descripciones[empleado.idEmpleado] || '', // Agregar descripción al payload
+            diasAutorizados: diasAutorizadosInput[empleado.idEmpleado] // Cantidad de días limitados
         };
     };
 
@@ -196,6 +205,21 @@ const ExcepcionLimitePage = () => {
                 texto: `Por favor ingresa una Motivo para todos los empleados seleccionados` 
             });
             return;
+        }
+
+        // Validar cantidad de días autorizados
+        for (const id of empleadosSeleccionados) {
+            const empleado = empleadosFiltrados.find(e => e.idEmpleado === id);
+            const dias = diasAutorizadosInput[id];
+            
+            if (!dias || dias <= 20) {
+                setMensaje({ tipo: 'error', texto: `Los días autorizados para ${empleado?.Nombre} deben ser mayores a 20.` });
+                return;
+            }
+            if (dias > (empleado?.diasTotales || 0)) {
+                setMensaje({ tipo: 'error', texto: `Los días autorizados para ${empleado?.Nombre} no pueden ser mayores a sus días acumulados (${empleado?.diasTotales}).` });
+                return;
+            }
         }
 
         setProcesando(true);
@@ -258,6 +282,7 @@ const ExcepcionLimitePage = () => {
             if (errores.length === 0) {
                 setEmpleadosSeleccionados(new Set());
                 setDescripciones({});
+                setDiasAutorizadosInput({});
             }
             
         } catch (error) {
@@ -365,6 +390,31 @@ const ExcepcionLimitePage = () => {
                         </Grid>
                     </CardContent>
                 </Card>
+                {/* Acciones principales y Mensajes */}
+                <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, position: 'sticky', top: 20, zIndex: 10 }}>
+                    {empleadosFiltrados?.length > 0 && (
+                        <Button 
+                            variant="contained" 
+                            color="primary"
+                            size="large"
+                            onClick={procesarActivacion}
+                            disabled={procesando || empleadosSeleccionados.size === 0}
+                            sx={{ px: 5, py: 1.5, borderRadius: 2, textTransform: 'none', fontSize: '1.1rem', boxShadow: '0 4px 14px 0 rgb(99 102 241 / 39%)' }}
+                        >
+                            {procesando ? (
+                                <CircularProgress size={26} color="inherit" />
+                            ) : (
+                                `Autorizar excepción (${empleadosSeleccionados.size})`
+                            )}
+                        </Button>
+                    )}
+                    
+                    {mensaje.texto && (
+                        <Alert severity={mensaje.tipo} sx={{ width: '100%', borderRadius: 2, boxShadow: 2 }}>
+                            {mensaje.texto}
+                        </Alert>
+                    )}
+                </Box>
 
                 {/* Lista de empleados */}
                 <Card sx={{ borderRadius: 2, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
@@ -408,7 +458,19 @@ const ExcepcionLimitePage = () => {
                                                     </Typography>
                                                     
                                                     {empleadosSeleccionados.has(empleado.idEmpleado) && (
-                                                        <Box sx={{ mt: 2, width: '100%' }}>
+                                                        <Box sx={{ mt: 2, width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                            <TextField
+                                                                fullWidth
+                                                                type="number"
+                                                                label="Días a autorizar"
+                                                                variant="outlined"
+                                                                size="small"
+                                                                value={diasAutorizadosInput[empleado.idEmpleado] || ''}
+                                                                onChange={(e) => actualizarDiasAutorizados(empleado.idEmpleado, parseInt(e.target.value) || '')}
+                                                                disabled={procesando}
+                                                                InputProps={{ inputProps: { min: 21, max: empleado.diasTotales } }}
+                                                                helperText={`Debe ser mayor a 20 y hasta ${empleado.diasTotales || 0}`}
+                                                            />
                                                             <TextField
                                                                 fullWidth
                                                                 multiline
@@ -477,31 +539,7 @@ const ExcepcionLimitePage = () => {
                     </List>
                 </Card>
 
-                {/* Acciones principales y Mensajes */}
-                <Box sx={{ mt: 4, mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                    {empleadosFiltrados?.length > 0 && (
-                        <Button 
-                            variant="contained" 
-                            color="primary"
-                            size="large"
-                            onClick={procesarActivacion}
-                            disabled={procesando || empleadosSeleccionados.size === 0}
-                            sx={{ px: 5, py: 1.5, borderRadius: 2, textTransform: 'none', fontSize: '1.1rem', boxShadow: '0 4px 14px 0 rgb(99 102 241 / 39%)' }}
-                        >
-                            {procesando ? (
-                                <CircularProgress size={26} color="inherit" />
-                            ) : (
-                                `Autorizar excepción (${empleadosSeleccionados.size})`
-                            )}
-                        </Button>
-                    )}
-                    
-                    {mensaje.texto && (
-                        <Alert severity={mensaje.tipo} sx={{ width: '100%', borderRadius: 2 }}>
-                            {mensaje.texto}
-                        </Alert>
-                    )}
-                </Box>
+
 
             </Container>
         </Box>

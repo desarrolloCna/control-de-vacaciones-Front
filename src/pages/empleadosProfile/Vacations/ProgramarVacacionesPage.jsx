@@ -62,6 +62,7 @@ const ProgramarVacacionesPage = () => {
   const [idInfoPersonal, setIdInfoPersonal] = useState("");
   const [diasHabilitado, setDiasHabilitado] = useState(false);
   const [hasExcepcionLimite, setHasExcepcionLimite] = useState(false);
+  const [excepcionDias, setExcepcionDias] = useState(null);
   const [showAllCoordinators, setShowAllCoordinators] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -83,7 +84,7 @@ const ProgramarVacacionesPage = () => {
   const lastStartDate = dayjs().endOf("year").subtract(53, "day").format("YYYY-MM-DD");
 
   // Calcular días disponibles matemáticos reales para usar
-  const MAX_DIAS_SOLICITUD = hasExcepcionLimite ? diasSolicitablesT : 20;
+  const MAX_DIAS_SOLICITUD = (hasExcepcionLimite && excepcionDias !== null) ? excepcionDias : 20;
   const LIMITE_DIAS_ANUAL = diasSolicitablesT < MAX_DIAS_SOLICITUD ? diasSolicitablesT : MAX_DIAS_SOLICITUD;
   const diasDisponibles = LIMITE_DIAS_ANUAL - (diasDebitados || 0);
 
@@ -113,6 +114,7 @@ const ProgramarVacacionesPage = () => {
         try {
           const result = await consultarExcepcionLimiteService(idEmpleado, dayjs().format("YYYY-MM-DD"));
           setHasExcepcionLimite(result?.isExist > 0);
+          setExcepcionDias(result?.diasAutorizados || null);
         } catch (err) {
           console.error("Error al consultar excepcion de límite:", err);
         }
