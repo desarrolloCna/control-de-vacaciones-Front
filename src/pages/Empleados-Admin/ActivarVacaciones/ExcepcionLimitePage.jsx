@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from "react";
 import { 
     Box, Container, Alert, AlertTitle, Card, CardContent, Grid, TextField, 
     IconButton, Typography, Button, List, ListItem, ListItemAvatar, Avatar,
-    ListItemText, ListItemSecondaryAction, Switch, Divider, CircularProgress
+    ListItemText, ListItemSecondaryAction, Switch, Divider, CircularProgress,
+    FormControl, InputLabel, Select, MenuItem
 } from "@mui/material";
 import dayjs from "dayjs";
 import Navbar from "../../../components/navBar/NavBar";
@@ -23,6 +24,8 @@ const ExcepcionLimitePage = () => {
     const [procesando, setProcesando] = useState(false);
     const [mensaje, setMensaje] = useState({ tipo: '', texto: '' });
     const [terminoBusqueda, setTerminoBusqueda] = useState('');
+    const [unidades, setUnidades] = useState([]);
+    const [selectedUnidad, setSelectedUnidad] = useState("Todas");
 
     useEffect(() => {
         const fetchEmpleados = async () => {
@@ -63,7 +66,19 @@ const ExcepcionLimitePage = () => {
                 setLoadingEmpleados(false);
             }
         };
+
+        const fetchUnidades = async () => {
+            try {
+                const response = await api.get('/unidades');
+                const data = response.data.departamentos.filter((u) => u.estado === "A");
+                setUnidades(data);
+            } catch (error) {
+                console.error("Error al obtener las unidades", error);
+            }
+        };
+
         fetchEmpleados();
+        fetchUnidades();
     }, []);
 
     // Effect para limpiar mensajes de éxito automáticamente después de 5 segundos
@@ -80,15 +95,21 @@ const ExcepcionLimitePage = () => {
 
     // Filtrar empleados basado en la búsqueda
     const empleadosFiltrados = useMemo(() => {
-        if (!terminoBusqueda.trim()) {
-            return empleadosU;
+        let filtered = empleadosU;
+        
+        if (selectedUnidad !== "Todas") {
+            filtered = filtered?.filter(emp => emp.unidad === selectedUnidad);
         }
         
-        const terminoLower = terminoBusqueda.toLowerCase().trim();
-        return empleadosU?.filter(empleado => 
-            empleado.Nombre.toLowerCase().includes(terminoLower)
-        );
-    }, [empleadosU, terminoBusqueda]);
+        if (terminoBusqueda.trim()) {
+            const terminoLower = terminoBusqueda.toLowerCase().trim();
+            filtered = filtered?.filter(empleado => 
+                empleado.Nombre?.toLowerCase().includes(terminoLower)
+            );
+        }
+        
+        return filtered;
+    }, [empleadosU, terminoBusqueda, selectedUnidad]);
 
     // Función para manejar la selección de empleados
     const toggleEmpleadoSeleccionado = (idEmpleado) => {
@@ -288,22 +309,40 @@ const ExcepcionLimitePage = () => {
                     <CardContent>
                         <Grid container spacing={2} alignItems="center">
                             <Grid item xs={12} md={8}>
-                                <TextField
-                                    fullWidth
-                                    variant="outlined"
-                                    placeholder="Buscar empleado por nombre..."
-                                    value={terminoBusqueda}
-                                    onChange={(e) => setTerminoBusqueda(e.target.value)}
-                                    disabled={procesando}
-                                    InputProps={{
-                                        startAdornment: <span style={{ marginRight: 8, fontSize: '1.2rem' }}>🔍</span>,
-                                        endAdornment: terminoBusqueda && (
-                                            <IconButton onClick={() => setTerminoBusqueda('')} size="small">
-                                                <span>✕</span>
-                                            </IconButton>
-                                        )
-                                    }}
-                                />
+                                <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                                    <TextField
+                                        fullWidth
+                                        variant="outlined"
+                                        placeholder="Buscar empleado por nombre..."
+                                        value={terminoBusqueda}
+                                        onChange={(e) => setTerminoBusqueda(e.target.value)}
+                                        disabled={procesando}
+                                        InputProps={{
+                                            startAdornment: <span style={{ marginRight: 8, fontSize: '1.2rem' }}>🔍</span>,
+                                            endAdornment: terminoBusqueda && (
+                                                <IconButton onClick={() => setTerminoBusqueda('')} size="small">
+                                                    <span>✕</span>
+                                                </IconButton>
+                                            )
+                                        }}
+                                    />
+                                    <FormControl sx={{ minWidth: { xs: '100%', sm: 250 } }}>
+                                        <InputLabel id="unidad-filter-label">Filtrar por Unidad</InputLabel>
+                                        <Select
+                                            labelId="unidad-filter-label"
+                                            value={selectedUnidad}
+                                            label="Filtrar por Unidad"
+                                            onChange={(e) => setSelectedUnidad(e.target.value)}
+                                        >
+                                            <MenuItem value="Todas"><strong>📋 Todas las Unidades</strong></MenuItem>
+                                            {unidades.map((u) => (
+                                                <MenuItem key={u.idUnidad} value={u.nombreUnidad}>
+                                                    {u.nombreUnidad}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Box>
                             </Grid>
                             <Grid item xs={12} md={4} sx={{ textAlign: 'center', '@media (min-width: 900px)': { textAlign: 'right' } }}>
                                 <Typography variant="body2" color="text.secondary">
