@@ -8,8 +8,10 @@ import { useCheckSession } from "../../../services/session/checkSession";
 import Spinner from "../../../components/spinners/spinner";
 import { API_URL } from "../../../config/enviroment";
 import { exportToExcel } from "../../../services/utils/exportToExcelUtils";
+import { exportResumenAnual } from "../../../services/utils/exportResumenAnualExcelUtils";
 import EditEmpleadoModal from "../../../components/EmpleadosPage/EditEmpleadoModal/EditEmpleadoModal";
 import EditIcon from "@mui/icons-material/Edit";
+import AssessmentIcon from "@mui/icons-material/Assessment";
 import { getFullEmployeeData } from "../../../services/EmpleadosServices/GetFullEmployeeData";
 
 export const ReporteEmpleado = () => {
@@ -87,6 +89,21 @@ export const ReporteEmpleado = () => {
       "Fecha Ingreso": emp.fechaIngresoLabores || "",
     }));
     exportToExcel(dataToExport, `Informe_Empleados_${selectedUnidad}`, "Empleados", `Informe de Empleados - Unidad: ${selectedUnidad === "Todas" ? "Todas las Unidades" : selectedUnidad}`);
+  };
+
+  const handleExportResumenAnual = async () => {
+    try {
+      const response = await api.get(`/employeesList/resumen-anual-011-022`);
+      const data = response.data?.resumen || [];
+      if (data.length === 0) {
+        alert("No hay datos de vacaciones para los renglones 011 y 022.");
+        return;
+      }
+      exportResumenAnual(data);
+    } catch (error) {
+      console.error("Error al exportar resumen anual", error);
+      alert("Error al exportar resumen anual");
+    }
   };
 
   const headerStyle = {
@@ -224,22 +241,38 @@ export const ReporteEmpleado = () => {
       
       <Box sx={{ p: 3 }}>
         <Container maxWidth="xl">
-          <Button
-            variant="contained"
-            startIcon={<GetAppIcon />}
-            sx={{ 
-              backgroundColor: "#1A237E", 
-              color: "#fff", 
-              mb: 2,
-              borderRadius: "20px",
-              textTransform: "none",
-              fontWeight: 600,
-              '&:hover': { backgroundColor: "#0D47A1" }
-            }}
-            onClick={handleExportExcel}
-          >
-            Exportar a Excel
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<GetAppIcon />}
+              sx={{ 
+                backgroundColor: "#1A237E", 
+                color: "#fff", 
+                borderRadius: "20px",
+                textTransform: "none",
+                fontWeight: 600,
+                '&:hover': { backgroundColor: "#0D47A1" }
+              }}
+              onClick={handleExportExcel}
+            >
+              Exportar a Excel
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AssessmentIcon />}
+              sx={{ 
+                backgroundColor: "#00acc1", 
+                color: "#fff", 
+                borderRadius: "20px",
+                textTransform: "none",
+                fontWeight: 600,
+                '&:hover': { backgroundColor: "#00838f" }
+              }}
+              onClick={handleExportResumenAnual}
+            >
+              Resumen Anual (011/022)
+            </Button>
+          </Box>
           <MUIDataTable
             title={`Informe de Empleados — ${selectedUnidad}`}
             data={empleados}
