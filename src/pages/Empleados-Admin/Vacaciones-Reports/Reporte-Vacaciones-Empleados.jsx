@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from "react";
 import MUIDataTable from "mui-datatables";
 import api from "../../../config/api";
-import { Container, Button, Select, MenuItem, FormControl, InputLabel, Box, Chip } from "@mui/material";
+import { Container, Button, Select, MenuItem, FormControl, InputLabel, Box, Chip, Modal, Typography, Grid, Tooltip, IconButton } from "@mui/material";
 import GetAppIcon from "@mui/icons-material/GetApp";
+import InfoIcon from "@mui/icons-material/Info";
+import CloseIcon from "@mui/icons-material/Close";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import StopCircleIcon from "@mui/icons-material/StopCircle";
+import AssignmentReturnIcon from "@mui/icons-material/AssignmentReturn";
+import DescriptionIcon from "@mui/icons-material/Description";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import { PageHeader } from "../../../components/UI/UIComponents";
 import { useCheckSession } from "../../../services/session/checkSession";
 import Spinner from "../../../components/spinners/spinner";
 import { API_URL } from "../../../config/enviroment";
 import { exportToExcel } from "../../../services/utils/exportToExcelUtils";
+import { getDiasFestivosOmitidos, getDetalleFestivosOmitidos, formatDateToDisplay } from "../../../services/utils/dates/vacationUtils";
+import useDiasFestivos from "../../../hooks/DiasFestivos/useDiasFestivos";
 import dayjs from "dayjs";
 
 
@@ -19,6 +29,20 @@ export const ReporteVacacionesEmpleados = () => {
   const [unidad, setUnidad] = useState("Todas");
   const [selectedEstado, setSelectedEstado] = useState("Todos");
   const [unidades, setUnidades] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedSolicitud, setSelectedSolicitud] = useState(null);
+
+  // Hook para cargar los días festivos
+  useDiasFestivos();
+
+  const handleOpenModal = (solicitud) => {
+    setSelectedSolicitud(solicitud);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
 
   const baseEndpoint = `${API_URL}/vacacionesReport`;
 
@@ -93,6 +117,7 @@ export const ReporteVacacionesEmpleados = () => {
       "Fin Vacaciones": formatDate(v.fechaFinVacaciones),
       "Retorno a Labores": formatDate(v.fechaRetornoLabores),
       "Días Solicitados": v.cantidadDiasSolicitados,
+      "Días Festivos Integrados": getDiasFestivosOmitidos(v.fechaInicioVacaciones, v.fechaRetornoLabores),
       "Estado": v.estadoSolicitud,
       "Fecha Autorización": formatDate(v.fechaAutorizacion),
     }));
@@ -165,6 +190,21 @@ export const ReporteVacacionesEmpleados = () => {
       }
     },
     {
+      name: "diasFestivosOmitidos",
+      label: "Festivos Integrados",
+      options: {
+        customHeadRender: (columnMeta) => (
+          <th key={columnMeta.index} style={{ background: "linear-gradient(90deg, #1A237E 0%, #0D47A1 100%)", color: "#FFF", textAlign: "center", padding: "12px 8px", borderLeft: "1px solid rgba(255,255,255,0.2)", borderRight: "1px solid rgba(255,255,255,0.2)" }}>{columnMeta.label}</th>
+        ),
+        setCellProps: () => ({ style: { textAlign: "center" } }),
+        customBodyRender: (value, tableMeta) => {
+          const rowData = vacacionesList[tableMeta.rowIndex];
+          if (!rowData) return "0";
+          return getDiasFestivosOmitidos(rowData.fechaInicioVacaciones, rowData.fechaRetornoLabores);
+        }
+      }
+    },
+    {
       name: "estadoSolicitud",
       label: "Estado",
       options: {
@@ -175,6 +215,26 @@ export const ReporteVacacionesEmpleados = () => {
         customBodyRender: (value) => {
           const info = getEstadoChip(value);
           return <Chip label={info.label} sx={{ backgroundColor: info.color, color: "#fff", fontWeight: 600, minWidth: 100 }} size="small" />;
+        }
+      }
+    },
+    {
+      name: "acciones",
+      label: "Acciones",
+      options: {
+        customHeadRender: (columnMeta) => (
+          <th key={columnMeta.index} style={{ background: "linear-gradient(90deg, #1A237E 0%, #0D47A1 100%)", color: "#FFF", textAlign: "center", padding: "12px 8px", borderLeft: "1px solid rgba(255,255,255,0.2)", borderRight: "1px solid rgba(255,255,255,0.2)" }}>{columnMeta.label}</th>
+        ),
+        setCellProps: () => ({ style: { textAlign: "center" } }),
+        customBodyRender: (value, tableMeta) => {
+          const rowData = vacacionesList[tableMeta.rowIndex];
+          return (
+            <Tooltip title="Ver Detalles">
+              <IconButton onClick={() => handleOpenModal(rowData)} color="primary">
+                <VisibilityIcon />
+              </IconButton>
+            </Tooltip>
+          );
         }
       }
     }
@@ -271,6 +331,213 @@ export const ReporteVacacionesEmpleados = () => {
           />
         </Container>
       </Box>
+
+      {/* Modal de detalles */}
+      <Modal open={modalOpen} onClose={handleCloseModal}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "90vw",
+            maxWidth: "700px",
+            maxHeight: "90vh",
+            bgcolor: "white",
+            borderRadius: "16px",
+            p: 4,
+            boxShadow: 24,
+            overflow: "auto",
+            outline: "none",
+          }}
+        >
+          <IconButton
+            onClick={handleCloseModal}
+            sx={{ 
+              position: "absolute", 
+              top: 16, 
+              right: 16, 
+              color: "#5f6368",
+              backgroundColor: '#f8f9fa',
+              '&:hover': { backgroundColor: '#e8eaed' }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+
+          <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
+            <InfoIcon sx={{ color: "#1a73e8", fontSize: 50 }} />
+          </Box>
+
+          {selectedSolicitud && (
+            <>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                <Typography id="modal-title" variant="h5" sx={{ fontWeight: 800, color: "#2c3e50" }}>
+                  📋 Detalles de la Solicitud
+                </Typography>
+                {getDiasFestivosOmitidos(selectedSolicitud.fechaInicioVacaciones, selectedSolicitud.fechaRetornoLabores) > 0 ? (
+                  <Tooltip
+                    title={
+                      <Box sx={{ p: 1 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>Días Festivos Cruzados:</Typography>
+                        <ul style={{ margin: 0, paddingLeft: 16 }}>
+                          {getDetalleFestivosOmitidos(selectedSolicitud.fechaInicioVacaciones, selectedSolicitud.fechaRetornoLabores).map((f, i) => (
+                            <li key={i}>{f.nombreDiaFestivo} ({formatDateToDisplay(f.fechaDiaFestivo)})</li>
+                          ))}
+                        </ul>
+                      </Box>
+                    }
+                    arrow
+                    placement="top"
+                  >
+                    <Chip
+                      icon={<EventAvailableIcon />}
+                      label={`${getDiasFestivosOmitidos(selectedSolicitud.fechaInicioVacaciones, selectedSolicitud.fechaRetornoLabores)} Días Festivos Integrados`}
+                      color="success"
+                      variant="outlined"
+                      size="small"
+                      sx={{ fontWeight: "bold", backgroundColor: "#e8f5e9", cursor: 'help' }}
+                    />
+                  </Tooltip>
+                ) : (
+                  <Chip
+                    label="0 Días Festivos Integrados"
+                    color="default"
+                    variant="outlined"
+                    size="small"
+                    sx={{ fontWeight: "bold", backgroundColor: "#f5f5f5" }}
+                  />
+                )}
+              </Box>
+
+              <Grid container spacing={3} sx={{ mb: 3 }}>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ 
+                    backgroundColor: '#f8f9fa', 
+                    borderRadius: '8px', 
+                    p: 2,
+                    borderLeft: '4px solid #1a73e8'
+                  }}>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Gestión
+                    </Typography>
+                    <Typography variant="h6" fontWeight="600">
+                      {selectedSolicitud.correlativo || ("SLVC-" + selectedSolicitud.idSolicitud)}
+                    </Typography>
+                  </Box>
+                </Grid>
+                
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ 
+                    backgroundColor: '#f8f9fa', 
+                    borderRadius: '8px', 
+                    p: 2,
+                    borderLeft: '4px solid #34A853'
+                  }}>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Empleado
+                    </Typography>
+                    <Typography variant="h6" fontWeight="600">
+                      {selectedSolicitud.Nombre}
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ 
+                    backgroundColor: '#f8f9fa', 
+                    borderRadius: '8px', 
+                    p: 2
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <PlayCircleOutlineIcon sx={{ color: '#4caf50', mr: 1, fontSize: 20 }} />
+                      <Typography variant="body2" color="text.secondary" fontWeight="bold">
+                        INICIO DE VACACIONES
+                      </Typography>
+                    </Box>
+                    <Typography variant="body1" fontWeight="500">
+                      {formatDateToDisplay(selectedSolicitud.fechaInicioVacaciones)}
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ 
+                    backgroundColor: '#f8f9fa', 
+                    borderRadius: '8px', 
+                    p: 2
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <StopCircleIcon sx={{ color: '#f57c00', mr: 1, fontSize: 20 }} />
+                      <Typography variant="body2" color="text.secondary" fontWeight="bold">
+                        FIN DE VACACIONES
+                      </Typography>
+                    </Box>
+                    <Typography variant="body1" fontWeight="500">
+                      {formatDateToDisplay(selectedSolicitud.fechaFinVacaciones)}
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ 
+                    backgroundColor: '#f8f9fa', 
+                    borderRadius: '8px', 
+                    p: 2
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <AssignmentReturnIcon sx={{ color: '#1976d2', mr: 1, fontSize: 20 }} />
+                      <Typography variant="body2" color="text.secondary" fontWeight="bold">
+                        REINTEGRO LABORAL
+                      </Typography>
+                    </Box>
+                    <Typography variant="body1" fontWeight="500">
+                      {formatDateToDisplay(selectedSolicitud.fechaRetornoLabores)}
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ 
+                    backgroundColor: '#f8f9fa', 
+                    borderRadius: '8px', 
+                    p: 2
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <DescriptionIcon sx={{ color: '#9c27b0', mr: 1, fontSize: 20 }} />
+                      <Typography variant="body2" color="text.secondary" fontWeight="bold">
+                        DÍAS SOLICITADOS
+                      </Typography>
+                    </Box>
+                    <Typography variant="body1" fontWeight="500">
+                      {selectedSolicitud.cantidadDiasSolicitados} días
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                <Button 
+                  variant="outlined" 
+                  color="primary" 
+                  onClick={handleCloseModal} 
+                  sx={{ 
+                    borderRadius: '24px',
+                    px: 4,
+                    py: 1,
+                    textTransform: 'none',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Cerrar Detalles
+                </Button>
+              </Box>
+            </>
+          )}
+        </Box>
+      </Modal>
     </Box>
   );
 };
+
+export default ReporteVacacionesEmpleados;

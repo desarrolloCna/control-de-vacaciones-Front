@@ -205,8 +205,51 @@ export const validarFechaUltimaActualizacion = (fechaActualizacion) =>
 
 }
 
-//Formatear fecha formato DD/MM/YYYY
 export const formatDateSetCalendar = (date) => {
   return dayjs(date).format("YYYY-MM-DD");
 }
+
+export const getDiasFestivosOmitidos = (fechaInicio, fechaRetorno) => {
+  if (!fechaInicio || !fechaRetorno) return 0;
+  
+  let start = dayjs(fechaInicio).startOf('day');
+  let end = dayjs(fechaRetorno).startOf('day');
+  let count = 0;
+  
+  while (start.isBefore(end)) {
+    const day = start.day();
+    if (day !== 0 && day !== 6) {
+      if (isHoliday(start)) {
+        count++;
+      }
+    }
+    start = start.add(1, "day");
+  }
+  
+  return count;
+};
+
+export const getDetalleFestivosOmitidos = (fechaInicio, fechaRetorno) => {
+  if (!fechaInicio || !fechaRetorno) return [];
+  
+  let start = dayjs(fechaInicio).startOf('day');
+  let end = dayjs(fechaRetorno).startOf('day');
+  let festivos = [];
+  
+  while (start.isBefore(end)) {
+    const day = start.day();
+    if (day !== 0 && day !== 6) {
+      const holiday = isHoliday(start);
+      if (holiday) {
+        // Prevent duplicates just in case
+        if (!festivos.find(f => f.idDiasFestivos === holiday.idDiasFestivos)) {
+          festivos.push(holiday);
+        }
+      }
+    }
+    start = start.add(1, "day");
+  }
+  
+  return festivos;
+};
 

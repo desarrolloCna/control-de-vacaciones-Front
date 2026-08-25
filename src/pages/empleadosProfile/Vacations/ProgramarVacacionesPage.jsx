@@ -53,6 +53,7 @@ const ProgramarVacacionesPage = () => {
   const isSessionVerified = useCheckSession();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
+  const [startDateError, setStartDateError] = useState("");
   const [diasVacaciones, setDiasVacaciones] = useState("0");
   const [endDate, setEndDate] = useState("");
   const [nextWorkDate, setNextWorkDate] = useState("");
@@ -68,8 +69,6 @@ const ProgramarVacacionesPage = () => {
   const [loading, setLoading] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [weekendModalOpen, setWeekendModalOpen] = useState(false);
-  const [selectedWeekendDate, setSelectedWeekendDate] = useState("");
   const [diasError, setDiasError] = useState("");
   const [festivosOmitidos, setFestivosOmitidos] = useState([]);
   const navigate = useNavigate();
@@ -80,8 +79,6 @@ const ProgramarVacacionesPage = () => {
   const { jerarquia, loadingJerarquia } = useJerarquiaUnidades();
 
   const { isLoading, errorDF } = useDiasFestivos();
-  const minStartDate = dayjs().add(1, "day").format("YYYY-MM-DD");
-  const lastStartDate = dayjs().endOf("year").subtract(53, "day").format("YYYY-MM-DD");
 
   // Calcular días disponibles matemáticos reales para usar
   const MAX_DIAS_SOLICITUD = (hasExcepcionLimite && excepcionDias !== null) ? excepcionDias : 20;
@@ -90,11 +87,6 @@ const ProgramarVacacionesPage = () => {
 
   const formatDateToDisplay = (date) => dayjs(date).format("DD/MM/YYYY");
 
-  const getDayName = (date) => {
-    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    return days[dayjs(date).day()];
-  };
-
   useEffect(() => {
     const userData = getLocalStorageData();
     if (userData?.unidad) {
@@ -102,10 +94,6 @@ const ProgramarVacacionesPage = () => {
       setIdEmpleado(userData.idEmpleado);
       setIdInfoPersonal(userData.idInfoPersonal);
     }
-    // Verifica si hay una solicitud en proceso al cargar
-    // if (solicitud && (solicitud.estadoSolicitud == "enviada" || solicitud.estadoSolicitud == "autorizadas")) {
-    //   setModalOpen(true);
-    // }
   }, [solicitud]);
 
   useEffect(() => {
@@ -133,23 +121,19 @@ const ProgramarVacacionesPage = () => {
                    puestoUser.toLowerCase().includes("jefe") || 
                    puestoUser.toLowerCase().includes("secretario");
 
-    // 1. Caso especial: Director General
     if (puestoUser === "Director General") {
       return coordinadoresList.filter(c => 
         c.coordinadorUnidad === "Subdirección General" || c.coordinadorUnidad === "Unidad de Recursos Humanos"
       );
     }
 
-    // 2. Jerarquía dinámica de base de datos
     if (isJefe) {
-      // Buscar a quién reporta esta unidad
       const node = jerarquia.find(j => j.unidad === unidad);
-      const unidadPadre = node ? node.reportaA : unidad; // Si no tiene superior, se reporta a sí mismo (fall-safe)
+      const unidadPadre = node ? node.reportaA : unidad;
       
       const match = coordinadoresList.filter(c => c.coordinadorUnidad === unidadPadre);
       return match.length > 0 ? match : coordinadoresList;
     } else {
-      // Los empleados regulares reportan al coordinador de su propia unidad
       const match = coordinadoresList.filter(c => c.coordinadorUnidad === unidad);
       return match.length > 0 ? match : coordinadoresList;
     }
@@ -157,7 +141,6 @@ const ProgramarVacacionesPage = () => {
 
   useEffect(() => {
     if (filteredCoordinadores && filteredCoordinadores.length > 0 && !selectedCoordinador) {
-       // Autoseleccionar si solo hay 1 o 2 opciones (ej. para Director o empleados normales)
        if (filteredCoordinadores.length === 1) {
            setSelectedCoordinador(filteredCoordinadores[0].idCoordinador);
        } else {
@@ -169,14 +152,29 @@ const ProgramarVacacionesPage = () => {
 
   const handleStartDateChange = (e) => {
     const selectedDate = e.target.value;
-    if (!esDiaLaboral(selectedDate)) {
-      setSelectedWeekendDate(selectedDate);
-      setWeekendModalOpen(true);
+    
+    if (!selectedDate) {
       setStartDate("");
+      setStartDateError("");
       setDiasHabilitado(false);
+      setDiasVacaciones("");
+      setEndDate("");
+      setNextWorkDate("");
       return;
     }
+
     setStartDate(selectedDate);
+
+    if (!esDiaLaboral(selectedDate)) {
+      setStartDateError("Día no laborable seleccionado. Por favor elige un día hábil.");
+      setDiasHabilitado(false);
+      setDiasVacaciones("");
+      setEndDate("");
+      setNextWorkDate("");
+      return;
+    }
+
+    setStartDateError("");
     setDiasVacaciones("");
     setDiasHabilitado(true);
     setEndDate("");
@@ -190,7 +188,6 @@ const ProgramarVacacionesPage = () => {
     setDiasVacaciones(dias);
     setDiasError("");
 
-    // Validación: días disponibles según días ya debitados
     if (dias > diasDisponibles) {
       const mensaje = diasDisponibles === 1
         ? `Solo tienes 1 día disponible para solicitar este año.`
@@ -205,7 +202,6 @@ const ProgramarVacacionesPage = () => {
       return;
     }
 
-    // Validación: máximo días por solicitud
     if (dias > MAX_DIAS_SOLICITUD) {
       setDiasError(`Solo puedes programar un máximo de ${MAX_DIAS_SOLICITUD} días por solicitud.`);
       setDiasVacaciones("");
@@ -233,7 +229,6 @@ const ProgramarVacacionesPage = () => {
     
     if (coordinadorSeleccionado) {
       setSelectedCoordinador(coordinadorId);
-      //setUnidad(coordinadorSeleccionado.coordinadorUnidad);
     }
   };
 
@@ -274,14 +269,13 @@ const ProgramarVacacionesPage = () => {
     }
   };
 
+  const handleCloseSuccess = () => {
+    setSuccessOpen(false);
+  };
+
   const handleCloseModal = () => {
     setModalOpen(false);
     navigate("/empleados/programar-vacaciones");
-  };
-
-  const handleCloseWeekendModal = () => {
-    setWeekendModalOpen(false);
-    setSelectedWeekendDate("");
   };
 
   if (!isSessionVerified || !isLoading || loadingS || loadingCoordinadoresList) {
@@ -290,15 +284,6 @@ const ProgramarVacacionesPage = () => {
 
   return (
     <Box sx={{ display: "flex", height: "100vh", backgroundColor: "#f1f3f4" }}>
-      <IconButton
-        color="inherit"
-        aria-label="open drawer"
-        edge="start"
-        sx={{ mr: 2, display: { md: "none" } }}
-      >
-        <MenuIcon />
-      </IconButton>
-
       <Box
         component="nav"
         sx={{
@@ -393,10 +378,12 @@ const ProgramarVacacionesPage = () => {
                 InputLabelProps={{ shrink: true }}
                 value={startDate}
                 onChange={handleStartDateChange}
+                error={!!startDateError}
+                helperText={startDateError}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <EventIcon color="primary" />
+                      <EventIcon color={startDateError ? "error" : "primary"} />
                     </InputAdornment>
                   ),
                 }}
@@ -581,71 +568,10 @@ const ProgramarVacacionesPage = () => {
 
         <NotificationSnackbar
           open={successOpen}
-          onClose={() => setSuccessOpen(false)}
+          onClose={handleCloseSuccess}
           message="Solicitud enviada exitosamente"
           severity="success"
         />
-
-        {/* Modal para fin de semana */}
-        <ConfirmationModal
-          open={weekendModalOpen}
-          onClose={handleCloseWeekendModal}
-          icon={<EventBusyIcon />}
-          iconBgColor="#fff3e0"
-          iconColor="#f57c00"
-          title="Día no laborable seleccionado"
-          buttonText="Entendido"
-          buttonColor="#1976d2"
-          buttonHoverColor="#1565c0"
-        >
-          <Box
-            sx={{
-              bgcolor: "#f5f5f5",
-              borderRadius: 2,
-              p: 2.5,
-              mb: 2,
-              border: "1px solid #e0e0e0",
-            }}
-          >
-            <Typography
-              variant="body1"
-              align="center"
-              sx={{ color: "#424242", lineHeight: 1.6, mb: 2 }}
-            >
-              Has seleccionado:
-            </Typography>
-            <Box
-              sx={{
-                bgcolor: "white",
-                borderRadius: 1.5,
-                p: 2,
-                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-              }}
-            >
-              <Typography
-                variant="h6"
-                align="center"
-                sx={{ color: "#d32f2f", fontWeight: 700, mb: 0.5 }}
-              >
-                {selectedWeekendDate && getDayName(selectedWeekendDate)}
-              </Typography>
-              <Typography
-                variant="body2"
-                align="center"
-                sx={{ color: "#757575" }}
-              >
-                {selectedWeekendDate && formatDateToDisplay(selectedWeekendDate)}
-              </Typography>
-            </Box>
-          </Box>
-          <Typography
-            variant="body1"
-            align="center"
-            sx={{ color: "#616161", lineHeight: 1.7 }}
-          >
-            Solo puedes seleccionar <strong>días hábiles</strong> (de Lunes a Viernes) y que no coincidan con <strong>Días Festivos Oficiales</strong> como fecha de inicio de vacaciones.
-          </Typography>
-        </ConfirmationModal>
 
         {/* Modal de solicitud en proceso - COMENTADO */}
         {/* <Modal

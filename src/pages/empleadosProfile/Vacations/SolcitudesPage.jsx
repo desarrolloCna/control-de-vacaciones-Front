@@ -29,6 +29,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import EventNoteIcon from "@mui/icons-material/EventNote";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import SearchIcon from "@mui/icons-material/Search";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import DescriptionIcon from "@mui/icons-material/Description";
@@ -36,11 +37,14 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import Sidebar from "../../../components/EmpleadosPage/SideBar/SideBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import Spinner from "../../../components/spinners/spinner";
+import { exportToExcel } from '../../../services/utils/exportToExcelUtils';
+import { exportToPdf } from '../../../services/utils/exportToPdfUtils';
+import { getDiasFestivosOmitidos, getDetalleFestivosOmitidos, formatDateToDisplay } from '../../../services/utils/dates/vacationUtils';
 import { useCheckSession } from "../../../services/session/checkSession";
 import { getEstado } from "../../../config/statusConfig.js";
 import { useSolicitudes } from "../../../hooks/VacationAppHooks/useSolicitudes";
+import useDiasFestivos from "../../../hooks/DiasFestivos/useDiasFestivos";
 import api from "../../../config/api";
-import { formatDateToDisplay } from "../../../services/utils/dates/vacationUtils";
 import { getDiasFestivos } from "../../../services/EmpleadosServices/DiasFestivos/GetDiasFestivos";
 import { StyledButton } from "../../../components/UI/UIComponents";
 import NotificationSnackbar from "../../../components/UI/NotificationSnackbar";
@@ -84,6 +88,7 @@ const calendarMessages = {
 };
 
 const SolicitudesPage = () => {
+  useDiasFestivos();
   const theme = useTheme();
   const isSessionVerified = useCheckSession();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -979,9 +984,44 @@ const SolicitudesPage = () => {
 
             {selectedSolicitud && !selectedSolicitud.isFestivo && (
               <>
-                <Typography variant="h5" gutterBottom textAlign="center" fontWeight="600" color="#202124">
-                  📋 Detalles de la Solicitud
-                </Typography>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                  <Typography id="modal-title" variant="h5" sx={{ fontWeight: 800, color: "#2c3e50" }}>
+                    📋 Detalles de la Solicitud
+                  </Typography>
+                  {getDiasFestivosOmitidos(selectedSolicitud.fechaInicioVacaciones, selectedSolicitud.fechaRetornoLabores) > 0 ? (
+                    <Tooltip
+                      title={
+                        <Box sx={{ p: 1 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>Días Festivos Cruzados:</Typography>
+                          <ul style={{ margin: 0, paddingLeft: 16 }}>
+                            {getDetalleFestivosOmitidos(selectedSolicitud.fechaInicioVacaciones, selectedSolicitud.fechaRetornoLabores).map((f, i) => (
+                              <li key={i}>{f.nombreDiaFestivo} ({formatDateToDisplay(f.fechaDiaFestivo)})</li>
+                            ))}
+                          </ul>
+                        </Box>
+                      }
+                      arrow
+                      placement="top"
+                    >
+                      <Chip
+                        icon={<EventAvailableIcon />}
+                        label={`${getDiasFestivosOmitidos(selectedSolicitud.fechaInicioVacaciones, selectedSolicitud.fechaRetornoLabores)} Días Festivos Integrados`}
+                        color="success"
+                        variant="outlined"
+                        size="small"
+                        sx={{ fontWeight: "bold", backgroundColor: "#e8f5e9", cursor: 'help' }}
+                      />
+                    </Tooltip>
+                  ) : (
+                    <Chip
+                      label="0 Días Festivos Integrados"
+                      color="default"
+                      variant="outlined"
+                      size="small"
+                      sx={{ fontWeight: "bold", backgroundColor: "#f5f5f5" }}
+                    />
+                  )}
+                </Box>
 
                 <Grid container spacing={3} sx={{ mb: 3 }}>
                   <Grid item xs={12} sm={6}>

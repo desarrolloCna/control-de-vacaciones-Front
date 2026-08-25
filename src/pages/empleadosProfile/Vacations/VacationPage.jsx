@@ -36,10 +36,18 @@ import ErrorAlert from "../../../components/ErrorAlert/ErrorAlert";
 import { useFinalizarEstado } from "../../../hooks/VacationAppHooks/useFinalizarEstado";
 import { getLocalStorageData } from "../../../services/session/getLocalStorageData";
 import { obtenerHistorialService } from "../../../services/VacationApp/Historial/ControlDiasVacaciones.service";
-import { formatDateToDisplay } from "../../../services/utils/dates/vacationUtils";
+import { 
+  formatDateToDisplay,
+  formatDateSetCalendar,
+  destructurarFecha,
+  destructurarFechaActual,
+  getDiasFestivosOmitidos,
+  getDetalleFestivosOmitidos
+} from "../../../services/utils/dates/vacationUtils";
 import { exportToExcel } from "../../../services/utils/exportToExcelUtils";
 import { exportToPdf } from "../../../services/utils/exportToPdfUtils";
 import { useGetDiasSolicitados } from "../../../hooks/VacationAppHooks/useGetDiasSolicitados";
+import useDiasFestivos from "../../../hooks/DiasFestivos/useDiasFestivos";
 import api from "../../../config/api";
 import { API_URL } from "../../../config/enviroment";
 import dayjs from "dayjs";
@@ -53,6 +61,7 @@ import {
 // Eliminado: se usa getEstado de statusConfig.js
 
 const VacationApp = () => {
+  useDiasFestivos();
   const isSessionVerified = useCheckSession();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openHistorial, setOpenHistorial] = useState(false);
@@ -792,9 +801,44 @@ const VacationApp = () => {
 
                 {/* Fechas importantes */}
                 <Box sx={{ mt: 1 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#444", mb: 2 }}>
-                    🗓️ Fechas importantes
-                  </Typography>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#444" }}>
+                      🗓️ Fechas importantes
+                    </Typography>
+                    {selectedSolicitud && getDiasFestivosOmitidos(selectedSolicitud.fechaInicioVacaciones, selectedSolicitud.fechaRetornoLabores) > 0 ? (
+                      <Tooltip
+                        title={
+                          <Box sx={{ p: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>Días Festivos Cruzados:</Typography>
+                            <ul style={{ margin: 0, paddingLeft: 16 }}>
+                              {getDetalleFestivosOmitidos(selectedSolicitud.fechaInicioVacaciones, selectedSolicitud.fechaRetornoLabores).map((f, i) => (
+                                <li key={i}>{f.nombreDiaFestivo} ({formatDateToDisplay(f.fechaDiaFestivo)})</li>
+                              ))}
+                            </ul>
+                          </Box>
+                        }
+                        arrow
+                        placement="top"
+                      >
+                        <Chip
+                          icon={<EventAvailableIcon />}
+                          label={`${getDiasFestivosOmitidos(selectedSolicitud.fechaInicioVacaciones, selectedSolicitud.fechaRetornoLabores)} Días Festivos Integrados`}
+                          color="success"
+                          variant="outlined"
+                          size="small"
+                          sx={{ fontWeight: "bold", backgroundColor: "#e8f5e9", cursor: 'help' }}
+                        />
+                      </Tooltip>
+                    ) : (
+                      <Chip
+                        label="0 Días Festivos Integrados"
+                        color="default"
+                        variant="outlined"
+                        size="small"
+                        sx={{ fontWeight: "bold", backgroundColor: "#f5f5f5" }}
+                      />
+                    )}
+                  </Box>
                   
                   <Grid container spacing={2}>
                     {/* Fecha de Inicio */}
