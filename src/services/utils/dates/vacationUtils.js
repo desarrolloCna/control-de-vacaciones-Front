@@ -229,6 +229,22 @@ export const getDiasFestivosOmitidos = (fechaInicio, fechaRetorno) => {
   return count;
 };
 
+// Extraer fechas ajustadas desde observaciones_rrhh
+export const parseRecalculatedDates = (obs) => {
+  if (!obs) return null;
+  // Regex para atrapar fechas en formato DD/MM/YYYY
+  // "La fecha de reincorporación se ajustó automáticamente del 27/08/2026 al 28/08/2026"
+  const regex = /del (\d{2}\/\d{2}\/\d{4}) al (\d{2}\/\d{2}\/\d{4})/;
+  const match = obs.match(regex);
+  if (match) {
+    return {
+      oldDate: match[1],
+      newDate: match[2]
+    };
+  }
+  return null;
+};
+
 export const getDetalleFestivosOmitidos = (fechaInicio, fechaRetorno) => {
   if (!fechaInicio || !fechaRetorno) return [];
   

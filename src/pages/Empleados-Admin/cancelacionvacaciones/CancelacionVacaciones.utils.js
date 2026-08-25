@@ -25,7 +25,7 @@ export const handleCloseModal = (setIsModalOpen, setSelectedSolicitud, setCancel
     setSuccessMessage(null);
 };
 
-export const handleCancelarSolicitud = async (selectedSolicitud, motivo, setIsModalOpen, setSelectedSolicitud, setCancelError, setSuccessMessage, setIsCancelling, setSolicitudesAutorizadas) => {
+export const handleCancelarSolicitud = async (selectedSolicitud, motivo, diasADevolver, setIsModalOpen, setSelectedSolicitud, setCancelError, setSuccessMessage, setIsCancelling, setSolicitudesAutorizadas) => {
         if (!selectedSolicitud) return;
 
         setIsCancelling(true);
@@ -40,6 +40,7 @@ export const handleCancelarSolicitud = async (selectedSolicitud, motivo, setIsMo
         const payload = {
             idSolicitud: selectedSolicitud.idSolicitud,
             motivoReprogramacion: motivo,
+            diasADevolver: Number(diasADevolver) || 0,
             fechaResolucion: fechaFormateada,
             idUsuarioSession: userData?.idUsuario || userData?.idEmpleado,
             usuarioSession: userData?.usuario || "Admin"

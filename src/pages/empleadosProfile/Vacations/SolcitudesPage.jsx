@@ -39,7 +39,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import Spinner from "../../../components/spinners/spinner";
 import { exportToExcel } from '../../../services/utils/exportToExcelUtils';
 import { exportToPdf } from '../../../services/utils/exportToPdfUtils';
-import { getDiasFestivosOmitidos, getDetalleFestivosOmitidos, formatDateToDisplay } from '../../../services/utils/dates/vacationUtils';
+import { getDiasFestivosOmitidos, getDetalleFestivosOmitidos, formatDateToDisplay, parseRecalculatedDates } from '../../../services/utils/dates/vacationUtils';
 import { useCheckSession } from "../../../services/session/checkSession";
 import { getEstado } from "../../../config/statusConfig.js";
 import { useSolicitudes } from "../../../hooks/VacationAppHooks/useSolicitudes";
@@ -1095,9 +1095,20 @@ const SolicitudesPage = () => {
                       <Typography variant="body2" color="text.secondary" gutterBottom>
                         Fecha retorno a labores
                       </Typography>
-                      <Typography variant="body1" fontWeight="500">
-                        {formatDateToDisplay(selectedSolicitud.fechaRetornoLabores)}
-                      </Typography>
+                      {selectedSolicitud && parseRecalculatedDates(selectedSolicitud.observaciones_rrhh) ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="body1" sx={{ fontWeight: "medium", color: "#9e9e9e", textDecoration: 'line-through' }}>
+                            {parseRecalculatedDates(selectedSolicitud.observaciones_rrhh).oldDate}
+                          </Typography>
+                          <Typography variant="body1" sx={{ fontWeight: "bold", color: "#d32f2f" }}>
+                            ➔ {parseRecalculatedDates(selectedSolicitud.observaciones_rrhh).newDate}
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <Typography variant="body1" fontWeight="500">
+                          {formatDateToDisplay(selectedSolicitud.fechaRetornoLabores)}
+                        </Typography>
+                      )}
                     </Box>
                   </Grid>
 
@@ -1158,6 +1169,25 @@ const SolicitudesPage = () => {
                       />
                     </Box>
                   </Grid>
+
+                  {/* Observaciones RRHH (Recálculo) */}
+                  {selectedSolicitud.observaciones_rrhh && (
+                    <Grid item xs={12}>
+                      <Box sx={{ 
+                        backgroundColor: '#ffebee', 
+                        borderRadius: '8px', 
+                        p: 2,
+                        borderLeft: '4px solid #f44336'
+                      }}>
+                        <Typography variant="body2" color="#d32f2f" gutterBottom fontWeight="bold">
+                          Observaciones de RRHH (Ajuste de Sistema):
+                        </Typography>
+                        <Typography variant="body1" color="#d32f2f" sx={{ whiteSpace: "pre-wrap" }}>
+                          {selectedSolicitud.observaciones_rrhh}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  )}
 
                   {/* Alerta si las vacaciones inician hoy o están en curso */}
                   {isVacationActive(selectedSolicitud) && selectedSolicitud.estadoSolicitud === "autorizadas" && (

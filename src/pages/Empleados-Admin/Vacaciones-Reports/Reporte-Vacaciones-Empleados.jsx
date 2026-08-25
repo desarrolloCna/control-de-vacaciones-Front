@@ -16,7 +16,7 @@ import { useCheckSession } from "../../../services/session/checkSession";
 import Spinner from "../../../components/spinners/spinner";
 import { API_URL } from "../../../config/enviroment";
 import { exportToExcel } from "../../../services/utils/exportToExcelUtils";
-import { getDiasFestivosOmitidos, getDetalleFestivosOmitidos, formatDateToDisplay } from "../../../services/utils/dates/vacationUtils";
+import { getDiasFestivosOmitidos, getDetalleFestivosOmitidos, formatDateToDisplay, parseRecalculatedDates } from "../../../services/utils/dates/vacationUtils";
 import useDiasFestivos from "../../../hooks/DiasFestivos/useDiasFestivos";
 import dayjs from "dayjs";
 
@@ -491,9 +491,20 @@ export const ReporteVacacionesEmpleados = () => {
                         REINTEGRO LABORAL
                       </Typography>
                     </Box>
-                    <Typography variant="body1" fontWeight="500">
-                      {formatDateToDisplay(selectedSolicitud.fechaRetornoLabores)}
-                    </Typography>
+                    {selectedSolicitud && parseRecalculatedDates(selectedSolicitud.observaciones_rrhh) ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body1" sx={{ fontWeight: "medium", color: "#9e9e9e", textDecoration: 'line-through' }}>
+                          {parseRecalculatedDates(selectedSolicitud.observaciones_rrhh).oldDate}
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: "bold", color: "#d32f2f" }}>
+                          ➔ {parseRecalculatedDates(selectedSolicitud.observaciones_rrhh).newDate}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant="body1" fontWeight="500">
+                        {formatDateToDisplay(selectedSolicitud.fechaRetornoLabores)}
+                      </Typography>
+                    )}
                   </Box>
                 </Grid>
 

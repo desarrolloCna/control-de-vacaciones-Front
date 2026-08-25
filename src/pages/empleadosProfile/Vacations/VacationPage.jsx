@@ -42,7 +42,8 @@ import {
   destructurarFecha,
   destructurarFechaActual,
   getDiasFestivosOmitidos,
-  getDetalleFestivosOmitidos
+  getDetalleFestivosOmitidos,
+  parseRecalculatedDates
 } from "../../../services/utils/dates/vacationUtils";
 import { exportToExcel } from "../../../services/utils/exportToExcelUtils";
 import { exportToPdf } from "../../../services/utils/exportToPdfUtils";
@@ -319,14 +320,14 @@ const VacationApp = () => {
 
   const handleExportDataToExcel = () => {
     const dataToExport = filteredHistorial.map((item) => ({
-      Gestion: item.tipoRegistro === 1 ? "CRDV-" + item.Gestion : "SLVC-" + item.Gestion,
-      Tipo: item.tipoRegistro === 1 ? "Crédito" : "Débito",
+      Gestion: item.tipoRegistro === 1 ? (item.idSolicitudOriginal ? (item.diasAcreditados > 0 ? "DEVL-" + item.Gestion : "CANC-" + item.Gestion) : "CRDV-" + item.Gestion) : "SLVC-" + item.Gestion,
+      Tipo: item.tipoRegistro === 1 ? (item.idSolicitudOriginal && item.diasAcreditados === 0 ? "Cancelada" : "Crédito") : "Débito",
       Periodo: item.periodo,
-      "Dias Acreditados": item.tipoRegistro === 1 ? item.totalDiasAcreditados : 0,
-      "Dias Debitados": item.tipoRegistro === 2 ? item.diasSolicitados : (item.totalDiasDebitados != null ? item.totalDiasDebitados : 0),
+      "Dias Acreditados": item.tipoRegistro === 1 ? (item.idSolicitudOriginal ? item.diasAcreditados : item.totalDiasAcreditados) : 0,
+      "Dias Debitados": item.tipoRegistro === 2 ? item.diasSolicitados : (item.idSolicitudOriginal ? 0 : (item.totalDiasDebitados != null ? item.totalDiasDebitados : 0)),
       "Dias Disponibles": item.diasDisponiblesTotales,
       Fecha: item.fechaAcreditacion ? formatDateToDisplay(item.fechaAcreditacion) : item.tipoRegistro === 1 ? formatDateToDisplay(dayjs(`${item.periodo}-01-01`)) : item.fechaDebito ? formatDateToDisplay(item.fechaDebito) : "-",
-      Descripción: item.tipoRegistro === 1 ? "Acreditación anual de días" : "Solicitud de vacaciones"
+      Descripción: item.tipoRegistro === 1 ? (item.idSolicitudOriginal ? (item.diasAcreditados > 0 ? `+${item.diasAcreditados} por cancelación de RRHH` : "Cancelación por Recursos Humanos") : "Acreditación anual de días") : "Solicitud de vacaciones"
     }));
 
     exportToExcel(dataToExport, `Historial_Vacaciones_${userData?.primerNombre || 'Empleado'}`, "Historial", `Historial de Vacaciones - Empleado: ${userData?.Nombres || userData?.primerNombre || 'No especificado'}`);
@@ -334,14 +335,14 @@ const VacationApp = () => {
 
   const handleExportDataToPdf = () => {
     const dataToExport = filteredHistorial.map((item) => ({
-      Gestion: item.tipoRegistro === 1 ? "CRDV-" + item.Gestion : "SLVC-" + item.Gestion,
-      Tipo: item.tipoRegistro === 1 ? "Crédito" : "Débito",
+      Gestion: item.tipoRegistro === 1 ? (item.idSolicitudOriginal ? (item.diasAcreditados > 0 ? "DEVL-" + item.Gestion : "CANC-" + item.Gestion) : "CRDV-" + item.Gestion) : "SLVC-" + item.Gestion,
+      Tipo: item.tipoRegistro === 1 ? (item.idSolicitudOriginal && item.diasAcreditados === 0 ? "Cancelada" : "Crédito") : "Débito",
       Periodo: item.periodo,
-      "Dias Acreditados": item.tipoRegistro === 1 ? item.totalDiasAcreditados : 0,
-      "Dias Debitados": item.tipoRegistro === 2 ? item.diasSolicitados : (item.totalDiasDebitados != null ? item.totalDiasDebitados : 0),
+      "Dias Acreditados": item.tipoRegistro === 1 ? (item.idSolicitudOriginal ? item.diasAcreditados : item.totalDiasAcreditados) : 0,
+      "Dias Debitados": item.tipoRegistro === 2 ? item.diasSolicitados : (item.idSolicitudOriginal ? 0 : (item.totalDiasDebitados != null ? item.totalDiasDebitados : 0)),
       "Dias Disponibles": item.diasDisponiblesTotales,
       Fecha: item.fechaAcreditacion ? formatDateToDisplay(item.fechaAcreditacion) : item.tipoRegistro === 1 ? formatDateToDisplay(dayjs(`${item.periodo}-01-01`)) : item.fechaDebito ? formatDateToDisplay(item.fechaDebito) : "-",
-      Descripción: item.tipoRegistro === 1 ? "Acreditación anual de días" : "Solicitud de vacaciones"
+      Descripción: item.tipoRegistro === 1 ? (item.idSolicitudOriginal ? (item.diasAcreditados > 0 ? `+${item.diasAcreditados} por cancelación de RRHH` : "Cancelación por Recursos Humanos") : "Acreditación anual de días") : "Solicitud de vacaciones"
     }));
 
     exportToPdf(dataToExport, `Historial_Vacaciones_${userData?.primerNombre || 'Empleado'}`);
@@ -895,9 +896,20 @@ const VacationApp = () => {
                             REINTEGRO LABORAL
                           </Typography>
                         </Box>
-                        <Typography variant="body1" sx={{ fontWeight: "medium", color: "#333" }}>
-                          {formatDateToDisplay(selectedSolicitud.fechaRetornoLabores) || "Sin Datos"}
-                        </Typography>
+                        {selectedSolicitud && parseRecalculatedDates(selectedSolicitud.observaciones_rrhh) ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body1" sx={{ fontWeight: "medium", color: "#9e9e9e", textDecoration: 'line-through' }}>
+                              {parseRecalculatedDates(selectedSolicitud.observaciones_rrhh).oldDate}
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: "bold", color: "#d32f2f" }}>
+                              ➔ {parseRecalculatedDates(selectedSolicitud.observaciones_rrhh).newDate}
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Typography variant="body1" sx={{ fontWeight: "medium", color: "#333" }}>
+                            {formatDateToDisplay(selectedSolicitud.fechaRetornoLabores) || "Sin Datos"}
+                          </Typography>
+                        )}
                       </Paper>
                     </Grid>
 
@@ -1261,23 +1273,33 @@ const VacationApp = () => {
                       <TableRow key={`${item.idHistorial}-${index}`}>
                         <TableCell align="center">
                           {item.tipoRegistro === 1
-                            ? "CRDV-" + item.Gestion
+                            ? (item.idSolicitudOriginal
+                              ? (item.diasAcreditados > 0 ? "DEVL-" + item.Gestion : "CANC-" + item.Gestion)
+                              : "CRDV-" + item.Gestion)
                             : "SLVC-" + item.Gestion}
                         </TableCell>
                         <TableCell align="center">
                           <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
                             {item.tipoRegistro === 1 ? (
-                              <AddCircleIcon sx={{ color: "#10B981", fontSize: "1.1rem" }} />
+                              item.idSolicitudOriginal && item.diasAcreditados === 0
+                                ? <RemoveCircleIcon sx={{ color: "#F59E0B", fontSize: "1.1rem" }} />
+                                : <AddCircleIcon sx={{ color: "#10B981", fontSize: "1.1rem" }} />
                             ) : (
                               <RemoveCircleIcon sx={{ color: "#EF4444", fontSize: "1.1rem" }} />
                             )}
                             <Chip
-                              label={item.tipoRegistro === 1 ? "Crédito" : "Débito"}
+                              label={item.tipoRegistro === 1
+                                ? (item.idSolicitudOriginal && item.diasAcreditados === 0 ? "Cancelada" : "Crédito")
+                                : "Débito"}
                               variant="outlined"
                               size="small"
                               sx={{
-                                color: item.tipoRegistro === 1 ? "#10B981" : "#EF4444",
-                                borderColor: item.tipoRegistro === 1 ? "#10B981" : "#EF4444",
+                                color: item.tipoRegistro === 1
+                                  ? (item.idSolicitudOriginal && item.diasAcreditados === 0 ? "#F59E0B" : "#10B981")
+                                  : "#EF4444",
+                                borderColor: item.tipoRegistro === 1
+                                  ? (item.idSolicitudOriginal && item.diasAcreditados === 0 ? "#F59E0B" : "#10B981")
+                                  : "#EF4444",
                                 fontWeight: 800,
                                 fontSize: "0.7rem"
                               }}
@@ -1290,7 +1312,9 @@ const VacationApp = () => {
                             color={"success.main"}
                             fontWeight="bold"
                           >
-                            {item.tipoRegistro === 1 ? item.totalDiasAcreditados : "-"}
+                            {item.tipoRegistro === 1
+                              ? (item.idSolicitudOriginal ? (item.diasAcreditados || 0) : item.totalDiasAcreditados)
+                              : "-"}
                           </Typography>
                         </TableCell>
                         <TableCell align="center">
@@ -1298,7 +1322,9 @@ const VacationApp = () => {
                             color={"error.main"}
                             fontWeight="bold"
                           >
-                            {item.tipoRegistro === 2 ? item.diasSolicitados : (item.totalDiasDebitados != null ? item.totalDiasDebitados : "-")}
+                            {item.tipoRegistro === 2
+                              ? item.diasSolicitados
+                              : (item.idSolicitudOriginal ? 0 : (item.totalDiasDebitados != null ? item.totalDiasDebitados : "-"))}
                           </Typography>
                         </TableCell>
                         <TableCell align="center">
@@ -1320,7 +1346,11 @@ const VacationApp = () => {
                         </TableCell>
                         <TableCell align="center">
                           {item.tipoRegistro === 1
-                            ? "Acreditación anual de días"
+                            ? (item.idSolicitudOriginal
+                              ? (item.diasAcreditados > 0
+                                ? `+${item.diasAcreditados} por cancelación de RRHH`
+                                : "Cancelación por Recursos Humanos")
+                              : "Acreditación anual de días")
                             : "Solicitud de vacaciones"}
                         </TableCell>
                       </TableRow>

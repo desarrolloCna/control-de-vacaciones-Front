@@ -17,6 +17,7 @@ const CancelacionVacaciones = () => {
     const [selectedSolicitud, setSelectedSolicitud] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [motivo, setMotivo] = useState("");
+    const [diasADevolver, setDiasADevolver] = useState(0);
     const [isCancelling, setIsCancelling] = useState(false);
     const [cancelError, setCancelError] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
@@ -208,6 +209,7 @@ const CancelacionVacaciones = () => {
                                         setSuccessMessage
                                     );
                                     setMotivo("");
+                                    setDiasADevolver(0);
                                 }}>
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -312,6 +314,22 @@ const CancelacionVacaciones = () => {
                                         disabled={isCancelling || successMessage}
                                     />
                                 </div>
+                                <div className="detail-section">
+                                    <h3>Días a devolver al empleado</h3>
+                                    <p style={{fontSize: '12px', color: '#666', marginBottom: '5px'}}>
+                                        Si el empleado gozó parcialmente sus vacaciones, ingrese únicamente los días que <strong>no gozó</strong> para que se le reintegren a su saldo. Si se cancela por completo antes de irse, ingrese el total solicitado ({selectedSolicitud.cantidadDiasSolicitados}).
+                                    </p>
+                                    <input 
+                                        type="number"
+                                        className="motivo-input"
+                                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc', marginTop: '5px' }}
+                                        value={diasADevolver}
+                                        onChange={(e) => setDiasADevolver(Number(e.target.value))}
+                                        disabled={isCancelling || successMessage}
+                                        min="0"
+                                        max={selectedSolicitud.cantidadDiasSolicitados}
+                                    />
+                                </div>
                             </div>
 
                             <div className="modal-footer">
@@ -325,6 +343,7 @@ const CancelacionVacaciones = () => {
                                             setSuccessMessage
                                         );
                                         setMotivo("");
+                                        setDiasADevolver(0);
                                     }}
                                     disabled={isCancelling}
                                 >
@@ -335,6 +354,7 @@ const CancelacionVacaciones = () => {
                                     onClick={() => handleCancelarSolicitud(
                                         selectedSolicitud, 
                                         motivo,
+                                        diasADevolver,
                                         setIsModalOpen, 
                                         setSelectedSolicitud, 
                                         setCancelError, 
