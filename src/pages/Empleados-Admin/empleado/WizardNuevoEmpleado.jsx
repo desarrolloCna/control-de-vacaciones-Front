@@ -23,6 +23,7 @@ import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import WorkIcon from "@mui/icons-material/Work";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import DownloadIcon from "@mui/icons-material/Download";
 import Navbar from "../../../components/navBar/NavBar";
 import { PageHeader } from "../../../components/UI/UIComponents";
 import { useCheckSession } from "../../../services/session/checkSession";
@@ -36,6 +37,7 @@ import StepFamiliares from "./steps/StepFamiliares";
 import StepNivelEducativo from "./steps/StepNivelEducativo";
 import StepDatosGenerales from "./steps/StepDatosGenerales";
 import StepEmpleadoNuevo from "./steps/StepEmpleadoNuevo";
+import ModalIncompletos from "./ModalIncompletos";
 
 // ──── Stepper Personalizado ────
 const ColorlibConnector = styled(StepConnector)(({ theme }) => ({
@@ -119,15 +121,24 @@ export default function WizardNuevoEmpleado() {
 
   // Snackbar/Alert
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
-  const [showResetWarning, setShowResetWarning] = useState(false);
+  const [showResumeAlert, setShowResumeAlert] = useState(false);
+  const [modalIncompletosOpen, setModalIncompletosOpen] = useState(false);
 
-  // Al montar, verificar si hay datos huérfanos en localStorage (de un intento previo)
+  // Al montar, verificar si hay datos en localStorage para continuar el proceso
   useEffect(() => {
     const storedData = localStorage.getItem("datosEmpleado");
     if (storedData) {
-      // Limpiar datos huérfanos y advertir
-      localStorage.removeItem("datosEmpleado");
-      setShowResetWarning(true);
+      try {
+        const parsed = JSON.parse(storedData);
+        setWizardData(parsed);
+        if (parsed.activeStep) {
+          setActiveStep(parsed.activeStep);
+        }
+        setShowResumeAlert(true);
+      } catch (e) {
+        console.error("Error parseando datos guardados", e);
+        localStorage.removeItem("datosEmpleado");
+      }
     }
   }, []);
 
@@ -137,8 +148,11 @@ export default function WizardNuevoEmpleado() {
       // Mesclar datos del paso completado
       setWizardData((prev) => ({ ...prev, ...stepData }));
 
-      // Guardar temporalmente en localStorage para que los otros steps lo lean
-      const merged = { ...wizardData, ...stepData };
+      // Avanzar al siguiente paso
+      const nextStep = activeStep < STEPS.length - 1 ? activeStep + 1 : activeStep;
+      
+      // Guardar temporalmente en localStorage para que los otros steps lo lean (y para recuperacion)
+      const merged = { ...wizardData, ...stepData, activeStep: nextStep };
       localStorage.setItem("datosEmpleado", JSON.stringify(merged));
 
       // Mostrar toast de éxito
@@ -148,10 +162,7 @@ export default function WizardNuevoEmpleado() {
         severity: "success",
       });
 
-      // Avanzar al siguiente paso
-      if (activeStep < STEPS.length - 1) {
-        setActiveStep((prev) => prev + 1);
-      }
+      setActiveStep(nextStep);
     },
     [activeStep, wizardData]
   );
@@ -214,6 +225,17 @@ export default function WizardNuevoEmpleado() {
           <PageHeader 
             title="Registro de Nuevo Empleado"
             subtitle="Complete los 6 pasos para registrar un nuevo colaborador en el sistema"
+            actionElement={
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<DownloadIcon />}
+                onClick={() => setModalIncompletosOpen(true)}
+                sx={{ borderRadius: 2, fontWeight: "bold", textTransform: "none", boxShadow: 1 }}
+              >
+                Ingresos Pendientes
+              </Button>
+            }
           />
           <Paper
             elevation={0}
@@ -225,16 +247,24 @@ export default function WizardNuevoEmpleado() {
             }}
           >
 
-            {/* Alerta de Reset */}
-            {showResetWarning && (
+            {/* Alerta de Recuperación */}
+            {showResumeAlert && (
               <Alert
-                severity="warning"
-                icon={<WarningAmberIcon />}
-                onClose={() => setShowResetWarning(false)}
+                severity="info"
+                icon={<CheckCircleIcon />}
+                action={
+                  <Button color="inherit" size="small" onClick={() => {
+                    localStorage.removeItem("datosEmpleado");
+                    setWizardData({ idDpi: null, idInfoPersonal: null });
+                    setActiveStep(0);
+                    setShowResumeAlert(false);
+                  }}>
+                    Reiniciar Proceso
+                  </Button>
+                }
                 sx={{ mb: 3, borderRadius: 2 }}
               >
-                Se detectó un proceso de registro anterior incompleto. Los datos no guardados se han descartado.
-                Por favor, inicie el proceso nuevamente.
+                Se detectó un proceso de registro anterior incompleto. El sistema ha recuperado sus datos para que pueda continuar donde se quedó, o puede reiniciar el proceso.
               </Alert>
             )}
 
@@ -294,6 +324,21 @@ export default function WizardNuevoEmpleado() {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      <ModalIncompletos 
+        open={modalIncompletosOpen} 
+        onClose={() => setModalIncompletosOpen(false)}
+        onResume={(data, step) => {
+          setWizardData(data);
+          setActiveStep(step);
+          setModalIncompletosOpen(false);
+          setSnackbar({
+            open: true,
+            message: `Registro recuperado. Continuando desde el paso ${STEPS[step]}.`,
+            severity: "success"
+          });
+        }}
+      />
     </>
   );
 }

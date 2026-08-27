@@ -17,24 +17,24 @@ import DriveEtaIcon from "@mui/icons-material/DriveEta";
 import api from "../../../../config/api";
 
 export default function StepInfoPersonal({ wizardData, onStepComplete }) {
-  const [primerNombre, setPrimerNombre] = useState("");
-  const [segundoNombre, setSegundoNombre] = useState("");
-  const [tercerNombre, setTercerNombre] = useState("");
-  const [primerApellido, setPrimerApellido] = useState("");
-  const [segundoApellido, setSegundoApellido] = useState("");
-  const [apellidoCasada, setApellidoCasada] = useState("");
-  const [numeroCelular, setNumeroCelular] = useState("");
-  const [correoPersonal, setCorreoPersonal] = useState("");
-  const [direccionResidencia, setDireccionResidencia] = useState("");
-  const [estadoCivil, setEstadoCivil] = useState("");
-  const [genero, setGenero] = useState("");
-  const [departamentoNacimiento, setDepartamentoNacimiento] = useState("");
-  const [municipioNacimiento, setMunicipioNacimiento] = useState("");
-  const [nit, setNit] = useState("");
-  const [numAfiliacionIgss, setNumAfiliacionIgss] = useState("");
-  const [fechaNacimiento, setFechaNacimiento] = useState("");
-  const [numeroLicencia, setNumeroLicencia] = useState("");
-  const [tipoLicencia, setTipoLicencia] = useState("");
+  const [primerNombre, setPrimerNombre] = useState(wizardData.primerNombre || "");
+  const [segundoNombre, setSegundoNombre] = useState(wizardData.segundoNombre || "");
+  const [tercerNombre, setTercerNombre] = useState(wizardData.tercerNombre || "");
+  const [primerApellido, setPrimerApellido] = useState(wizardData.primerApellido || "");
+  const [segundoApellido, setSegundoApellido] = useState(wizardData.segundoApellido || "");
+  const [apellidoCasada, setApellidoCasada] = useState(wizardData.apellidoCasada || "");
+  const [numeroCelular, setNumeroCelular] = useState(wizardData.numeroCelular || "");
+  const [correoPersonal, setCorreoPersonal] = useState(wizardData.correoPersonal || "");
+  const [direccionResidencia, setDireccionResidencia] = useState(wizardData.direccionResidencia || "");
+  const [estadoCivil, setEstadoCivil] = useState(wizardData.estadoCivil || "");
+  const [genero, setGenero] = useState(wizardData.genero || "");
+  const [departamentoNacimiento, setDepartamentoNacimiento] = useState(wizardData.departamentoNacimiento || "");
+  const [municipioNacimiento, setMunicipioNacimiento] = useState(wizardData.municipioNacimiento || "");
+  const [nit, setNit] = useState(wizardData.nit || "");
+  const [numAfiliacionIgss, setNumAfiliacionIgss] = useState(wizardData.numAfiliacionIgss || "");
+  const [fechaNacimiento, setFechaNacimiento] = useState(wizardData.fechaNacimiento || "");
+  const [numeroLicencia, setNumeroLicencia] = useState(wizardData.numeroLicencia || "");
+  const [tipoLicencia, setTipoLicencia] = useState(wizardData.tipoLicencia || "");
   const [departamentos, setDepartamentos] = useState([]);
   const [municipios, setMunicipios] = useState([]);
   const [municipiosFiltrados, setMunicipiosFiltrados] = useState([]);
@@ -96,7 +96,12 @@ export default function StepInfoPersonal({ wizardData, onStepComplete }) {
 
       if (response.status === 200) {
         const idInfoPersonal = response.data.responseData?.idInfoPersonal || response.data.idInfoPersonal;
-        onStepComplete({ idInfoPersonal });
+        onStepComplete({ 
+          idInfoPersonal, primerNombre, segundoNombre, tercerNombre, primerApellido, segundoApellido,
+          apellidoCasada, numeroCelular, correoPersonal, direccionResidencia, estadoCivil, genero,
+          departamentoNacimiento, municipioNacimiento, nit, numAfiliacionIgss, fechaNacimiento, 
+          numeroLicencia, tipoLicencia 
+        });
       }
     } catch (err) {
       const msg = err.response?.data?.responseData || err.response?.data?.message || "Error al guardar información personal.";

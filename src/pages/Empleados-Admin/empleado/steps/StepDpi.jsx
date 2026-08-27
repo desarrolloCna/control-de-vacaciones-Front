@@ -10,10 +10,10 @@ import EventIcon from "@mui/icons-material/Event";
 import api from "../../../../config/api";
 
 export default function StepDpi({ wizardData, onStepComplete }) {
-  const [numeroDocumento, setNumeroDocumento] = useState("");
-  const [departamentoExpedicion, setDepartamentoExpedicion] = useState("");
-  const [municipioExpedicion, setMunicipioExpedicion] = useState("");
-  const [fechaVencimientoDpi, setFechaVencimientoDpi] = useState("");
+  const [numeroDocumento, setNumeroDocumento] = useState(wizardData.numeroDocumento || "");
+  const [departamentoExpedicion, setDepartamentoExpedicion] = useState(wizardData.departamentoExpedicion || "");
+  const [municipioExpedicion, setMunicipioExpedicion] = useState(wizardData.municipioExpedicion || "");
+  const [fechaVencimientoDpi, setFechaVencimientoDpi] = useState(wizardData.fechaVencimientoDpi || "");
   const [departamentos, setDepartamentos] = useState([]);
   const [municipios, setMunicipios] = useState([]);
   const [municipiosFiltrados, setMunicipiosFiltrados] = useState([]);
@@ -69,7 +69,7 @@ export default function StepDpi({ wizardData, onStepComplete }) {
 
       if (response.status === 200) {
         const idDpi = response.data.idDpi || response.data.responseData?.idDpi;
-        onStepComplete({ idDpi });
+        onStepComplete({ idDpi, numeroDocumento, departamentoExpedicion, municipioExpedicion, fechaVencimientoDpi });
       }
     } catch (err) {
       if (err.response?.status === 409) {

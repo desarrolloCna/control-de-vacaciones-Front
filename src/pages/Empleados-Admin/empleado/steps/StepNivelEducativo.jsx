@@ -9,12 +9,12 @@ import WorkIcon from "@mui/icons-material/Work";
 import api from "../../../../config/api";
 
 export default function StepNivelEducativo({ wizardData, onStepComplete }) {
-  const [nivelDeEstudios, setNivelDeEstudios] = useState("");
-  const [ultimoNivelAlcanzado, setUltimoNivelAlcanzado] = useState("");
-  const [anioUltimoNivelCursado, setAnioUltimoNivelCursado] = useState("");
-  const [profesion, setProfesion] = useState("");
-  const [numeroColegiado, setNumeroColegiado] = useState("");
-  const [fechaColegiacion, setFechaColegiacion] = useState("");
+  const [nivelDeEstudios, setNivelDeEstudios] = useState(wizardData.nivelDeEstudios || wizardData.nivelEducativo || "");
+  const [ultimoNivelAlcanzado, setUltimoNivelAlcanzado] = useState(wizardData.ultimoNivelAlcanzado || wizardData.tituloAcademico || "");
+  const [anioUltimoNivelCursado, setAnioUltimoNivelCursado] = useState(wizardData.anioUltimoNivelCursado || wizardData.constanciaEstudios || "");
+  const [profesion, setProfesion] = useState(wizardData.profesion || wizardData.cursosRecibidos || "");
+  const [numeroColegiado, setNumeroColegiado] = useState(wizardData.numeroColegiado || "");
+  const [fechaColegiacion, setFechaColegiacion] = useState(wizardData.fechaColegiacion || "");
   const [nivelesEducativos, setNivelesEducativos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -44,7 +44,11 @@ export default function StepNivelEducativo({ wizardData, onStepComplete }) {
           },
         };
         const response = await api.put(`/actualizarOtrosDatos/${idInfoPersonal}`, payload);
-        if (response.status === 200) onStepComplete({});
+        if (response.status === 200) {
+          onStepComplete({
+            nivelDeEstudios, ultimoNivelAlcanzado, anioUltimoNivelCursado, profesion, numeroColegiado, fechaColegiacion: fechaColegiacionToSend
+          });
+        }
       } else {
         const payload = {
           idInfoPersonal, nivelDeEstudios, ultimoNivelAlcanzado,
@@ -52,7 +56,11 @@ export default function StepNivelEducativo({ wizardData, onStepComplete }) {
           fechaColegiacionToSend,
         };
         const response = await api.post("/ingresarNivelEducativo", payload);
-        if (response.status === 200) onStepComplete({});
+        if (response.status === 200) {
+          onStepComplete({
+            nivelDeEstudios, ultimoNivelAlcanzado, anioUltimoNivelCursado, profesion, numeroColegiado, fechaColegiacion: fechaColegiacionToSend
+          });
+        }
       }
     } catch (err) {
       setError("Error al guardar el nivel educativo. Intente de nuevo.");

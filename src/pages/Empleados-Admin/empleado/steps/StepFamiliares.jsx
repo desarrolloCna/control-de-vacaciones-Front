@@ -12,7 +12,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import api from "../../../../config/api";
 
 export default function StepFamiliares({ wizardData, onStepComplete }) {
-  const [familiares, setFamiliares] = useState([
+  const [familiares, setFamiliares] = useState(wizardData.familiares || [
     { nombreFamiliar: "", telefono: "", parentesco: "", fechaNacimiento: "" },
   ]);
   const [parentescos, setParentescos] = useState([]);
@@ -74,7 +74,7 @@ export default function StepFamiliares({ wizardData, onStepComplete }) {
           fechaNacimiento: familiar.fechaNacimiento,
         });
       }
-      onStepComplete({});
+      onStepComplete({ familiares });
     } catch (err) {
       setError("Error al guardar familiares. Intente de nuevo.");
       setTimeout(() => setError(null), 5000);

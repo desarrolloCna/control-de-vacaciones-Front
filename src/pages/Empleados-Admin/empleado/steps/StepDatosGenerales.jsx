@@ -11,16 +11,16 @@ import PublicIcon from "@mui/icons-material/Public";
 import api from "../../../../config/api";
 
 export default function StepDatosGenerales({ wizardData, onStepComplete }) {
-  const [discapacidad, setDiscapacidad] = useState("");
-  const [tipoDiscapacidad, setTipoDiscapacidad] = useState("");
+  const [discapacidad, setDiscapacidad] = useState(wizardData.discapacidad || (wizardData.tipoDiscapacidad ? "Sí" : ""));
+  const [tipoDiscapacidad, setTipoDiscapacidad] = useState(wizardData.tipoDiscapacidad || "");
   const [tiposDiscapacidad, setTiposDiscapacidad] = useState([]);
-  const [tipoSangre, setTipoSangre] = useState("");
-  const [condicionMedica, setCondicionMedica] = useState("");
-  const [tomaMedicina, setTomaMedicina] = useState("");
-  const [nombreMedicamento, setNombreMedicamento] = useState("");
-  const [sufreAlergia, setSufreAlergia] = useState("");
-  const [etnia, setEtnia] = useState("");
-  const [comunidadLinguistica, setComunidadLinguistica] = useState("");
+  const [tipoSangre, setTipoSangre] = useState(wizardData.tipoSangre || "");
+  const [condicionMedica, setCondicionMedica] = useState(wizardData.condicionMedica || wizardData.enfermedades || "");
+  const [tomaMedicina, setTomaMedicina] = useState(wizardData.tomaMedicina || (wizardData.nombreMedicamento ? "Sí" : ""));
+  const [nombreMedicamento, setNombreMedicamento] = useState(wizardData.nombreMedicamento || "");
+  const [sufreAlergia, setSufreAlergia] = useState(wizardData.sufreAlergia || wizardData.alergias || "");
+  const [etnia, setEtnia] = useState(wizardData.etnia || wizardData.puebloPertenencia || "");
+  const [comunidadLinguistica, setComunidadLinguistica] = useState(wizardData.comunidadLinguistica || "");
   const [etnias, setEtnias] = useState([]);
   const [comunidadesLinguisticas, setComunidadesLinguisticas] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -55,7 +55,11 @@ export default function StepDatosGenerales({ wizardData, onStepComplete }) {
           pertenenciaSociolinguistica: { etnia, comunidadLinguistica },
         };
         const response = await api.put(`/actualizarOtrosDatos/${idInfoPersonal}`, payload);
-        if (response.status === 200) onStepComplete({});
+        if (response.status === 200) {
+          onStepComplete({
+            discapacidad, tipoDiscapacidad, tipoSangre, condicionMedica, tomaMedicina, nombreMedicamento, sufreAlergia, etnia, comunidadLinguistica
+          });
+        }
       } else {
         // POST mode
         const dmPayload = {
@@ -67,7 +71,11 @@ export default function StepDatosGenerales({ wizardData, onStepComplete }) {
         if (dmRes.status === 200) {
           const slPayload = { idInfoPersonal, etnia, comunidadLinguistica };
           const slRes = await api.post("/ingresarPertenenciaSoLi", slPayload);
-          if (slRes.status === 200) onStepComplete({});
+          if (slRes.status === 200) {
+            onStepComplete({
+              discapacidad, tipoDiscapacidad, tipoSangre, condicionMedica, tomaMedicina, nombreMedicamento, sufreAlergia, etnia, comunidadLinguistica
+            });
+          }
         }
       }
     } catch (err) {
