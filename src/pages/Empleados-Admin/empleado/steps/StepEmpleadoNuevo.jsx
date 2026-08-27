@@ -46,8 +46,16 @@ export default function StepEmpleadoNuevo({ wizardData, onStepComplete, onFinish
           api.get("/unidades"),
         ]);
         const getActive = (res, key) => {
-          const data = res.data[key] || res.data.puestos || res.data.unidades || res.data.renglones || [];
-          return (Array.isArray(data) ? data : []).filter((d) => d.estado === "A" || d.estado === undefined);
+           let data = [];
+           if (Array.isArray(res.data)) {
+               data = res.data;
+           } else if (res.data) {
+               data = res.data[key] || res.data.puestos || res.data.unidades || res.data.renglones || res.data.departamentos || res.data.responseData?.[key] || [];
+           }
+           if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0])) {
+               data = data[0];
+           }
+           return (Array.isArray(data) ? data : []).filter(d => d.estado === "A" || d.estado === undefined);
         };
         setPuestos(getActive(pRes, "puestos"));
         setRenglones(getActive(rRes, "renglones"));
