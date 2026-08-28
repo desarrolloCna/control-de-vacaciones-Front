@@ -42,7 +42,7 @@ export default function GestionUsuariosRRHH() {
     { id: "/crear-usuarios-rrhh", label: "Usuarios RRHH" },
     { id: "/activar-vacaciones", label: "Activar Vacaciones" },
     { id: "/excepcion-limite", label: "Excepciones de Límite" },
-    { id: "/cancelar-vacaciones", label: "Cancelar Vacaciones" },
+    { id: "/cancelar-vacaciones", label: "Reprogramación de Vacaciones" },
     { id: "/bitacora", label: "Bitácora de Cambios" },
     { id: "/ajustar-saldos", label: "Ajuste de Saldos" }
   ];

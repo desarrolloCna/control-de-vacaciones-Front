@@ -169,7 +169,7 @@ export default function ControlPanel() {
           {hasAccess("/cancelar-vacaciones") && (
             <Grid item xs={12} sm={6} md={4}>
               <PanelCard
-                primaryText="Cancelar Vacaciones"
+                primaryText="Reprogramación de Vacaciones"
                 secondaryText="Revocar vacaciones programadas"
                 icon={<EventBusyIcon sx={{ color: "#fff" }} />}
                 gradientBg="linear-gradient(135deg, #374151 0%, #6B7280 100%)"
