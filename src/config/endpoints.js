@@ -23,6 +23,7 @@ const endpoints = {
     GET_EMPLEADOS_SIN_VACACIONES: '/consultarEmpleadosSinVacaciones',
     GET_CALENDARIO_VACACIONES: '/calendario/vacaciones',
     GET_CONSULTAR_EXCEPCION_LIMITE: '/consultarExcepcionLimite',
+    GET_SOLICITUDES_REPROGRAMADAS: '/consultarSolicitudesReprogramadas',
 };
 
 const endpointsPost = {

@@ -25,7 +25,7 @@ export const handleCloseModal = (setIsModalOpen, setSelectedSolicitud, setCancel
     setSuccessMessage(null);
 };
 
-export const handleCancelarSolicitud = async (selectedSolicitud, motivo, setIsModalOpen, setSelectedSolicitud, setCancelError, setSuccessMessage, setIsCancelling, setSolicitudesAutorizadas) => {
+export const handleCancelarSolicitud = async (selectedSolicitud, motivo, setIsModalOpen, setSelectedSolicitud, setCancelError, setSuccessMessage, setIsCancelling, setSolicitudesAutorizadas, refreshReprogramadas) => {
         if (!selectedSolicitud) return;
 
         setIsCancelling(true);
@@ -50,8 +50,12 @@ export const handleCancelarSolicitud = async (selectedSolicitud, motivo, setIsMo
 
             setSuccessMessage("Solicitud cancelada exitosamente");
             
+            
             // Actualizar la lista de solicitudes autorizadas
             setSolicitudesAutorizadas(prev => prev.filter(s => s.idSolicitud !== selectedSolicitud.idSolicitud));
+            if(refreshReprogramadas) {
+                refreshReprogramadas();
+            }
             
 
         } catch (err) {

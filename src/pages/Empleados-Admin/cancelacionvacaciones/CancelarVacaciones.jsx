@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useGetSolicitudesAutorizadas } from "../../../hooks/SolicitudesAtuorizadas/useGetSolicituesAutorizadas";
+import { useGetSolicitudesReprogramadas } from "../../../hooks/SolicitudesAtuorizadas/useGetSolicitudesReprogramadas";
 import "./CancelacionVacaciones.styles.css";
 import Navbar from "../../../components/navBar/NavBar";
 import { PageHeader } from "../../../components/UI/UIComponents";
@@ -13,7 +14,10 @@ import { formatDateTime, formatDate, getSolicitudes, handleCancelarSolicitud, ha
 dayjs.locale("es");
 
 const CancelacionVacaciones = () => {
-    const { solicitudesAutorizadas, error, loading, setSolicitudesAutorizadas } = useGetSolicitudesAutorizadas();
+    const { solicitudesAutorizadas, error: errorAutorizadas, loading: loadingAutorizadas, setSolicitudesAutorizadas } = useGetSolicitudesAutorizadas();
+    const { solicitudesReprogramadas, error: errorReprogramadas, loading: loadingReprogramadas, refreshReprogramadas } = useGetSolicitudesReprogramadas();
+    
+    const [activeTab, setActiveTab] = useState("autorizadas");
     const [selectedSolicitud, setSelectedSolicitud] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [motivo, setMotivo] = useState("");
@@ -22,10 +26,13 @@ const CancelacionVacaciones = () => {
     const [successMessage, setSuccessMessage] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     
-    const solicitudes = getSolicitudes(solicitudesAutorizadas);
+    const loading = activeTab === "autorizadas" ? loadingAutorizadas : loadingReprogramadas;
+    const error = activeTab === "autorizadas" ? errorAutorizadas : errorReprogramadas;
+    
+    const solicitudesCurrent = getSolicitudes(activeTab === "autorizadas" ? solicitudesAutorizadas : solicitudesReprogramadas);
 
     // Filtrar solicitudes por nombre
-    const filteredSolicitudes = solicitudes.filter((solicitud) => {
+    const filteredSolicitudes = solicitudesCurrent.filter((solicitud) => {
         if (!searchTerm) return true;
         return solicitud.nombres.toLowerCase().includes(searchTerm.toLowerCase());
     });
@@ -75,12 +82,30 @@ const CancelacionVacaciones = () => {
             <Navbar />
             <div className="cancelacion-container">
                 <PageHeader 
-                    title="Cancelación de Vacaciones"
-                    subtitle="Gestiona las solicitudes de vacaciones autorizadas"
+                    title="Reprogramación de Vacaciones"
+                    subtitle="Gestiona las solicitudes de vacaciones autorizadas y visualiza el historial"
                 />
 
+                {/* Tabs */}
+                <div className="tabs-container" style={{ display: 'flex', gap: '20px', marginBottom: '20px', borderBottom: '1px solid #ccc' }}>
+                    <button 
+                        className={`tab-btn ${activeTab === "autorizadas" ? "active" : ""}`}
+                        style={{ padding: '10px 20px', border: 'none', background: 'none', borderBottom: activeTab === "autorizadas" ? '2px solid #0056b3' : 'none', fontWeight: activeTab === "autorizadas" ? 'bold' : 'normal', cursor: 'pointer', color: activeTab === "autorizadas" ? '#0056b3' : '#666' }}
+                        onClick={() => { setActiveTab("autorizadas"); setSearchTerm(""); }}
+                    >
+                        Autorizadas
+                    </button>
+                    <button 
+                        className={`tab-btn ${activeTab === "historial" ? "active" : ""}`}
+                        style={{ padding: '10px 20px', border: 'none', background: 'none', borderBottom: activeTab === "historial" ? '2px solid #0056b3' : 'none', fontWeight: activeTab === "historial" ? 'bold' : 'normal', cursor: 'pointer', color: activeTab === "historial" ? '#0056b3' : '#666' }}
+                        onClick={() => { setActiveTab("historial"); setSearchTerm(""); }}
+                    >
+                        Historial de Reprogramaciones
+                    </button>
+                </div>
+
                 {/* Barra de búsqueda */}
-                {solicitudes.length > 0 && (
+                {solicitudesCurrent.length > 0 && (
                     <div className="search-container">
                         <div className="search-wrapper">
                             <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -128,11 +153,11 @@ const CancelacionVacaciones = () => {
                                 </>
                             )}
                         </svg>
-                        <h3>{searchTerm ? 'No se encontraron resultados' : 'No hay solicitudes autorizadas'}</h3>
+                        <h3>{searchTerm ? 'No se encontraron resultados' : 'No hay solicitudes'}</h3>
                         <p>
                             {searchTerm 
                                 ? `No hay solicitudes que coincidan con "${searchTerm}"`
-                                : 'Actualmente no existen solicitudes de vacaciones para cancelar'
+                                : 'Actualmente no existen solicitudes en esta categoría'
                             }
                         </p>
                         {searchTerm && (
@@ -304,14 +329,20 @@ const CancelacionVacaciones = () => {
                                 </div>
                                 <div className="detail-section">
                                     <h3>Motivo de Reprogramación</h3>
-                                    <textarea 
-                                        className="motivo-input"
-                                        placeholder="Ingrese el motivo o justificación formal para enviar al empleado..."
-                                        style={{ width: '100%', minHeight: '80px', padding: '10px', borderRadius: '8px', border: '1px solid #ccc', marginTop: '10px' }}
-                                        value={motivo}
-                                        onChange={(e) => setMotivo(e.target.value)}
-                                        disabled={isCancelling || successMessage}
-                                    />
+                                    {activeTab === "historial" ? (
+                                        <div style={{ padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', marginTop: '10px', fontStyle: 'italic', color: '#555' }}>
+                                            "{selectedSolicitud.motivoReprogramacion || 'Sin motivo registrado'}"
+                                        </div>
+                                    ) : (
+                                        <textarea 
+                                            className="motivo-input"
+                                            placeholder="Ingrese el motivo o justificación formal para enviar al empleado..."
+                                            style={{ width: '100%', minHeight: '80px', padding: '10px', borderRadius: '8px', border: '1px solid #ccc', marginTop: '10px' }}
+                                            value={motivo}
+                                            onChange={(e) => setMotivo(e.target.value)}
+                                            disabled={isCancelling || successMessage}
+                                        />
+                                    )}
                                 </div>
 
                             </div>
@@ -333,36 +364,39 @@ const CancelacionVacaciones = () => {
                                 >
                                     Cerrar
                                 </button>
-                                <button 
-                                    className="btn-danger" 
-                                    onClick={() => handleCancelarSolicitud(
-                                        selectedSolicitud, 
-                                        motivo,
-                                        setIsModalOpen, 
-                                        setSelectedSolicitud, 
-                                        setCancelError, 
-                                        setSuccessMessage, 
-                                        setIsCancelling, 
-                                        setSolicitudesAutorizadas
-                                    )}
-                                    disabled={isCancelling || successMessage || !motivo.trim()}
-                                >
-                                    {isCancelling ? (
-                                        <>
-                                            <div className="button-spinner"></div>
-                                            Cancelando...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                <circle cx="12" cy="12" r="10"></circle>
-                                                <line x1="15" y1="9" x2="9" y2="15"></line>
-                                                <line x1="9" y1="9" x2="15" y2="15"></line>
-                                            </svg>
-                                            Solicitar Reprogramación
-                                        </>
-                                    )}
-                                </button>
+                                {activeTab === "autorizadas" && (
+                                    <button 
+                                        className="btn-danger" 
+                                        onClick={() => handleCancelarSolicitud(
+                                            selectedSolicitud, 
+                                            motivo,
+                                            setIsModalOpen, 
+                                            setSelectedSolicitud, 
+                                            setCancelError, 
+                                            setSuccessMessage, 
+                                            setIsCancelling, 
+                                            setSolicitudesAutorizadas,
+                                            refreshReprogramadas
+                                        )}
+                                        disabled={isCancelling || successMessage || !motivo.trim()}
+                                    >
+                                        {isCancelling ? (
+                                            <>
+                                                <div className="button-spinner"></div>
+                                                Cancelando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                    <circle cx="12" cy="12" r="10"></circle>
+                                                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                                                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                                                </svg>
+                                                Solicitar Reprogramación
+                                            </>
+                                        )}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>

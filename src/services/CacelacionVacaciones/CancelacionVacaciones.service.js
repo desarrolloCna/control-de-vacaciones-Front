@@ -11,6 +11,15 @@ export const consultarVacacionesAutorizadasServices = async () => {
     }
 };
 
+export const consultarSolicitudesReprogramadasServices = async () => {
+    try {
+        const response = await api.get(`${endpoints.GET_SOLICITUDES_REPROGRAMADAS}`);
+        return response.data.solicitudes;
+    } catch (error) {
+        throw error;
+    }
+};
+
 
 export const cancelarAutorizacionServices = async (payload) => {
     try {
