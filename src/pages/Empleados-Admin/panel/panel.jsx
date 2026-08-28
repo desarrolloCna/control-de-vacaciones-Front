@@ -184,7 +184,7 @@ export default function ControlPanel() {
                 primaryText="Cancelación de Vacaciones"
                 secondaryText="Interrupción por suspensión u otros"
                 icon={<EventBusyIcon sx={{ color: "#fff" }} />}
-                gradientBg="linear-gradient(135deg, #1F2937 0%, #4B5563 100%)"
+                gradientBg="linear-gradient(135deg, #E11D48 0%, #9F1239 100%)" // Red/Rose gradient
                 to="/cancelacion-parcial"
               />
             </Grid>

@@ -9,15 +9,7 @@ export const useGetSolicitudesCanceladas = () => {
     const fetchSolicitudes = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("No hay token de autenticación");
-            }
-            const res = await api.get("/api/administracionvacaciones/consultarSolicitudesCanceladas", {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            const res = await api.get("/api/administracionvacaciones/consultarSolicitudesCanceladas");
             setSolicitudesCanceladas(res.data);
             setError(null);
         } catch (err) {

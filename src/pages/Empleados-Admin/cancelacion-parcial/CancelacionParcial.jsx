@@ -7,7 +7,7 @@ import { PageHeader } from "../../../components/UI/UIComponents";
 import Swal from 'sweetalert2';
 import dayjs from "dayjs";
 import "dayjs/locale/es";
-import { formatDateTime, formatDate, getSolicitudes, handleCancelarSolicitudParcial, handleCloseModal, handleViewDetails } from "./CancelacionParcial.utils";
+import { formatDateTime, formatDate, getSolicitudes, handleCancelarSolicitudParcial, handleCloseModal, handleViewDetails, generarBoletaCancelacionPDF } from "./CancelacionParcial.utils";
 
 // Configurar dayjs en español
 dayjs.locale("es");
@@ -301,6 +301,20 @@ const CancelacionParcial = () => {
                                 >
                                     Cerrar
                                 </button>
+                                {activeTab === "historial" && (
+                                    <button 
+                                        className="btn-primary" 
+                                        style={{ backgroundColor: '#1E3A8A', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                        onClick={() => generarBoletaCancelacionPDF(selectedSolicitud, selectedSolicitud.cantidadDiasSolicitados - (selectedSolicitud.diasDevueltos || 0), selectedSolicitud.motivoReprogramacion)}
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        Generar PDF
+                                    </button>
+                                )}
                                 {activeTab === "autorizadas" && (
                                     <button 
                                         className="btn-danger" 
