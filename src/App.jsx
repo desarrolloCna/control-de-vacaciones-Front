@@ -45,6 +45,7 @@ import './styles/App.css';
 import { getLocalStorageData } from './services/session/getLocalStorageData';
 import ActivarVacacioenesPage from './pages/Empleados-Admin/ActivarVacaciones/ActivarVacaconesPage.jsx';
 import CancelacionVacaciones from './pages/Empleados-Admin/cancelacionvacaciones/CancelarVacaciones.jsx';
+import CancelacionParcial from './pages/Empleados-Admin/cancelacion-parcial/CancelacionParcial.jsx';
 import MandatoryPasswordChange from './components/MandatoryPasswordChange/MandatoryPasswordChange.jsx';
 import BitacoraPage from './pages/Empleados-Admin/Bitacora/BitacoraPage.jsx';
 import GestionUsuariosRRHH from './pages/Empleados-Admin/usuarios/GestionUsuariosRRHH.jsx';
@@ -80,6 +81,7 @@ function App() {
             <Route path='/activar-vacaciones' element={ <ActivarVacacioenesPage/> }/>
             <Route path='/excepcion-limite' element={ <ExcepcionLimitePage/> }/>
             <Route path='/cancelar-vacaciones' element={ <CancelacionVacaciones/> }/>
+            <Route path='/cancelacion-parcial' element={ <CancelacionParcial/> }/>
             <Route path='/dias-festivos' element={ <DiasFestivosPage/> }/>
           </Route>
 

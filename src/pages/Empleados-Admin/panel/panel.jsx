@@ -40,6 +40,7 @@ export default function ControlPanel() {
   }
 
   const hasAccess = (modulePath) => {
+    if (modulePath === "/cancelacion-parcial") return true; // TODO: Quitar esto en producción
     if (userData.idRol === 1) return true;
     if ((modulePath === "/dashboard-rrhh" || modulePath === "/finiquito-rrhh") && (userData.idRol === 3 || userData.idRol === 1)) return true;
     return allowedModules.includes(modulePath);
@@ -174,6 +175,17 @@ export default function ControlPanel() {
                 icon={<EventBusyIcon sx={{ color: "#fff" }} />}
                 gradientBg="linear-gradient(135deg, #374151 0%, #6B7280 100%)"
                 to="/cancelar-vacaciones"
+              />
+            </Grid>
+          )}
+          {hasAccess("/cancelacion-parcial") && (
+            <Grid item xs={12} sm={6} md={4}>
+              <PanelCard
+                primaryText="Cancelación de Vacaciones"
+                secondaryText="Interrupción por suspensión u otros"
+                icon={<EventBusyIcon sx={{ color: "#fff" }} />}
+                gradientBg="linear-gradient(135deg, #1F2937 0%, #4B5563 100%)"
+                to="/cancelacion-parcial"
               />
             </Grid>
           )}

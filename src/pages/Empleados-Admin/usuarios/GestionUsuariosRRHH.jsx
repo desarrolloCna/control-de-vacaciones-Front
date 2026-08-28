@@ -43,6 +43,7 @@ export default function GestionUsuariosRRHH() {
     { id: "/activar-vacaciones", label: "Activar Vacaciones" },
     { id: "/excepcion-limite", label: "Excepciones de Límite" },
     { id: "/cancelar-vacaciones", label: "Reprogramación de Vacaciones" },
+    { id: "/cancelacion-parcial", label: "Cancelación de Vacaciones" },
     { id: "/bitacora", label: "Bitácora de Cambios" },
     { id: "/ajustar-saldos", label: "Ajuste de Saldos" }
   ];
