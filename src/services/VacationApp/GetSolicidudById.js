@@ -32,7 +32,7 @@ export const consultarDiasDebitadosServices = async (idEmpleado, anioEnCurso) =>
 export const consultarDiasDisponiblesServices = async (idEmpleado) => {
   try{
     const response = await api.get(`${endpoints.GET_DIAS_DISPONIBLES}?idEmpleado=${idEmpleado}`);
-    return  response.data.diasDisponibles;
+    return response.data.diasDisponibles;
   }catch(error){  
     throw error;
   }

@@ -12,7 +12,11 @@ import { exportResumenAnual } from "../../../services/utils/exportResumenAnualEx
 import EditEmpleadoModal from "../../../components/EmpleadosPage/EditEmpleadoModal/EditEmpleadoModal";
 import EditIcon from "@mui/icons-material/Edit";
 import AssessmentIcon from "@mui/icons-material/Assessment";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { getFullEmployeeData } from "../../../services/EmpleadosServices/GetFullEmployeeData";
+import { Menu, IconButton } from "@mui/material";
+import ModalSucesionPuesto from "./ModalSucesionPuesto";
+import ModalBajaEmpleado from "./ModalBajaEmpleado";
 
 export const ReporteEmpleado = () => {
   const isSessionVerified = useCheckSession();
@@ -25,6 +29,12 @@ export const ReporteEmpleado = () => {
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [openEdit, setOpenEdit] = useState(false);
   const [fetchingEmp, setFetchingEmp] = useState(false);
+  
+  // States for Modals and Menu
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedRowData, setSelectedRowData] = useState(null);
+  const [openSucesion, setOpenSucesion] = useState(false);
+  const [openBaja, setOpenBaja] = useState(false);
 
   const endpoint = `${API_URL}/employeesList`;
 
@@ -192,17 +202,22 @@ export const ReporteEmpleado = () => {
       options: {
         customHeadRender: (cm) => <th key={cm.index} style={headerStyle}>{cm.label}</th>,
         setCellProps: () => ({ style: { textAlign: "center" } }),
-        customBodyRender: (value) => (
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<EditIcon />}
-            onClick={() => handleEditClick(value)}
-            disabled={fetchingEmp}
-          >
-            Editar
-          </Button>
-        )
+        customBodyRender: (value, tableMeta) => {
+          // Find full employee data based on idInfoPersonal
+          const empData = empleados.find(e => e.idInfoPersonal === value) || {};
+          return (
+            <IconButton 
+              size="small" 
+              onClick={(e) => {
+                setAnchorEl(e.currentTarget);
+                setSelectedRowData(empData);
+              }}
+              disabled={fetchingEmp}
+            >
+              <MoreVertIcon />
+            </IconButton>
+          );
+        }
       }
     }
   ];
@@ -307,29 +322,62 @@ export const ReporteEmpleado = () => {
               Resumen Anual (011/022)
             </Button>
           </Box>
-          <MUIDataTable
-            title={`Informe de Empleados — ${selectedUnidad}`}
-            data={empleados}
-            columns={columns}
-            options={options}
+          <Box sx={{ pb: 6 }}>
+            <MUIDataTable title="Directorio de Empleados" data={empleados} columns={columns} options={options} />
+          </Box>
+
+          {/* Action Menu */}
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={() => setAnchorEl(null)}
+          >
+            <MenuItem onClick={() => {
+              setAnchorEl(null);
+              setOpenEdit(true);
+            }}>
+              <EditIcon fontSize="small" sx={{ mr: 1 }} /> Editar Datos
+            </MenuItem>
+            <MenuItem onClick={() => {
+              setAnchorEl(null);
+              setOpenSucesion(true);
+            }}>
+              Cambiar Puesto
+            </MenuItem>
+            <MenuItem onClick={() => {
+              setAnchorEl(null);
+              setOpenBaja(true);
+            }} sx={{ color: 'error.main' }}>
+              Dar de Baja
+            </MenuItem>
+          </Menu>
+
+          <EditEmpleadoModal
+            open={openEdit}
+            onClose={() => setOpenEdit(false)}
+            employeeData={selectedRowData}
+            onSaveSuccess={getData}
           />
+          
+          {openSucesion && selectedRowData && (
+            <ModalSucesionPuesto
+              open={openSucesion}
+              onClose={() => setOpenSucesion(false)}
+              empleado={selectedRowData}
+              onSuccess={() => getData()}
+            />
+          )}
+          
+          {openBaja && selectedRowData && (
+            <ModalBajaEmpleado
+              open={openBaja}
+              onClose={() => setOpenBaja(false)}
+              empleado={selectedRowData}
+              onSuccess={() => getData()}
+            />
+          )}
         </Container>
       </Box>
-
-      {selectedEmp && (
-        <EditEmpleadoModal 
-          open={openEdit} 
-          onClose={() => {
-            setOpenEdit(false);
-            setSelectedEmp(null);
-          }} 
-          employeeData={selectedEmp} 
-          onSaveSuccess={() => {
-            getData();
-            setSelectedEmp(null);
-          }}
-        />
-      )}
     </Box>
   );
 };

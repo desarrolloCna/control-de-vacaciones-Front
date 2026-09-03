@@ -41,8 +41,6 @@ const ExcepcionLimitePage = () => {
                 data = data.filter(emp => {
                     if (!emp.fechaIngresoLabores) return false;
                     
-                    // La fecha viene en dd/mm/yyyy desde el backend o yyyy-mm-dd
-                    // Hay que parsearla de forma segura
                     let year;
                     if (emp.fechaIngresoLabores.includes('/')) {
                         const parts = emp.fechaIngresoLabores.split('/');
@@ -51,7 +49,14 @@ const ExcepcionLimitePage = () => {
                         year = dayjs(emp.fechaIngresoLabores).year();
                     }
                     
-                    return year <= 2024;
+                    // Solo empleados antiguos (hired before 2025)
+                    if (year > 2024) return false;
+
+                    // Lógica de aplicación:
+                    // - Mostrar solo a los empleados que tengan MÁS de 20 días pendientes acumulados de años anteriores (2025 hacia atrás).
+                    // - Nunca se toma en cuenta el 2026 para excepciones de límite.
+                    const oldDays = emp.diasTotalesSinActual || 0;
+                    return oldDays > 20;
                 });
 
                 // Adaptamos el formato de Nombres a Nombre para re-utilizar la UI original
@@ -454,7 +459,7 @@ const ExcepcionLimitePage = () => {
                                                         • Fecha de Ingreso: {empleado.fechaIngresoLabores || 'Desconocida'}
                                                     </Typography>
                                                     <Typography component="span" variant="body2" color="primary.main" sx={{ fontWeight: 600 }}>
-                                                        • Días Totales Acumulados: {empleado.diasTotales ?? 0}
+                                                        • Días Acumulados (Aplicables): {empleado.diasTotalesSinActual}
                                                     </Typography>
                                                     
                                                     {empleadosSeleccionados.has(empleado.idEmpleado) && (

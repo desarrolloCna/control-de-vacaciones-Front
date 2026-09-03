@@ -81,7 +81,7 @@ const VacationApp = () => {
   const [listaFestivos, setListaFestivos] = useState([]);
   const [loadingFestivos, setLoadingFestivos] = useState(false);
   const userData = getLocalStorageData();
-  const { diasSolicitados, errorD, loadingD, diasDebitados, diasDisponiblesT } = useGetDiasSolicitados();
+  const { diasSolicitados, errorD, loadingD, diasDebitados, diasDisponiblesT, periodoActualData, globalData } = useGetDiasSolicitados();
   const anioEnCurso = dayjs().year();
   const [tabValue, setTabValue] = useState(0);
   const handleTabChange = (event, newValue) => setTabValue(newValue);
@@ -108,14 +108,9 @@ const VacationApp = () => {
       : 0;
   };
 
-  const totalDiasAcumulados = diasDisponiblesT;
-  const totalDiasSolicitados = diasDebitados;
-  const totaldiasDisponibles = totalDiasAcumulados - diasDebitados;
-
   const canRequestVacation = () => {
-    return totaldiasDisponibles > 0;
+    return (globalData?.disponibles || 0) > 0;
   };
-
   const calcularResumenDias = () => {
     let totalCreditos = 0;
     let totalDebitos = 0;
@@ -130,8 +125,24 @@ const VacationApp = () => {
       historialFiltrado.forEach(item => {
         const p = item.periodo;
         if (!summary[p]) { summary[p] = { creditos: 0, debitos: 0 }; }
-        summary[p].creditos = Math.max(summary[p].creditos, Number(item.totalDiasAcreditados) || 0);
-        summary[p].debitos = Math.max(summary[p].debitos, Number(item.totalDiasDebitados) || 0);
+        
+        // Sumar solo los créditos originales (anuales o ajustes)
+        if (item.tipoRegistro === 1 && !item.idSolicitudOriginal) {
+          summary[p].creditos += Number(item.diasAcreditados) || Number(item.totalDiasAcreditados) || 0;
+          
+          // IMPORTANTE: RRHH hace ajustes de saldos usando tipoRegistro=1 y meten los días debitados aquí.
+          if (item.diasDebitados) {
+            summary[p].debitos += Number(item.diasDebitados);
+          }
+        } 
+        // Sumar todos los débitos normales (solicitudes)
+        else if (item.tipoRegistro === 2) {
+          summary[p].debitos += Number(item.diasSolicitados) || Number(item.totalDiasDebitados) || 0;
+        } 
+        // Restar devoluciones de los débitos
+        else if (item.tipoRegistro === 1 && item.idSolicitudOriginal) {
+          summary[p].debitos -= Number(item.diasAcreditados) || 0;
+        }
       });
 
       Object.values(summary).forEach(s => {
@@ -144,6 +155,33 @@ const VacationApp = () => {
     return { totalCreditos, totalDebitos, saldoActual };
   };
 
+  const getDescripcionCancelacion = (item) => {
+    if (item.tipoRegistro === 1 && item.idSolicitudOriginal) {
+      if (item.diasAcreditados > 0) {
+        let originDeb = null;
+        if (item.Gestion && typeof item.Gestion === 'string' && item.Gestion.startsWith('DEVL')) {
+            const targetGestion = item.Gestion.replace('DEVL', 'SLVC');
+            originDeb = historial.find(h => h.tipoRegistro === 2 && h.Gestion === targetGestion);
+        }
+        if (!originDeb) {
+            originDeb = historial.find(h => h.tipoRegistro === 2 && (h.idSolicitudOriginal === item.idSolicitudOriginal || h.idHistorial === item.idSolicitudOriginal));
+        }
+        
+        if (originDeb && originDeb.diasSolicitados) {
+           const consumidos = originDeb.diasSolicitados - item.diasAcreditados;
+           return `+${item.diasAcreditados} por cancelación (Gozados: ${consumidos} días de ${originDeb.diasSolicitados})`;
+        }
+        return `+${item.diasAcreditados} por cancelación de RRHH`;
+      } else {
+        return "Cancelación por Recursos Humanos";
+      }
+    } else if (item.tipoRegistro === 1) {
+      return "Acreditación anual de días";
+    } else {
+      return "Solicitud de vacaciones";
+    }
+  };
+
   const { totalCreditos, totalDebitos, saldoActual } = calcularResumenDias();
 
   const getPeriodosSummary = () => {
@@ -154,8 +192,23 @@ const VacationApp = () => {
       const p = item.periodo;
       if (!summary[p]) { summary[p] = { creditos: 0, debitos: 0 }; }
       
-      summary[p].creditos = Math.max(summary[p].creditos, Number(item.totalDiasAcreditados) || 0);
-      summary[p].debitos = Math.max(summary[p].debitos, Number(item.totalDiasDebitados) || 0);
+      // Sumar solo los créditos originales (anuales o ajustes)
+      if (item.tipoRegistro === 1 && !item.idSolicitudOriginal) {
+        summary[p].creditos += Number(item.diasAcreditados) || Number(item.totalDiasAcreditados) || 0;
+
+        // IMPORTANTE: RRHH hace ajustes de saldos usando tipoRegistro=1 y meten los días debitados aquí.
+        if (item.diasDebitados) {
+          summary[p].debitos += Number(item.diasDebitados);
+        }
+      } 
+      // Sumar todos los débitos normales (solicitudes)
+      else if (item.tipoRegistro === 2) {
+        summary[p].debitos += Number(item.diasSolicitados) || Number(item.totalDiasDebitados) || 0;
+      } 
+      // Restar devoluciones de los débitos
+      else if (item.tipoRegistro === 1 && item.idSolicitudOriginal) {
+        summary[p].debitos -= Number(item.diasAcreditados) || 0;
+      }
     });
 
     return Object.keys(summary).map(p => ({
@@ -348,9 +401,9 @@ const VacationApp = () => {
     exportToPdf(dataToExport, `Historial_Vacaciones_${userData?.primerNombre || 'Empleado'}`);
   };
 
-  const handleDownloadPDF = async (idSolicitud, idEmpleado) => {
+  const handleDownloadPDF = async (idSolicitud, idEmpleado, tipo = 'normal') => {
     try {
-      const response = await api.get(`/descargarInformePDF/${idSolicitud}/${idEmpleado}`, {
+      const response = await api.get(`/descargarInformePDF/${idSolicitud}/${idEmpleado}?tipo=${tipo}`, {
         responseType: 'blob'
       });
       const fileName = solicitudesEmpleado.find(s => s.idSolicitud === idSolicitud)?.correlativo || `Solicitud_${idSolicitud}`;
@@ -409,15 +462,18 @@ const VacationApp = () => {
           showBack={true}
         />
 
-        {/* Mostrar resumen de días */}
+        {/* Mostrar resumen de días - SECCIÓN PERÍODO ACTUAL */}
+        <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 'bold', mb: 2, px: 2, textAlign: 'center' }}>
+          Mi Saldo del Período Actual ({anioEnCurso})
+        </Typography>
         <Grid container spacing={3} justifyContent="center" sx={{ mb: 4, px: 2 }}>
           <Grid item xs={12} sm={4} md={3}>
             <Paper elevation={2} sx={{ p: 2.5, textAlign: 'center', bgcolor: '#f3e5f5', borderRadius: 2, borderLeft: '4px solid #ab47bc', transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 } }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-                Días Acumulados Totales
+                Acreditados este año
               </Typography>
               <Typography variant="h4" sx={{ color: '#8e24aa', fontWeight: 700, mt: 1 }}>
-                {totalDiasAcumulados}
+                {periodoActualData?.acreditados || 0}
               </Typography>
             </Paper>
           </Grid>
@@ -425,10 +481,51 @@ const VacationApp = () => {
           <Grid item xs={12} sm={4} md={3}>
             <Paper elevation={2} sx={{ p: 2.5, textAlign: 'center', bgcolor: '#e3f2fd', borderRadius: 2, borderLeft: '4px solid #1976d2', transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 } }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-                Días Solicitados
+                Consumidos este año
               </Typography>
               <Typography variant="h4" sx={{ color: '#1565c0', fontWeight: 700, mt: 1 }}>
-                {totalDiasSolicitados}
+                {periodoActualData?.consumidos || 0}
+              </Typography>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} sm={4} md={3}>
+            <Paper elevation={2} sx={{ p: 2.5, textAlign: 'center', bgcolor: (periodoActualData?.disponibles || 0) === 0 ? '#fffbee' : '#e8f5e9', borderRadius: 2, borderLeft: `4px solid ${(periodoActualData?.disponibles || 0) > 0 ? '#4caf50' : '#f44336'}`, transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 }}}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.secondary', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                Saldo del Período
+              </Typography>
+              <Typography variant="h4" sx={{ color: (periodoActualData?.disponibles || 0) > 0 ? '#2e7d32' : '#c62828', fontWeight: 700, mt: 1 }}>
+                {periodoActualData?.disponibles || 0}
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* Mostrar resumen de días - SECCIÓN GLOBAL */}
+        <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 'bold', mb: 2, px: 2, textAlign: 'center' }}>
+          Mi Histórico Global Acumulado (Todos los años)
+        </Typography>
+        <Grid container spacing={3} justifyContent="center" sx={{ mb: 4, px: 2 }}>
+          <Grid item xs={12} sm={4} md={3}>
+            <Paper elevation={2} sx={{ p: 2.5, textAlign: 'center', bgcolor: '#f5f5f5', borderRadius: 2, borderLeft: '4px solid #757575', transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 } }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                Total Acreditado
+              </Typography>
+              <Typography variant="h4" sx={{ color: '#424242', fontWeight: 700, mt: 1 }}>
+                {globalData?.acreditados || 0}
+              </Typography>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} sm={4} md={3}>
+            <Paper elevation={2} sx={{ p: 2.5, textAlign: 'center', bgcolor: '#fff3e0', borderRadius: 2, borderLeft: '4px solid #ff9800', transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 } }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                Total Consumido
+              </Typography>
+              <Typography variant="h4" sx={{ color: '#e65100', fontWeight: 700, mt: 1 }}>
+                {globalData?.consumidos || 0}
               </Typography>
             </Paper>
           </Grid>
@@ -436,30 +533,30 @@ const VacationApp = () => {
           <Grid item xs={12} sm={4} md={3}>
             <Tooltip
               title={
-                totaldiasDisponibles === 0
+                (globalData?.disponibles || 0) === 0
                   ? "Su saldo consolidado es 0. Usted cuenta con días proporcionales en curso que aún no han sido liberados y que solo pueden solicitarse mediante un permiso especial en RRHH (Art. 70)."
                   : ""
               }
               arrow
               placement="top"
-              disableHoverListener={totaldiasDisponibles > 0}
+              disableHoverListener={(globalData?.disponibles || 0) > 0}
             >
-              <Paper elevation={2} sx={{ p: 2.5, textAlign: 'center', bgcolor: totaldiasDisponibles === 0 ? '#fffbee' : '#e8f5e9', borderRadius: 2, borderLeft: `4px solid ${totaldiasDisponibles > 0 ? '#4caf50' : '#f44336'}`, transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 }, cursor: totaldiasDisponibles === 0 ? 'help' : 'default' }}>
+              <Paper elevation={2} sx={{ p: 2.5, textAlign: 'center', bgcolor: (globalData?.disponibles || 0) === 0 ? '#fffbee' : '#e8f5e9', borderRadius: 2, borderLeft: `4px solid ${(globalData?.disponibles || 0) > 0 ? '#4caf50' : '#f44336'}`, transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 4 }, cursor: (globalData?.disponibles || 0) === 0 ? 'help' : 'default' }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.secondary', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  Días Disponibles
-                  {totaldiasDisponibles === 0 && (
+                  Saldo Global Disponible
+                  {(globalData?.disponibles || 0) === 0 && (
                     <InfoIcon sx={{ ml: 0.5, fontSize: 18, color: '#f57c00' }} />
                   )}
                 </Typography>
                 <Typography
                   variant="h4"
                   sx={{
-                    color: totaldiasDisponibles > 0 ? '#2e7d32' : '#c62828',
+                    color: (globalData?.disponibles || 0) > 0 ? '#2e7d32' : '#c62828',
                     fontWeight: 700,
                     mt: 1
                   }}
                 >
-                  {totaldiasDisponibles}
+                  {globalData?.disponibles || 0}
                 </Typography>
               </Paper>
             </Tooltip>
@@ -947,6 +1044,19 @@ const VacationApp = () => {
                     </Typography>
                   </Box>
                 )}
+
+                {/* Motivo de Cancelación */}
+                {selectedSolicitud.estadoSolicitud === "cancelada" && (selectedSolicitud.descripcionRechazo || selectedSolicitud.motivoReprogramacion) && (
+                  <Box sx={{ mt: 2, p: 2, backgroundColor: "#ffebee", borderRadius: 1, borderLeft: "3px solid #f44336" }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#555", mb: 1, display: "flex", alignItems: "center" }}>
+                      <ErrorIcon sx={{ color: "#f44336", mr: 1, fontSize: "1.2rem" }} />
+                      Motivo de Cancelación / Ajuste:
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "#666", pl: 1, fontStyle: "italic" }}>
+                      "{selectedSolicitud.descripcionRechazo || selectedSolicitud.motivoReprogramacion}"
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             ) : (
               <Typography align="center" sx={{ color: "#666", py: 3 }}>
@@ -954,39 +1064,79 @@ const VacationApp = () => {
               </Typography>
             )}
 
-            <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-              {selectedSolicitud && (selectedSolicitud.estadoSolicitud === "autorizadas" || selectedSolicitud.estadoSolicitud === "finalizadas" || (selectedSolicitud.estadoSolicitud === "reprogramacion" && selectedSolicitud.cantidadDiasSolicitados > 0)) && (
-                <Button
-                  onClick={() => handleDownloadPDF(selectedSolicitud.idSolicitud, selectedSolicitud.idEmpleado)}
-                  color="success"
-                  variant="contained"
-                  sx={{
-                    flex: 1,
-                    padding: "12px 0",
-                    backgroundColor: "#2e7d32",
-                    color: "#fff",
-                    fontWeight: "bold",
-                    fontSize: "1rem",
-                    "&:hover": {
-                      backgroundColor: "#1b5e20",
-                    },
-                  }}
-                  startIcon={<DescriptionIcon />}
-                >
-                  Descargar Informe Oficial
-                </Button>
+            <Box sx={{ display: 'flex', gap: 2, mt: 3, flexWrap: "wrap", justifyContent: "center" }}>
+              {selectedSolicitud && (selectedSolicitud.estadoSolicitud === "autorizadas" || selectedSolicitud.estadoSolicitud === "finalizadas" || (selectedSolicitud.estadoSolicitud === "cancelada" && selectedSolicitud.cantidadDiasSolicitados > 0)) && (
+                <>
+                  <Button
+                    onClick={() => handleDownloadPDF(selectedSolicitud.idSolicitud, selectedSolicitud.idEmpleado, 'normal')}
+                    color="success"
+                    variant="contained"
+                    sx={{
+                      flex: 1,
+                      padding: "12px 0",
+                      backgroundColor: "#2e7d32",
+                      color: "#fff",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                      minWidth: "200px",
+                      "&:hover": {
+                        backgroundColor: "#1b5e20",
+                      },
+                    }}
+                    startIcon={<DescriptionIcon />}
+                  >
+                    {selectedSolicitud.estadoSolicitud === "cancelada" ? "PDF Original/Actualizado" : "Descargar Informe Oficial"}
+                  </Button>
+                  
+                  {selectedSolicitud.estadoSolicitud === "cancelada" && (
+                    <Button
+                      onClick={() => handleDownloadPDF(selectedSolicitud.idSolicitud, selectedSolicitud.idEmpleado, 'cancelacion')}
+                      color="error"
+                      variant="contained"
+                      sx={{
+                        flex: 1,
+                        padding: "12px 0",
+                        backgroundColor: "#d32f2f",
+                        color: "#fff",
+                        fontWeight: "bold",
+                        fontSize: "1rem",
+                        minWidth: "200px",
+                        "&:hover": {
+                          backgroundColor: "#9a0007",
+                        },
+                      }}
+                      startIcon={<DescriptionIcon />}
+                    >
+                      Boleta de Cancelación
+                    </Button>
+                  )}
+                </>
+              )}
+              
+              {selectedSolicitud && selectedSolicitud.estadoSolicitud === "cancelada" && selectedSolicitud.cantidadDiasSolicitados === 0 && (
+                <Box sx={{ width: '100%', mb: 2 }}>
+                  <Alert severity="error" variant="filled" sx={{ justifyContent: 'center', borderRadius: '12px' }}>
+                    <Typography variant="body1" fontWeight="bold" align="center">
+                      SOLICITUD ANULADA TOTALMENTE
+                    </Typography>
+                    <Typography variant="body2" align="center">
+                      No se gozó de ningún día de vacaciones en esta solicitud, por lo que no hay informe disponible.
+                    </Typography>
+                  </Alert>
+                </Box>
               )}
               <Button
                 onClick={handleCloseSolicitudModal}
                 color="primary"
                 variant="outlined"
                 sx={{
-                  flex: selectedSolicitud && (selectedSolicitud.estadoSolicitud === "autorizadas" || selectedSolicitud.estadoSolicitud === "finalizadas") ? 1 : '100%',
+                  flex: selectedSolicitud && (selectedSolicitud.estadoSolicitud === "autorizadas" || selectedSolicitud.estadoSolicitud === "finalizadas" || selectedSolicitud.estadoSolicitud === "cancelada") ? 1 : '100%',
                   padding: "12px 0",
                   borderColor: "#1976d2",
                   color: "#1976d2",
                   fontWeight: "bold",
                   fontSize: "1rem",
+                  minWidth: "200px",
                   "&:hover": {
                     backgroundColor: "rgba(25, 118, 210, 0.05)",
                   },
@@ -1345,13 +1495,7 @@ const VacationApp = () => {
                                 : "-"}
                         </TableCell>
                         <TableCell align="center">
-                          {item.tipoRegistro === 1
-                            ? (item.idSolicitudOriginal
-                              ? (item.diasAcreditados > 0
-                                ? `+${item.diasAcreditados} por cancelación de RRHH`
-                                : "Cancelación por Recursos Humanos")
-                              : "Acreditación anual de días")
-                            : "Solicitud de vacaciones"}
+                          {getDescripcionCancelacion(item)}
                         </TableCell>
                       </TableRow>
                     );

@@ -151,17 +151,17 @@ export default function SignIn() {
   const [resetMessage, setResetMessage] = useState({ type: "", text: "" });
 
   const handleResetPassword = async () => {
-    if (!resetIdentifier) {
-      setResetMessage({ type: "error", text: "Por favor ingrese su DPI o Usuario" });
+    if (!resetIdentifier.trim()) {
+      setResetMessage({ type: "error", text: "Por favor ingrese su CUI o correo institucional" });
       return;
     }
     setResetLoading(true);
     setResetMessage({ type: "", text: "" });
     try {
-      const response = await api.post(endpointsPost.requestPasswordReset, { identifier: resetIdentifier });
+      const response = await api.post(endpointsPost.requestPasswordReset, { identifier: resetIdentifier.trim() });
       setResetMessage({ 
         type: "success", 
-        text: `${response.data.responseData} Si no lo recibe en unos minutos, verifique su bandeja de entrada (incluyendo Spam) o asegúrese de haber ingresado correctamente su DPI o Usuario.` 
+        text: `${response.data.responseData} Revise su bandeja de entrada (incluyendo Spam).` 
       });
       setResetIdentifier("");
     } catch (err) {
@@ -627,18 +627,21 @@ export default function SignIn() {
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
-            Ingrese su DPI o Nombre de Usuario. Enviaremos una contraseña temporal a su correo institucional.
+            Ingrese su <strong>CUI</strong> o <strong>correo institucional</strong>. Le enviaremos una contraseña temporal.
           </Typography>
           <TextField
             autoFocus
             margin="dense"
-            label="DPI o Usuario"
+            label="CUI o Correo Institucional"
             fullWidth
             variant="outlined"
             value={resetIdentifier}
             onChange={(e) => setResetIdentifier(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleResetPassword()}
             disabled={resetLoading}
+            placeholder="1234567890123  ó  jperez@cna.gob.gt"
             sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+            helperText="Puede usar cualquiera de los dos métodos"
           />
           {resetMessage.text && (
             <Typography

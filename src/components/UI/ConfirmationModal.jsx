@@ -27,6 +27,10 @@ const ConfirmationModal = ({
   buttonColor = '#1976d2',
   buttonHoverColor,
   children,
+  onConfirm,
+  onCancel,
+  confirmText = 'Confirmar',
+  cancelText = 'Cancelar',
 }) => {
   return (
     <Modal open={open} onClose={onClose}>
@@ -97,29 +101,70 @@ const ConfirmationModal = ({
         )}
 
         {/* Botón de acción */}
-        <Button
-          onClick={onClose}
-          variant="contained"
-          fullWidth
-          sx={{
-            mt: 1,
-            py: 1.5,
-            textTransform: 'none',
-            fontSize: '1rem',
-            fontWeight: 600,
-            bgcolor: buttonColor,
-            borderRadius: '10px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            transition: 'all 0.2s',
-            '&:hover': {
-              bgcolor: buttonHoverColor || buttonColor,
-              transform: 'translateY(-1px)',
-              boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
-            },
-          }}
-        >
-          {buttonText}
-        </Button>
+        {onConfirm ? (
+          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+            <Button
+              onClick={onCancel || onClose}
+              variant="outlined"
+              fullWidth
+              sx={{
+                py: 1.5,
+                textTransform: 'none',
+                fontSize: '1rem',
+                fontWeight: 600,
+                borderRadius: '10px',
+              }}
+            >
+              {cancelText}
+            </Button>
+            <Button
+              onClick={onConfirm}
+              variant="contained"
+              fullWidth
+              sx={{
+                py: 1.5,
+                textTransform: 'none',
+                fontSize: '1rem',
+                fontWeight: 600,
+                bgcolor: buttonColor,
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  bgcolor: buttonHoverColor || buttonColor,
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
+                },
+              }}
+            >
+              {confirmText}
+            </Button>
+          </Box>
+        ) : (
+          <Button
+            onClick={onClose}
+            variant="contained"
+            fullWidth
+            sx={{
+              mt: 1,
+              py: 1.5,
+              textTransform: 'none',
+              fontSize: '1rem',
+              fontWeight: 600,
+              bgcolor: buttonColor,
+              borderRadius: '10px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              transition: 'all 0.2s',
+              '&:hover': {
+                bgcolor: buttonHoverColor || buttonColor,
+                transform: 'translateY(-1px)',
+                boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
+              },
+            }}
+          >
+            {buttonText}
+          </Button>
+        )}
       </Box>
     </Modal>
   );

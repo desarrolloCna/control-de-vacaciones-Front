@@ -8,8 +8,14 @@ export function useGetDiasSolicitados() {
   const [diasSolicitados, setDiasSolicitados] = useState([]); // Corregido el nombre
   const [errorD, setErrorD] = useState(null);
   const [loadingD, setLoadingD] = useState(true);
+  
+  // Legacy states (kept for compatibility)
   const [diasDebitados, setDiasDebitados] = useState(0);
   const [diasDisponiblesT, setDiasDisponiblesT] = useState(0);
+
+  // New states
+  const [periodoActualData, setPeriodoActualData] = useState(null);
+  const [globalData, setGlobalData] = useState(null);
 
   useEffect(() => {
     const fetchDiasSolicitados = async () => {
@@ -23,14 +29,24 @@ export function useGetDiasSolicitados() {
 
 
         const { idEmpleado } = userData;
-        const data = await consultarDiasSolicitadosPorAnioServices(idEmpleado, anioEnCurso);
-        setDiasSolicitados(data); // Establecer la cantidad de solicitudes enviadas
         
-        const diasDebitados = await consultarDiasDebitadosServices(idEmpleado, anioEnCurso);
-        setDiasDebitados( parseInt(diasDebitados.diasDebitados));
-
-        const diasDisponibles = await consultarDiasDisponiblesServices(idEmpleado);
-        setDiasDisponiblesT( parseInt(diasDisponibles.diasDisponibles));
+        // This is legacy / unnecessary since the data is now in consultarDiasDisponiblesServices
+        const data = await consultarDiasSolicitadosPorAnioServices(idEmpleado, anioEnCurso);
+        setDiasSolicitados(data); 
+        
+        // Fetch everything from the central backend endpoint
+        const diasDisponiblesResponse = await consultarDiasDisponiblesServices(idEmpleado);
+        
+        if (diasDisponiblesResponse) {
+          setPeriodoActualData(diasDisponiblesResponse.periodoActual);
+          setGlobalData(diasDisponiblesResponse.global);
+          
+          // Legacy mappings for backwards compatibility
+          setDiasDisponiblesT(parseInt(diasDisponiblesResponse.diasDisponibles || 0));
+        }
+        
+        const debitadosLegacy = await consultarDiasDebitadosServices(idEmpleado, anioEnCurso);
+        setDiasDebitados(parseInt(debitadosLegacy.diasDebitadosTotales || debitadosLegacy.diasDebitados || 0));
 
       } catch (error) {
         if (error?.message && !error.response) {
@@ -46,7 +62,7 @@ export function useGetDiasSolicitados() {
     };
 
     fetchDiasSolicitados();
-  }, []); // Corregido: dependencias vacías para evitar llamadas innecesarias
+  }, []); 
 
-  return { diasSolicitados, errorD, loadingD, diasDebitados, diasDisponiblesT };
+  return { diasSolicitados, errorD, loadingD, diasDebitados, diasDisponiblesT, periodoActualData, globalData };
 }

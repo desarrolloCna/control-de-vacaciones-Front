@@ -2,7 +2,7 @@ import api from "../../config/api";
 
 export const cancelarSolicitudParcialServices = async (payload) => {
     try {
-        const response = await api.put("/api/administracionvacaciones/cancelarSolicitudParcial", payload);
+        const response = await api.put("/cancelarSolicitudParcial", payload);
 
         return response.data;
     } catch (error) {

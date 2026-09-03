@@ -111,7 +111,7 @@ export default function ModalIncompletos({ open, onClose, onResume }) {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ m: 0, p: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <DialogTitle component="div" sx={{ m: 0, p: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Typography variant="h6" fontWeight="bold">Recuperar Registros Incompletos</Typography>
         <IconButton onClick={onClose}><CloseIcon /></IconButton>
       </DialogTitle>

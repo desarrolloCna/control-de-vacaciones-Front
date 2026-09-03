@@ -9,7 +9,7 @@ export const useGetSolicitudesCanceladas = () => {
     const fetchSolicitudes = async () => {
         try {
             setLoading(true);
-            const res = await api.get("/api/administracionvacaciones/consultarSolicitudesCanceladas");
+            const res = await api.get("/consultarSolicitudesCanceladas");
             setSolicitudesCanceladas(res.data);
             setError(null);
         } catch (err) {

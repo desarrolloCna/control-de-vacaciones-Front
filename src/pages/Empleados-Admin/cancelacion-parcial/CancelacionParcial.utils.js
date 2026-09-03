@@ -23,7 +23,7 @@ export const handleCloseModal = (setIsModalOpen, setSelectedSolicitud, setCancel
     setSuccessMessage(null);
 };
 
-export const handleCancelarSolicitudParcial = async (selectedSolicitud, diasGozados, motivo, setIsModalOpen, setSelectedSolicitud, setCancelError, setSuccessMessage, setIsCancelling, setSolicitudesAutorizadas, refreshCanceladas) => {
+export const handleCancelarSolicitudParcial = async (selectedSolicitud, diasGozados, motivo, tipoCancelacion, fechaReintegro, setIsModalOpen, setSelectedSolicitud, setCancelError, setSuccessMessage, setIsCancelling, setSolicitudesAutorizadas, refreshCanceladas) => {
         if (!selectedSolicitud) return;
 
         setIsCancelling(true);
@@ -36,6 +36,8 @@ export const handleCancelarSolicitudParcial = async (selectedSolicitud, diasGoza
             idSolicitud: selectedSolicitud.idSolicitud,
             diasGozados: parseInt(diasGozados),
             motivo: motivo,
+            tipoCancelacion: tipoCancelacion,
+            fechaReintegro: tipoCancelacion === "Reintegro" ? fechaReintegro : null,
             idUsuarioSession: userData?.idUsuario || userData?.idEmpleado,
             usuarioSession: userData?.usuario || "Admin"
         };
@@ -53,7 +55,7 @@ export const handleCancelarSolicitudParcial = async (selectedSolicitud, diasGoza
             
             // Generar Boleta Automáticamente
             setTimeout(() => {
-                generarBoletaCancelacionPDF(selectedSolicitud, diasGozados, motivo);
+                generarBoletaCancelacionPDF(selectedSolicitud, diasGozados, motivo, tipoCancelacion, fechaReintegro);
             }, 1000);
 
         } catch (err) {
@@ -66,62 +68,33 @@ export const handleCancelarSolicitudParcial = async (selectedSolicitud, diasGoza
         }
 };
 
-export const generarBoletaCancelacionPDF = (solicitud, diasGozados, motivo) => {
-    import("jspdf").then(({ default: jsPDF }) => {
-        const doc = new jsPDF("portrait", "pt", "letter");
+export const generarBoletaCancelacionPDF = async (solicitud, tipo = "") => {
+    // Ya no generamos el PDF básico en el frontend, sino que llamamos al endpoint del backend
+    // que tiene toda la estructura oficial y firmas.
+    try {
+        const { default: api } = await import("../../../config/api");
+        const urlReq = tipo ? `/descargarInformePDF/${solicitud.idSolicitud}/${solicitud.idEmpleado}?tipo=${tipo}` : `/descargarInformePDF/${solicitud.idSolicitud}/${solicitud.idEmpleado}`;
+        const response = await api.get(urlReq, {
+            responseType: 'blob'
+        });
         
-        // Título del documento
-        doc.setFontSize(16);
-        doc.setTextColor(26, 35, 126); // Azul institucional
-        doc.text("Consejo Nacional de Adopciones", 40, 40);
-        doc.setFontSize(14);
-        doc.text("Boleta de Cancelación Parcial de Vacaciones", 40, 60);
+        const fileName = `Boleta_${tipo || 'Cancelacion'}_${solicitud.nombres?.replace(/\s+/g, "_") || solicitud.idSolicitud}.pdf`;
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
         
-        doc.setFontSize(11);
-        doc.setTextColor(0);
-        
-        doc.text(`Fecha de Emisión: ${new Date().toLocaleDateString()}`, 40, 90);
-        
-        // Datos del Empleado
-        doc.setFont(undefined, 'bold');
-        doc.text("Datos del Empleado:", 40, 120);
-        doc.setFont(undefined, 'normal');
-        doc.text(`Nombre: ${solicitud.nombres}`, 40, 140);
-        doc.text(`Puesto: ${solicitud.puesto}`, 40, 155);
-        doc.text(`Unidad: ${solicitud.unidad}`, 40, 170);
-        
-        // Datos de la Cancelación
-        doc.setFont(undefined, 'bold');
-        doc.text("Detalle de Cancelación:", 40, 200);
-        doc.setFont(undefined, 'normal');
-        
-        const diasSolicitados = parseInt(solicitud.cantidadDiasSolicitados) || 0;
-        const gozados = parseInt(diasGozados) || 0;
-        const devueltos = diasSolicitados - gozados;
-        
-        doc.text(`Período Original: ${formatDate(solicitud.fechaInicioVacaciones)} al ${formatDate(solicitud.fechaFinVacaciones)}`, 40, 220);
-        doc.text(`Días Originalmente Solicitados: ${diasSolicitados}`, 40, 235);
-        
-        doc.setFont(undefined, 'bold');
-        doc.text(`Días Gozados: ${gozados}`, 40, 255);
-        doc.text(`Días Devueltos al Balance: ${devueltos}`, 40, 270);
-        doc.setFont(undefined, 'normal');
-        
-        doc.text(`Motivo de Cancelación:`, 40, 300);
-        
-        // Wrap text for reason
-        const splitMotivo = doc.splitTextToSize(motivo || "Cancelación parcial", 500);
-        doc.text(splitMotivo, 40, 315);
-        
-        // Firmas
-        doc.line(80, 500, 250, 500);
-        doc.text("Firma del Empleado", 110, 515);
-        
-        doc.line(350, 500, 520, 500);
-        doc.text("Firma RRHH", 400, 515);
-        
-        doc.save(`Boleta_Cancelacion_${solicitud.nombres.replace(/\s+/g, "_")}.pdf`);
-    }).catch(err => console.error("Error cargando jsPDF", err));
+        const pdfWindow = window.open("", "_blank");
+        if (pdfWindow) {
+            pdfWindow.document.write(
+                `<html><head><title>${fileName}</title><style>body { margin: 0; overflow: hidden; } iframe { width: 100vw; height: 100vh; border: none; }</style></head>
+                 <body><iframe src="${url}"></iframe></body></html>`
+            );
+            pdfWindow.document.close();
+        } else {
+            console.error("No se pudo abrir la ventana del PDF. Bloqueador de popups activo.");
+        }
+        setTimeout(() => window.URL.revokeObjectURL(url), 5000);
+    } catch (err) {
+        console.error("Error al intentar descargar el informe de cancelación", err);
+    }
 };
 
 export const getSolicitudes = (solicitudes) => {

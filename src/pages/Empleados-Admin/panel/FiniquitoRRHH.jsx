@@ -306,7 +306,7 @@ export default function FiniquitoRRHH() {
 
                 {/* Modal de Historial y Generación */}
                 <Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="md" fullWidth>
-                    <DialogTitle>
+                    <DialogTitle component="div">
                         <Box display="flex" justifyContent="space-between" alignItems="center">
                             <Typography variant="h6" fontWeight="bold">
                                 Historial Pre-Finiquito: {selectedEmpleado?.Nombres}
@@ -363,15 +363,34 @@ export default function FiniquitoRRHH() {
                                     </Box>
 
                                     <Grid container spacing={2}>
-                                        {periodos.map((p) => {
-                                            const agotado = p.saldo <= 0;
+                                        {periodos.map((p, index) => {
+                                            const isOngoing = index === 0; // El período más reciente (el mayor) está en curso
+                                            const agotado = p.saldo <= 0 && p.creditos > 0 && !isOngoing;
+                                            
+                                            let estadoLabel = "Activo";
+                                            let estadoColor = "#10B981"; // Verde
+                                            let borderColor = "#E2E8F0";
+                                            let bgColor = "white";
+
+                                            if (agotado) {
+                                                estadoLabel = "Agotado (Culminado)";
+                                                estadoColor = "#EF4444"; // Rojo
+                                                borderColor = "#FEE2E2";
+                                                bgColor = "#FFF5F5";
+                                            } else if (isOngoing) {
+                                                estadoLabel = "Acumulando (En curso)";
+                                                estadoColor = "#3B82F6"; // Azul
+                                                borderColor = "#DBEAFE";
+                                                bgColor = "#EFF6FF";
+                                            }
+
                                             return (
                                                 <Grid item xs={12} sm={6} key={`p-${p.periodo}`}>
                                                     <Card elevation={0} sx={{ 
                                                         borderRadius: 3, 
                                                         border: "1px solid", 
-                                                        borderColor: agotado ? '#FEE2E2' : '#E2E8F0',
-                                                        bgcolor: agotado ? '#FFF5F5' : 'white'
+                                                        borderColor: borderColor,
+                                                        bgcolor: bgColor
                                                     }}>
                                                         <CardContent sx={{ p: 2.5 }}>
                                                             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
@@ -379,11 +398,11 @@ export default function FiniquitoRRHH() {
                                                                     Período {p.periodo}
                                                                 </Typography>
                                                                 <Chip 
-                                                                    label={agotado ? "Agotado" : "Activo"}
+                                                                    label={estadoLabel}
                                                                     size="small"
                                                                     sx={{ 
                                                                         fontWeight: 'bold',
-                                                                        bgcolor: agotado ? "#EF4444" : "#10B981",
+                                                                        bgcolor: estadoColor,
                                                                         color: "white"
                                                                     }}
                                                                 />

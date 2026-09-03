@@ -29,3 +29,4 @@ dist-ssr
 generar-manual.mjs
 generar-memorando.mjs
 MANUAL_DE_USUARIO.md
+.env*

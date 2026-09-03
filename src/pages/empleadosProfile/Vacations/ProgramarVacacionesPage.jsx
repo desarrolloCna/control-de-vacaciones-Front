@@ -9,6 +9,7 @@ import {
   Paper,
   CircularProgress,
   Alert,
+  AlertTitle,
   MenuItem,
   Select,
   FormControl,
@@ -39,6 +40,7 @@ import {
 import useDiasFestivos from "../../../hooks/DiasFestivos/useDiasFestivos.js";
 import { getLocalStorageData } from "../../../services/session/getLocalStorageData.js";
 import { ingresarSolicitudService } from "../../../services/VacationApp/InresarSolicitud.service.js";
+import { obtenerHistorialService } from "../../../services/VacationApp/Historial/ControlDiasVacaciones.service.js";
 import ErrorAlert from "../../../components/ErrorAlert/ErrorAlert";
 import { useNavigate } from "react-router-dom";
 import { useSolicitudById } from "../../../hooks/VacationAppHooks/useSolicitudById.js";
@@ -71,19 +73,63 @@ const ProgramarVacacionesPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [diasError, setDiasError] = useState("");
   const [festivosOmitidos, setFestivosOmitidos] = useState([]);
+  
+  // States para el desglose por periodo
+  const [historialPeriodos, setHistorialPeriodos] = useState([]);
+  const [distribucionPreview, setDistribucionPreview] = useState(null);
+  const [confirmSubmitModal, setConfirmSubmitModal] = useState(false);
+  
   const navigate = useNavigate();
 
-  const { solicitud, diasValidos, errorS, loadingS, sinDias, hasGestion, diasDebitados, diasDisponiblesT, diasSolicitablesT } = useSolicitudById();
+  const { solicitud, diasValidos, errorS, loadingS, sinDias, hasGestion, diasDebitados, diasDisponiblesT, diasSolicitablesT, solicitudesEmpleado } = useSolicitudById();
   const { coordinadoresList, errorCoordinadoresList, loadingCoordinadoresList } = useGetCoordinadoresList();
   const { datosLaborales, loading: loadingDL } = useDatosLaborales();
   const { jerarquia, loadingJerarquia } = useJerarquiaUnidades();
 
   const { isLoading, errorDF } = useDiasFestivos();
 
-  // Calcular días disponibles matemáticos reales para usar
+  // Calcular días consumidos (solicitados o aprobados) en el año en curso
+  const diasConsumidosEsteAnio = (solicitudesEmpleado || [])
+    .filter(req => 
+      req.estadoSolicitud !== 'RECHAZADA' && 
+      req.estadoSolicitud !== 'CANCELADA' && 
+      dayjs(req.fechaSolicitud).year() === dayjs().year()
+    )
+    .reduce((sum, req) => sum + parseInt(req.cantidadDiasSolicitados || 0), 0);
+
   const MAX_DIAS_SOLICITUD = (hasExcepcionLimite && excepcionDias !== null) ? excepcionDias : 20;
-  const LIMITE_DIAS_ANUAL = diasSolicitablesT < MAX_DIAS_SOLICITUD ? diasSolicitablesT : MAX_DIAS_SOLICITUD;
-  const diasDisponibles = LIMITE_DIAS_ANUAL - (diasDebitados || 0);
+  
+  // Límite anual disponible para solicitar (no puede exceder el maximo autorizado/legal anual)
+  const limiteRestanteEsteAnio = Math.max(0, MAX_DIAS_SOLICITUD - diasConsumidosEsteAnio);
+
+  // Ajustar el historial restando los días ya consumidos este año (FIFO)
+  const historialAjustado = React.useMemo(() => {
+    if (!historialPeriodos || historialPeriodos.length === 0) return [];
+    
+    const adjusted = historialPeriodos.map(p => ({ ...p }));
+    adjusted.sort((a, b) => a.periodo - b.periodo); // Más antiguo primero
+    
+    let diasADescontar = diasConsumidosEsteAnio;
+    
+    for (let p of adjusted) {
+      if (diasADescontar <= 0) break;
+      if (p.periodo !== dayjs().year() && p.disponibles > 0) {
+        const descontar = Math.min(diasADescontar, p.disponibles);
+        p.disponibles -= descontar;
+        diasADescontar -= descontar;
+      }
+    }
+    
+    return adjusted.sort((a, b) => b.periodo - a.periodo); // Más reciente primero para UI
+  }, [historialPeriodos, diasConsumidosEsteAnio]);
+
+  const totalDiasReales = historialAjustado
+    .filter(p => p.disponibles > 0 && p.periodo !== dayjs().year())
+    .reduce((acc, p) => acc + p.disponibles, 0);
+    
+  const diasDisponibles = historialAjustado.length > 0 
+    ? Math.min(totalDiasReales, limiteRestanteEsteAnio)
+    : Math.max(0, (diasSolicitablesT < limiteRestanteEsteAnio ? diasSolicitablesT : limiteRestanteEsteAnio) - (diasDebitados || 0));
 
   const formatDateToDisplay = (date) => dayjs(date).format("DD/MM/YYYY");
 
@@ -103,8 +149,27 @@ const ProgramarVacacionesPage = () => {
           const result = await consultarExcepcionLimiteService(idEmpleado, dayjs().format("YYYY-MM-DD"));
           setHasExcepcionLimite(result?.isExist > 0);
           setExcepcionDias(result?.diasAutorizados || null);
+          
+          // Traer historial para desglose
+          const hist = await obtenerHistorialService(idEmpleado);
+          if (hist && hist.historial) {
+            // Calcular saldos por periodo sumando creditos y restando debitos
+            const summary = {};
+            hist.historial.forEach(item => {
+              const p = item.periodo;
+              if (!summary[p]) summary[p] = { periodo: p, creditos: 0, debitos: 0, disponibles: 0 };
+              if (item.tipoRegistro === 1 && !item.idSolicitudOriginal) {
+                summary[p].creditos += Number(item.diasAcreditados) || Number(item.totalDiasAcreditados) || 0;
+                if (item.diasDebitados) summary[p].debitos += Number(item.diasDebitados);
+              } else if (item.tipoRegistro === 2) {
+                summary[p].debitos += Number(item.diasTomados || item.diasDebitados || item.totalDiasDebitados) || 0;
+              }
+            });
+            Object.values(summary).forEach(s => s.disponibles = s.creditos - s.debitos);
+            setHistorialPeriodos(Object.values(summary).sort((a, b) => b.periodo - a.periodo));
+          }
         } catch (err) {
-          console.error("Error al consultar excepcion de límite:", err);
+          console.error("Error al consultar excepcion o historial:", err);
         }
       }
     };
@@ -115,25 +180,76 @@ const ProgramarVacacionesPage = () => {
     if (!coordinadoresList) return [];
     if (showAllCoordinators) return coordinadoresList;
 
-    const puestoUser = (datosLaborales?.puesto || "").trim();
-    const isJefe = puestoUser.toLowerCase().includes("director") || 
-                   puestoUser.toLowerCase().includes("coordinador") || 
-                   puestoUser.toLowerCase().includes("jefe") || 
-                   puestoUser.toLowerCase().includes("secretario");
+    const puestoUser = (datosLaborales?.puesto || "").trim().toLowerCase();
+    const unidadNormalizada = (unidad || "").trim().toLowerCase();
 
-    if (puestoUser === "Director General") {
-      return coordinadoresList.filter(c => 
-        c.coordinadorUnidad === "Subdirección General" || c.coordinadorUnidad === "Unidad de Recursos Humanos"
-      );
+    // Regla para el Director General
+    if (puestoUser === "director general") {
+      const match = coordinadoresList.filter(c => c.coordinadorUnidad === "Subdirección General");
+      if (match.length > 0) return match;
     }
 
+    // Regla para el Subdirector General
+    if (puestoUser === "subdirector general") {
+      const match = coordinadoresList.filter(c => c.coordinadorUnidad === "Dirección General");
+      if (match.length > 0) return match;
+    }
+
+    // Regla: La Secretaria General (Andrea) es aprobada por el Director General (Edwin)
+    if (unidadNormalizada.includes("secretaría general") && (puestoUser.includes("secretaria general") || puestoUser.includes("secretario general"))) {
+      const match = coordinadoresList.filter(c => c.coordinadorUnidad === "Dirección General");
+      if (match.length > 0) return match;
+    }
+
+    // Regla 2: Subcoordinadores del Equipo Multidisciplinario
+    if (unidadNormalizada.includes("equipo multidisciplinario") || unidadNormalizada.includes("subcoordinación de atención")) {
+      if (puestoUser.includes("subcoordinador")) {
+        const match = coordinadoresList.filter(c => c.coordinadorUnidad === "Coordinación de Equipo Multidisciplinario");
+        if (match.length > 0) return match;
+      }
+    }
+
+    const isJefe = puestoUser.includes("director") || 
+                   puestoUser.includes("coordinador") || 
+                   puestoUser.includes("jefe") || 
+                   puestoUser.includes("secretario");
+
     if (isJefe) {
+      // Regla 3: Jefes/Coordinadores que reportan al Subdirector
+      if (
+        unidadNormalizada.includes("tecnologías de la información") || // UTICS
+        unidadNormalizada.includes("administración financiera") || // UDAF
+        unidadNormalizada.includes("recursos humanos") || // RRHH
+        unidadNormalizada.includes("planificación") // Planificación Social
+      ) {
+        const match = coordinadoresList.filter(c => c.coordinadorUnidad === "Subdirección General");
+        if (match.length > 0) return match;
+      }
+
+      // Regla 4: Jefes/Coordinadores que reportan al Director General
+      if (
+        unidadNormalizada.includes("registro") || 
+        unidadNormalizada.includes("asesoría jurídica") || // UDAJ
+        unidadNormalizada.includes("equipo multidisciplinario") || 
+        unidadNormalizada.includes("auditoría")
+      ) {
+        const match = coordinadoresList.filter(c => c.coordinadorUnidad === "Dirección General");
+        if (match.length > 0) return match;
+      }
+
+      // Fallback para otros jefes
       const node = jerarquia.find(j => j.unidad === unidad);
       const unidadPadre = node ? node.reportaA : unidad;
       
       const match = coordinadoresList.filter(c => c.coordinadorUnidad === unidadPadre);
       return match.length > 0 ? match : coordinadoresList;
     } else {
+      // Regla por defecto para resto de empleados: aprueba el jefe de su propia unidad
+      if (unidadNormalizada.includes("subcoordinación de atención")) {
+          const match = coordinadoresList.filter(c => c.coordinadorUnidad === "Coordinación de Equipo Multidisciplinario");
+          if (match.length > 0) return match;
+      }
+      
       const match = coordinadoresList.filter(c => c.coordinadorUnidad === unidad);
       return match.length > 0 ? match : coordinadoresList;
     }
@@ -213,6 +329,39 @@ const ProgramarVacacionesPage = () => {
 
     if (startDate && dias > 0) {
       const { fechaFin, proximaFechaLaboral, festivosEncontrados } = calcularRetornoYFestivos(startDate, dias);
+      
+      // Validación de superposición de fechas
+      const sStart = dayjs(startDate).startOf('day').valueOf();
+      const sEnd = fechaFin.startOf('day').valueOf();
+      
+      const solicitudesActivas = (solicitudesEmpleado || []).filter(req => 
+        req.estadoSolicitud !== 'RECHAZADA' && 
+        req.estadoSolicitud !== 'CANCELADA'
+      );
+
+      let overlapError = null;
+      for (let req of solicitudesActivas) {
+        if (!req.fechaInicioVacaciones || !req.fechaFinVacaciones) continue;
+        const reqStart = dayjs(req.fechaInicioVacaciones).startOf('day').valueOf();
+        const reqEnd = dayjs(req.fechaFinVacaciones).startOf('day').valueOf();
+
+        if (sStart <= reqEnd && sEnd >= reqStart) {
+          const fStart = dayjs(req.fechaInicioVacaciones).format('DD/MM/YYYY');
+          const fEnd = dayjs(req.fechaFinVacaciones).format('DD/MM/YYYY');
+          overlapError = `Las fechas seleccionadas chocan con otra solicitud tuya del ${fStart} al ${fEnd}.`;
+          break;
+        }
+      }
+
+      if (overlapError) {
+        setDiasError(overlapError);
+        setDiasVacaciones("");
+        setEndDate("");
+        setNextWorkDate("");
+        setFestivosOmitidos([]);
+        return;
+      }
+
       setEndDate(fechaFin.format("YYYY-MM-DD"));
       setNextWorkDate(proximaFechaLaboral.format("YYYY-MM-DD"));
       setFestivosOmitidos(festivosEncontrados);
@@ -232,8 +381,35 @@ const ProgramarVacacionesPage = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handlePreSubmit = (e) => {
     e.preventDefault();
+    if (!startDate || diasVacaciones <= 0 || !selectedCoordinador) {
+      setError("Por favor completa todos los campos requeridos.");
+      return;
+    }
+    
+    // Calcular distribución
+    let diasFaltantes = parseInt(diasVacaciones, 10);
+    const distribucion = [];
+    
+    // Filtrar periodos válidos y ordenar del más antiguo al más reciente (FIFO)
+    const validPeriods = historialAjustado
+      .filter(p => p.disponibles > 0 && p.periodo !== dayjs().year())
+      .sort((a, b) => a.periodo - b.periodo);
+      
+    for (const p of validPeriods) {
+      if (diasFaltantes <= 0) break;
+      const tomar = Math.min(diasFaltantes, p.disponibles);
+      distribucion.push({ periodo: p.periodo, tomados: tomar, restantes: p.disponibles - tomar });
+      diasFaltantes -= tomar;
+    }
+    
+    setDistribucionPreview(distribucion);
+    setConfirmSubmitModal(true);
+  };
+
+  const handleConfirmSubmit = async () => {
+    setConfirmSubmitModal(false);
     setLoading(true);
     setError(null);
 
@@ -347,6 +523,28 @@ const ProgramarVacacionesPage = () => {
             />
           )}
         </Box>
+        
+        {historialAjustado.length > 0 && (
+          <Box sx={{ mb: 4, display: "flex", flexWrap: "wrap", gap: 1, justifyContent: "center" }}>
+            {historialAjustado.filter(p => p.disponibles > 0 && p.periodo !== dayjs().year()).map((p) => (
+              <Chip
+                key={p.periodo}
+                label={`${p.disponibles}/${p.creditos} del ${p.periodo}`}
+                variant="outlined"
+                color="primary"
+                size="small"
+              />
+            ))}
+          </Box>
+        )}
+
+        {limiteRestanteEsteAnio === 0 && (
+          <Alert severity="warning" sx={{ mb: 3, maxWidth: "550px", width: "100%", borderRadius: 2 }}>
+            <AlertTitle>Límite Anual Alcanzado</AlertTitle>
+            Has programado <strong>{diasConsumidosEsteAnio}</strong> días en el año actual, alcanzando el límite máximo permitido. 
+            Comunícate con Recursos Humanos si necesitas una excepción para solicitar más días.
+          </Alert>
+        )}
 
         <Box sx={{ height: 30, mb: 3 }}>
           {(error || (errorS && errorS !== "NO EXISTE SOLICITUDES") || errorCoordinadoresList) && (
@@ -364,11 +562,11 @@ const ProgramarVacacionesPage = () => {
             borderRadius: "8px",
             borderTop: "4px solid #1A237E",
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            backgroundColor: "#fff",
-            mb: 4,
-          }}
-          onSubmit={handleSubmit}
-        >
+          backgroundColor: "#fff",
+          mb: 4,
+        }}
+        onSubmit={handlePreSubmit}
+      >
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
@@ -536,10 +734,11 @@ const ProgramarVacacionesPage = () => {
 
             <Grid item xs={12} sx={{ mt: 2 }}>
               <Button
-                type="submit"
+                type="button"
                 variant="contained"
                 fullWidth
                 disabled={!diasHabilitado || loading || !diasVacaciones || !selectedCoordinador || !!diasError || diasDisponibles === 0}
+                onClick={handlePreSubmit}
                 sx={{
                   py: 1.5,
                   fontWeight: 'bold',
@@ -573,92 +772,28 @@ const ProgramarVacacionesPage = () => {
           severity="success"
         />
 
-        {/* Modal de solicitud en proceso - COMENTADO */}
-        {/* <Modal
-          open={modalOpen}
-          onClose={handleCloseModal}
-          aria-labelledby="modal-title"
-          aria-describedby="modal-description"
+        <ConfirmationModal
+          open={confirmSubmitModal}
+          title="Confirmar Distribución de Días"
+          onConfirm={handleConfirmSubmit}
+          onCancel={() => setConfirmSubmitModal(false)}
+          confirmText="Confirmar Solicitud"
+          cancelText="Revisar"
         >
-          <Box
-            sx={{
-              position: "absolute",
-              top: "40%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              bgcolor: "background.paper",
-              boxShadow: 24,
-              p: 4,
-              width: 400,
-              height: "auto",
-              minHeight: 300,
-              borderRadius: 2,
-            }}
-          >
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-              <WarningIcon color="warning" sx={{ fontSize: 40 }} />
-            </Box>
-            <Typography
-              id="modal-title"
-              variant="h6"
-              component="h2"
-              align="center"
-              sx={{
-                fontFamily: '"Times New Roman", Times, serif',
-                color: "#A00000",
-              }}
-            >
-              Solicitud en Proceso
+          <Box>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              Tus {diasVacaciones} días solicitados se descontarán de la siguiente manera:
             </Typography>
-
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="subtitle1">
-                <strong>Número de Gestión:</strong>{" "}
-                {solicitud ? solicitud.idSolicitud : "..."}
+            {distribucionPreview && distribucionPreview.map(d => (
+              <Typography key={d.periodo} variant="body2" sx={{ ml: 2, mb: 1 }}>
+                • <strong>{d.tomados} días</strong> del período {d.periodo} (te quedarán {d.restantes} días).
               </Typography>
-              <Typography variant="subtitle1">
-                <strong>Fecha Inicio Vacaciones:</strong>{" "}
-                {solicitud
-                  ? new Date(
-                      solicitud.fechaInicioVacaciones
-                    ).toLocaleDateString("es-ES")
-                  : "..."}
-              </Typography>
-              <Typography variant="subtitle1">
-                <strong>Fecha fin de vacaciones:</strong>{" "}
-                {solicitud
-                  ? new Date(solicitud.fechaFinVacaciones).toLocaleDateString(
-                      "es-ES"
-                    )
-                  : "..."}
-              </Typography>
-              <Typography variant="subtitle1">
-                <strong>Fecha de Reintegro Laboral:</strong>{" "}
-                {solicitud
-                  ? new Date(solicitud.fechaRetornoLabores).toLocaleDateString(
-                      "es-ES"
-                    )
-                  : "..."}
-              </Typography>
-              <Typography variant="subtitle1">
-                <strong>Días Solicitados:</strong>{" "}
-                {solicitud ? solicitud.cantidadDiasSolicitados : "..."}
-              </Typography>
-              <Typography variant="subtitle1">
-                <strong>Estado de la Solicitud:</strong>{" "}
-                {solicitud ? solicitud.estadoSolicitud : "..."}
-              </Typography>
-            </Box>
-
-            <Button
-              onClick={handleCloseModal}
-              variant="contained"
-              sx={{ mt: 2, display: "block", mx: "auto" }}
-            >
-              Volver
-            </Button>
+            ))}
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontStyle: 'italic' }}>
+              ¿Estás seguro de continuar con la solicitud?
+            </Typography>
           </Box>
-        </Modal> */}
+        </ConfirmationModal>
 
         <ConfirmationModal
           open={!hasGestion && (!diasValidos || !sinDias)}

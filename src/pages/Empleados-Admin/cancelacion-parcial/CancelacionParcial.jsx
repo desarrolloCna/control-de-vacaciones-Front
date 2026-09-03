@@ -23,6 +23,8 @@ const CancelacionParcial = () => {
     // Inputs del modal
     const [diasGozados, setDiasGozados] = useState("");
     const [motivo, setMotivo] = useState("");
+    const [tipoCancelacion, setTipoCancelacion] = useState("Reintegro");
+    const [fechaReintegro, setFechaReintegro] = useState("");
     
     const [isCancelling, setIsCancelling] = useState(false);
     const [cancelError, setCancelError] = useState(null);
@@ -34,8 +36,17 @@ const CancelacionParcial = () => {
     
     const solicitudesCurrent = getSolicitudes(activeTab === "autorizadas" ? solicitudesAutorizadas : solicitudesCanceladas);
 
-    // Filtrar solicitudes por nombre
+    const hoy = dayjs().startOf('day');
+
+    // Filtrar solicitudes por nombre y fecha (en el tab de autorizadas)
     const filteredSolicitudes = solicitudesCurrent.filter((solicitud) => {
+        if (activeTab === "autorizadas") {
+            const fechaInicio = dayjs(solicitud.fechaInicioVacaciones).startOf('day');
+            if (fechaInicio.isAfter(hoy)) {
+                return false;
+            }
+        }
+        
         if (!searchTerm) return true;
         return solicitud.nombres.toLowerCase().includes(searchTerm.toLowerCase());
     });
@@ -202,6 +213,8 @@ const CancelacionParcial = () => {
                                     handleCloseModal(setIsModalOpen, setSelectedSolicitud, setCancelError, setSuccessMessage);
                                     setMotivo("");
                                     setDiasGozados("");
+                                    setTipoCancelacion("Reintegro");
+                                    setFechaReintegro("");
                                 }}>
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -250,7 +263,7 @@ const CancelacionParcial = () => {
                                     <h3>Motivo de Cancelación</h3>
                                     {activeTab === "historial" ? (
                                         <div style={{ padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', marginTop: '10px', fontStyle: 'italic', color: '#555' }}>
-                                            "{selectedSolicitud.motivoReprogramacion || 'Sin motivo registrado'}"
+                                            "{selectedSolicitud.descripcionRechazo || selectedSolicitud.motivoReprogramacion || 'Sin motivo registrado'}"
                                         </div>
                                     ) : (
                                         <>
@@ -274,9 +287,35 @@ const CancelacionParcial = () => {
                                                     )}
                                                 </div>
                                                 <div>
+                                                    <label style={{fontWeight: 'bold', display: 'block', marginBottom: '5px'}}>Tipo de Cancelación</label>
+                                                    <select 
+                                                        value={tipoCancelacion}
+                                                        onChange={(e) => setTipoCancelacion(e.target.value)}
+                                                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc', marginBottom: '10px' }}
+                                                        disabled={isCancelling || successMessage}
+                                                    >
+                                                        <option value="Reintegro">Reintegro Anticipado a Labores</option>
+                                                        <option value="Suspensión IGSS">Suspensión por IGSS</option>
+                                                        <option value="Accidente">Accidente</option>
+                                                        <option value="Otro">Otro Motivo</option>
+                                                    </select>
+                                                </div>
+                                                {tipoCancelacion === "Reintegro" && (
+                                                    <div>
+                                                        <label style={{fontWeight: 'bold', display: 'block', marginBottom: '5px'}}>Fecha de Reintegro</label>
+                                                        <input 
+                                                            type="date" 
+                                                            value={fechaReintegro}
+                                                            onChange={(e) => setFechaReintegro(e.target.value)}
+                                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc', marginBottom: '10px' }}
+                                                            disabled={isCancelling || successMessage}
+                                                        />
+                                                    </div>
+                                                )}
+                                                <div>
                                                     <label style={{fontWeight: 'bold', display: 'block', marginBottom: '5px'}}>Motivo / Observación</label>
                                                     <textarea 
-                                                        placeholder="Ej: Cancelación por URRHH, empleado suspendido por IGSS..."
+                                                        placeholder="Ej: Empleado suspendido por IGSS..."
                                                         style={{ width: '100%', minHeight: '80px', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
                                                         value={motivo}
                                                         onChange={(e) => setMotivo(e.target.value)}
@@ -296,24 +335,42 @@ const CancelacionParcial = () => {
                                         handleCloseModal(setIsModalOpen, setSelectedSolicitud, setCancelError, setSuccessMessage);
                                         setMotivo("");
                                         setDiasGozados("");
+                                        setTipoCancelacion("Reintegro");
+                                        setFechaReintegro("");
                                     }}
                                     disabled={isCancelling}
                                 >
                                     Cerrar
                                 </button>
                                 {activeTab === "historial" && (
-                                    <button 
-                                        className="btn-primary" 
-                                        style={{ backgroundColor: '#1E3A8A', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-                                        onClick={() => generarBoletaCancelacionPDF(selectedSolicitud, selectedSolicitud.cantidadDiasSolicitados - (selectedSolicitud.diasDevueltos || 0), selectedSolicitud.motivoReprogramacion)}
-                                    >
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                            <polyline points="7 10 12 15 17 10"></polyline>
-                                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                                        </svg>
-                                        Generar PDF
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                        <button 
+                                            className="btn-primary" 
+                                            style={{ backgroundColor: '#64748B', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                            onClick={() => generarBoletaCancelacionPDF(selectedSolicitud, "original")}
+                                        >
+                                            Original (Anulado)
+                                        </button>
+                                        <button 
+                                            className="btn-primary" 
+                                            style={{ backgroundColor: '#0EA5E9', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                            onClick={() => generarBoletaCancelacionPDF(selectedSolicitud, "actualizado")}
+                                        >
+                                            Actualizado
+                                        </button>
+                                        <button 
+                                            className="btn-primary" 
+                                            style={{ backgroundColor: '#1E3A8A', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                            onClick={() => generarBoletaCancelacionPDF(selectedSolicitud, "")}
+                                        >
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                <polyline points="7 10 12 15 17 10"></polyline>
+                                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                                            </svg>
+                                            Boleta Cancelación
+                                        </button>
+                                    </div>
                                 )}
                                 {activeTab === "autorizadas" && (
                                     <button 
@@ -322,6 +379,8 @@ const CancelacionParcial = () => {
                                             selectedSolicitud, 
                                             diasGozados,
                                             motivo,
+                                            tipoCancelacion,
+                                            fechaReintegro,
                                             setIsModalOpen, 
                                             setSelectedSolicitud, 
                                             setCancelError, 

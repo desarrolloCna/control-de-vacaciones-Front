@@ -389,9 +389,9 @@ const SolicitudesPage = () => {
     exportToPdf(dataToExport, 'Reporte_Solicitudes_Vacaciones');
   };
 
-  const handleDownloadPDF = async (idSolicitud, idEmpleado) => {
+  const handleDownloadPDF = async (idSolicitud, idEmpleado, tipo = 'normal') => {
     try {
-      const response = await api.get(`/descargarInformePDF/${idSolicitud}/${idEmpleado}`, {
+      const response = await api.get(`/descargarInformePDF/${idSolicitud}/${idEmpleado}?tipo=${tipo}`, {
         responseType: 'blob'
       });
       
@@ -1249,11 +1249,11 @@ const SolicitudesPage = () => {
 
                 {/* Modal Footer y Botones de Aprobación */}
                 
-                {(selectedSolicitud.estadoSolicitud === "autorizadas" || selectedSolicitud.estadoSolicitud === "enviada" || selectedSolicitud.estadoSolicitud === "finalizadas" || (selectedSolicitud.estadoSolicitud === "reprogramacion" && selectedSolicitud.cantidadDiasSolicitados > 0)) && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                {(selectedSolicitud.estadoSolicitud === "autorizadas" || selectedSolicitud.estadoSolicitud === "enviada" || selectedSolicitud.estadoSolicitud === "finalizadas" || (selectedSolicitud.estadoSolicitud === "cancelada" && selectedSolicitud.cantidadDiasSolicitados > 0)) && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 4, flexWrap: 'wrap' }}>
                     <Button
                       variant="contained"
-                      onClick={() => handleDownloadPDF(selectedSolicitud.idSolicitud, selectedSolicitud.idEmpleado)}
+                      onClick={() => handleDownloadPDF(selectedSolicitud.idSolicitud, selectedSolicitud.idEmpleado, 'normal')}
                       startIcon={<DescriptionIcon />}
                       sx={{
                         borderRadius: '20px',
@@ -1266,8 +1266,41 @@ const SolicitudesPage = () => {
                         '&:hover': { backgroundColor: '#c62828' }
                       }}
                     >
-                      Descargar Informe Oficial
+                      {selectedSolicitud.estadoSolicitud === "cancelada" ? "PDF Original/Actualizado" : "Descargar Informe Oficial"}
                     </Button>
+                    
+                    {selectedSolicitud.estadoSolicitud === "cancelada" && (
+                      <Button
+                        variant="contained"
+                        onClick={() => handleDownloadPDF(selectedSolicitud.idSolicitud, selectedSolicitud.idEmpleado, 'cancelacion')}
+                        startIcon={<DescriptionIcon />}
+                        sx={{
+                          borderRadius: '20px',
+                          textTransform: 'none',
+                          fontWeight: '600',
+                          px: 4,
+                          py: 1.2,
+                          backgroundColor: '#d32f2f',
+                          color: "#fff",
+                          '&:hover': { backgroundColor: '#9a0007' }
+                        }}
+                      >
+                        Boleta de Cancelación
+                      </Button>
+                    )}
+                  </Box>
+                )}
+
+                {selectedSolicitud.estadoSolicitud === "cancelada" && selectedSolicitud.cantidadDiasSolicitados === 0 && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                    <Alert severity="error" variant="filled" sx={{ borderRadius: '12px', width: '100%', maxWidth: '500px' }}>
+                      <Typography variant="body1" fontWeight="bold" align="center">
+                        SOLICITUD ANULADA TOTALMENTE
+                      </Typography>
+                      <Typography variant="body2" align="center">
+                        No se gozó de ningún día de vacaciones en esta solicitud, por lo que no hay informe disponible.
+                      </Typography>
+                    </Alert>
                   </Box>
                 )}
 

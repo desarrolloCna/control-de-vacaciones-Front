@@ -106,7 +106,8 @@ export default function StepEmpleadoNuevo({ wizardData, onStepComplete, onFinish
         onFinish();
       }
     } catch (err) {
-      setError("Error al registrar el empleado. Intente de nuevo.");
+      const errorMessage = err.response?.data?.responseData || "Error al registrar el empleado. Intente de nuevo.";
+      setError(errorMessage);
       setTimeout(() => setError(null), 5000);
     } finally {
       setLoading(false);
