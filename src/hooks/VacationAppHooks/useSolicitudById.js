@@ -17,6 +17,7 @@ export function useSolicitudById() {
   const [diasDebitados, setDiasDebitados] = useState(0);
   const [diasDisponiblesT, setDiasDisponiblesT] = useState(0);
   const [diasSolicitablesT, setDiasSolicitablesT] = useState(0);
+  const [diasAutorizadosEspeciales, setDiasAutorizadosEspeciales] = useState(0);
   const [solicitudesEmpleado, setSolicitudesEmpleado] = useState([]);
 
   useEffect(() => {
@@ -41,6 +42,7 @@ export function useSolicitudById() {
          const gestion = await consultarGestionVacacionesEspecialesService(userData.idEmpleado, fechaEnCurso);
          const hasGestion = gestion.isExist == 0 ? false : true;
          setHasGestion(hasGestion);
+         setDiasAutorizadosEspeciales(gestion.diasAutorizados || 0);
         const { idEmpleado, idInfoPersonal } = userData;
 
         const resDias = await consultarDiasDisponiblesServices(idEmpleado);
@@ -77,5 +79,5 @@ export function useSolicitudById() {
     fetchSolicitud();
   }, []); // Corregido: dependencias vacías para evitar llamadas innecesarias
 
-  return { solicitud, diasValidos, errorS, loadingS, setSolicitud, sinDias, hasGestion, diasDebitados, diasDisponiblesT, diasSolicitablesT, solicitudesEmpleado, setSolicitudesEmpleado };
+  return { solicitud, diasValidos, errorS, loadingS, setSolicitud, sinDias, hasGestion, diasAutorizadosEspeciales, diasDebitados, diasDisponiblesT, diasSolicitablesT, solicitudesEmpleado, setSolicitudesEmpleado };
 }

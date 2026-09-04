@@ -125,6 +125,7 @@ const SolicitudesPage = () => {
 
   // Función para generar colores únicos por empleado
   const getEmployeeColor = (employeeName) => {
+    const name = employeeName || "Empleado Desconocido";
     const colors = [
       "#4285F4", "#34A853", "#FBBC05", "#EA4335", "#ff6b6b",
       "#2ECC71", "#E74C3C", "#3498DB", "#1ABC9C", "#9B59B6",
@@ -133,8 +134,8 @@ const SolicitudesPage = () => {
     ];
     
     let hash = 0;
-    for (let i = 0; i < employeeName.length; i++) {
-      hash = employeeName.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
     
     const index = Math.abs(hash) % colors.length;
@@ -352,7 +353,7 @@ const SolicitudesPage = () => {
   const filteredSolicitudes = solicitudesU
     ?.filter(
       (solicitud) =>
-        solicitud.nombreCompleto
+        (solicitud.nombreCompleto || "")
           .toLowerCase()
           .includes(searchText.toLowerCase()) &&
         (estadoFilter ? solicitud.estadoSolicitud === estadoFilter : true)

@@ -21,6 +21,7 @@ const ActivarVacacionesPage = () => {
     const { empleadosU, loadingEmpleados, showErrorEmpleados, showInfoEmpleados, setEmpleadosU } = useGetEmpleadosUltimoAnio();
     const [empleadosSeleccionados, setEmpleadosSeleccionados] = useState(new Set());
     const [descripciones, setDescripciones] = useState({});
+    const [diasAutorizados, setDiasAutorizados] = useState({});
     const [procesando, setProcesando] = useState(false);
     const [mensaje, setMensaje] = useState({ tipo: '', texto: '' });
     const [terminoBusqueda, setTerminoBusqueda] = useState('');
@@ -75,10 +76,14 @@ const ActivarVacacionesPage = () => {
         const nuevosSeleccionados = new Set(empleadosSeleccionados);
         if (nuevosSeleccionados.has(idEmpleado)) {
             nuevosSeleccionados.delete(idEmpleado);
-            // Limpiar descripción cuando se deselecciona
+            // Limpiar descripción y días cuando se deselecciona
             const nuevasDescripciones = { ...descripciones };
             delete nuevasDescripciones[idEmpleado];
             setDescripciones(nuevasDescripciones);
+            
+            const nuevosDias = { ...diasAutorizados };
+            delete nuevosDias[idEmpleado];
+            setDiasAutorizados(nuevosDias);
         } else {
             nuevosSeleccionados.add(idEmpleado);
         }
@@ -90,6 +95,14 @@ const ActivarVacacionesPage = () => {
         setDescripciones(prev => ({
             ...prev,
             [idEmpleado]: descripcion
+        }));
+    };
+
+    // Función para actualizar los días autorizados de un empleado
+    const actualizarDiasAutorizados = (idEmpleado, dias) => {
+        setDiasAutorizados(prev => ({
+            ...prev,
+            [idEmpleado]: dias
         }));
     };
 
@@ -105,13 +118,15 @@ const ActivarVacacionesPage = () => {
             const nuevosSeleccionados = new Set(empleadosSeleccionados);
             empleadosVisiblesIds.forEach(id => nuevosSeleccionados.delete(id));
             setEmpleadosSeleccionados(nuevosSeleccionados);
-            
-            // Limpiar descripciones de los empleados deseleccionados
+            // Limpiar descripciones y días de los empleados deseleccionados
             const nuevasDescripciones = { ...descripciones };
+            const nuevosDias = { ...diasAutorizados };
             empleadosVisiblesIds.forEach(id => {
                 delete nuevasDescripciones[id];
+                delete nuevosDias[id];
             });
             setDescripciones(nuevasDescripciones);
+            setDiasAutorizados(nuevosDias);
         } else {
             // Seleccionar todos los visibles
             const nuevosSeleccionados = new Set(empleadosSeleccionados);
@@ -133,7 +148,8 @@ const ActivarVacacionesPage = () => {
             fechaInicioValidez: hoy.format('YYYY-MM-DD'),
             fechaFinValidez: manana.format('YYYY-MM-DD'),
             fechaIngresoGestion: hoy.format('YYYY-MM-DD HH:mm:ss'),
-            descripcion: descripciones[empleado.idEmpleado] || '' // Agregar descripción al payload
+            descripcion: descripciones[empleado.idEmpleado] || '', // Agregar descripción al payload
+            diasAutorizados: parseInt(diasAutorizados[empleado.idEmpleado]) || 0
         };
     };
 
@@ -144,15 +160,33 @@ const ActivarVacacionesPage = () => {
             return;
         }
 
-        // Validar que todos los empleados seleccionados tengan descripción
-        const empleadosSinDescripcion = Array.from(empleadosSeleccionados).filter(id => 
-            !descripciones[id] || descripciones[id].trim() === ''
+        // Validar que todos los empleados seleccionados tengan descripción y días
+        const empleadosSinDatos = Array.from(empleadosSeleccionados).filter(id => 
+            !descripciones[id] || descripciones[id].trim() === '' || 
+            !diasAutorizados[id] || parseInt(diasAutorizados[id]) <= 0
         );
 
-        if (empleadosSinDescripcion.length > 0) {
+        if (empleadosSinDatos.length > 0) {
             setMensaje({ 
                 tipo: 'error', 
-                texto: `Por favor ingresa una Motivo para todos los empleados seleccionados` 
+                texto: `Por favor ingresa un Motivo y la Cantidad de Días a autorizar para todos los empleados seleccionados` 
+            });
+            return;
+        }
+
+        const empleadosProcesar = empleadosU.filter(emp => 
+            empleadosSeleccionados.has(emp.idEmpleado)
+        );
+
+        // Validar que los días autorizados no excedan los acumulados del año actual
+        const empleadosExcedidos = empleadosProcesar.filter(emp => 
+            parseInt(diasAutorizados[emp.idEmpleado]) > (emp.diasTotales || 0)
+        );
+
+        if (empleadosExcedidos.length > 0) {
+            setMensaje({ 
+                tipo: 'error', 
+                texto: `No puedes autorizar más días de los acumulados en el año actual (Revisa: ${empleadosExcedidos.map(e => e.Nombre).join(', ')})` 
             });
             return;
         }
@@ -161,10 +195,6 @@ const ActivarVacacionesPage = () => {
         setMensaje({ tipo: '', texto: '' });
 
         try {
-            const empleadosProcesar = empleadosU.filter(emp => 
-                empleadosSeleccionados.has(emp.idEmpleado)
-            );
-
             const resultados = [];
             const errores = [];
 
@@ -213,10 +243,11 @@ const ActivarVacacionesPage = () => {
                 });
             }
 
-            // Limpiar selecciones y descripciones solo si todos fueron exitosos
+            // Limpiar selecciones, descripciones y días solo si todos fueron exitosos
             if (errores.length === 0) {
                 setEmpleadosSeleccionados(new Set());
                 setDescripciones({});
+                setDiasAutorizados({});
             }
             
         } catch (error) {
@@ -389,7 +420,7 @@ const ActivarVacacionesPage = () => {
                                                     </Typography>
                                                     
                                                     {empleadosSeleccionados.has(empleado.idEmpleado) && (
-                                                        <Box sx={{ mt: 2, width: '100%' }}>
+                                                        <Box sx={{ mt: 2, width: '100%', display: 'flex', gap: 2, flexDirection: { xs: 'column', md: 'row' } }}>
                                                             <TextField
                                                                 fullWidth
                                                                 multiline
@@ -402,6 +433,19 @@ const ActivarVacacionesPage = () => {
                                                                 disabled={procesando}
                                                                 inputProps={{ maxLength: 500 }}
                                                                 helperText={`${descripciones[empleado.idEmpleado]?.length || 0}/500 caracteres`}
+                                                                required
+                                                            />
+                                                            <TextField
+                                                                type="number"
+                                                                label="Días a autorizar"
+                                                                variant="outlined"
+                                                                size="small"
+                                                                sx={{ width: { xs: '100%', md: '200px' } }}
+                                                                value={diasAutorizados[empleado.idEmpleado] || ''}
+                                                                onChange={(e) => actualizarDiasAutorizados(empleado.idEmpleado, e.target.value)}
+                                                                disabled={procesando}
+                                                                inputProps={{ min: 1, max: empleado.diasTotales || 0 }}
+                                                                required
                                                             />
                                                         </Box>
                                                     )}

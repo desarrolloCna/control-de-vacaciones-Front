@@ -81,7 +81,7 @@ const ProgramarVacacionesPage = () => {
   
   const navigate = useNavigate();
 
-  const { solicitud, diasValidos, errorS, loadingS, sinDias, hasGestion, diasDebitados, diasDisponiblesT, diasSolicitablesT, solicitudesEmpleado } = useSolicitudById();
+  const { solicitud, diasValidos, errorS, loadingS, sinDias, hasGestion, diasAutorizadosEspeciales, diasDebitados, diasDisponiblesT, diasSolicitablesT, solicitudesEmpleado } = useSolicitudById();
   const { coordinadoresList, errorCoordinadoresList, loadingCoordinadoresList } = useGetCoordinadoresList();
   const { datosLaborales, loading: loadingDL } = useDatosLaborales();
   const { jerarquia, loadingJerarquia } = useJerarquiaUnidades();
@@ -90,11 +90,11 @@ const ProgramarVacacionesPage = () => {
 
   // Calcular días consumidos (solicitados o aprobados) en el año en curso
   const diasConsumidosEsteAnio = (solicitudesEmpleado || [])
-    .filter(req => 
-      req.estadoSolicitud !== 'RECHAZADA' && 
-      req.estadoSolicitud !== 'CANCELADA' && 
-      dayjs(req.fechaSolicitud).year() === dayjs().year()
-    )
+    .filter(req => {
+      const estado = (req.estadoSolicitud || '').toLowerCase();
+      return !['rechazada', 'cancelada', 'reprogramacion'].includes(estado) && 
+             dayjs(req.fechaSolicitud).year() === dayjs().year();
+    })
     .reduce((sum, req) => sum + parseInt(req.cantidadDiasSolicitados || 0), 0);
 
   const MAX_DIAS_SOLICITUD = (hasExcepcionLimite && excepcionDias !== null) ? excepcionDias : 20;
@@ -102,14 +102,22 @@ const ProgramarVacacionesPage = () => {
   // Límite anual disponible para solicitar (no puede exceder el maximo autorizado/legal anual)
   const limiteRestanteEsteAnio = Math.max(0, MAX_DIAS_SOLICITUD - diasConsumidosEsteAnio);
 
-  // Ajustar el historial restando los días ya consumidos este año (FIFO)
+  // Días en tránsito (solicitudes enviadas, aceptadas, autorizadas, etc. que aún no se han debitado)
+  const diasEnTransito = (solicitudesEmpleado || [])
+    .filter(req => {
+      const estado = (req.estadoSolicitud || '').toLowerCase();
+      return !['rechazada', 'cancelada', 'reprogramacion', 'finalizadas'].includes(estado);
+    })
+    .reduce((sum, req) => sum + parseInt(req.cantidadDiasSolicitados || 0), 0);
+
+  // Ajustar el historial restando los días en tránsito (FIFO)
   const historialAjustado = React.useMemo(() => {
     if (!historialPeriodos || historialPeriodos.length === 0) return [];
     
     const adjusted = historialPeriodos.map(p => ({ ...p }));
     adjusted.sort((a, b) => a.periodo - b.periodo); // Más antiguo primero
     
-    let diasADescontar = diasConsumidosEsteAnio;
+    let diasADescontar = diasEnTransito;
     
     for (let p of adjusted) {
       if (diasADescontar <= 0) break;
@@ -121,15 +129,27 @@ const ProgramarVacacionesPage = () => {
     }
     
     return adjusted.sort((a, b) => b.periodo - a.periodo); // Más reciente primero para UI
-  }, [historialPeriodos, diasConsumidosEsteAnio]);
+  }, [historialPeriodos, diasEnTransito]);
 
-  const totalDiasReales = historialAjustado
-    .filter(p => p.disponibles > 0 && p.periodo !== dayjs().year())
-    .reduce((acc, p) => acc + p.disponibles, 0);
-    
+  // Si tiene gestión especial, el empleado puede usar días del año actual limitados a diasAutorizadosEspeciales
+  const totalDiasReales = React.useMemo(() => {
+    let saldo = 0;
+    historialAjustado.forEach(p => {
+        if (p.disponibles <= 0) return;
+        if (p.periodo !== dayjs().year()) {
+            saldo += p.disponibles;
+        } else if (hasGestion) {
+            saldo += Math.min(p.disponibles, diasAutorizadosEspeciales || p.disponibles);
+        }
+    });
+    return saldo;
+  }, [historialAjustado, hasGestion, diasAutorizadosEspeciales]);
+
   const diasDisponibles = historialAjustado.length > 0 
     ? Math.min(totalDiasReales, limiteRestanteEsteAnio)
-    : Math.max(0, (diasSolicitablesT < limiteRestanteEsteAnio ? diasSolicitablesT : limiteRestanteEsteAnio) - (diasDebitados || 0));
+    : (hasGestion && diasAutorizadosEspeciales > 0 
+        ? Math.min(diasAutorizadosEspeciales, limiteRestanteEsteAnio)
+        : Math.max(0, (diasSolicitablesT < limiteRestanteEsteAnio ? diasSolicitablesT : limiteRestanteEsteAnio) - (diasDebitados || 0)));
 
   const formatDateToDisplay = (date) => dayjs(date).format("DD/MM/YYYY");
 
@@ -509,7 +529,8 @@ const ProgramarVacacionesPage = () => {
             Días disponibles a solicitar:
           </Typography>
           <Chip
-            label={`${diasDisponibles} de ${MAX_DIAS_SOLICITUD}`}
+            label={`${diasDisponibles} ${diasDisponibles === 1 ? 'Día' : 'Días'}`}
+            title={`Límite anual restante: ${limiteRestanteEsteAnio} días. Total histórico: ${totalDiasReales} días.`}
             color={diasDisponibles > 10 ? "success" : diasDisponibles > 5 ? "warning" : "error"}
             sx={{ fontWeight: "bold" }}
           />
